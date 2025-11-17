@@ -1,6 +1,7 @@
 body{
     padding:0;
     margin:0;
+    max-width: auto;
 }
 
 #bdtitle{
@@ -8,6 +9,7 @@ body{
     display: flex;
     /* FLEXBOX: Vertically align children in the middle */
     align-items: center; 
+    justify-content: space-between;
     
     text-align: left;
     color:#F3F2EC;
@@ -62,7 +64,7 @@ float: left;
 }
 
 .navbar{
-    margin-left: 700px;
+    margin-left: 0px;
 }
 
 #log{   
@@ -101,7 +103,8 @@ float: left;
     position: relative;
     width:700px;
     bottom: 100px;
-    right:50px;
+    right:0px;
+    left:150px ;
     float:right;
 }
 
@@ -138,4 +141,24 @@ float: left;
     text-align: left;
     padding-top: 20px; 
     padding-bottom: 900px;
+}
+
+#BDR{
+ position:relative;
+ bottom:19cm;
+ left:3cm;
+}
+
+#rate{
+    width: 500px;
+    text-align:justify;
+}
+
+#Blood-Donor-Privileges-Malaysia{
+    position:relative;
+    width: 17cm;
+    bottom:25cm;
+    right:3cm;
+    float:right;
+
 }
