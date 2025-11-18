@@ -11,10 +11,20 @@
 </head>
 
 <body> 
+    <script>
+        document.addEventListener('wheel', function(event) {
+            // Check if the Control key (Windows/Linux) or Command key (Mac) is held down
+            if (event.ctrlKey || event.metaKey) {
+                // This prevents the default browser zoom action
+                event.preventDefault();
+            }
+        }, { passive: false }); // 'passive: false' is crucial for allowing preventDefault() to work in modern browsers.
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <header>
+    
         <div id="bdtitle">
-            <img src="namel.PNG" id="logo" alt="Bloodknight Logo">
+            <img src="/images/namel.PNG" id="logo" alt="Bloodknight Logo">
             <nav class="navbar">
             <ul>
             <li><a href="">Home</a></li>
@@ -30,12 +40,13 @@
         </div>
         </ul>
     </nav>
-        </div>
     </header>
 
-    
+
+    <div id="backgroundimage">
+        <img src="images/image7.png" id="image7">
         <div id="firstsection">
-            <img src="blood.PNG" id="blood2" alt="bloodumb">
+            <img src="/images/blood.PNG" id="blood2" alt="bloodumb">
             <h3>
             WELCOME KNIGHTS!
             </h3>
@@ -43,40 +54,45 @@
              <P>Join us in blood donation.</p>
         </div>
 
-   
-
-  
         <UL>
         <div id="donate">
             <button id="donatebutton">
                 <a href=""> Donate Now</a>
             </button>
         </div>
+    </div>
+
+
+
     </UL>
-    
+    <div id="secondwrapper">
     <DIV id="secondsec"> 
         <DIV id="secondsec-content">
-            <h1>lets learn more on..</h1>
+            <h1>More Than a Platform, We're a Mission.</h1>
 
         </DIV>
+        <Div id="underwords">
+            <p>Connecting generous hearts with critical needs to ensure no one waits for blood in vain.</p>
+        </Div>
 
-        <div id="BDR">
-            <h4>Blood Donation Rate on 2024</h4>
-            <p id="rate">According to the Ministry of Health, Malaysia recorded 113,786 new blood donors in 2024, the second-lowest figure since 96,702 in 2021.
+    </div>
 
-                According to the ministry's data, the number of new donors in previous years was as follows:
-                
-                2023: 118,285
-                2022: 120,929</p>
+        <hr class="line-under-connect">
+
+        <div id="mission-wrapper">
+
+            <Div ID="missioncontent">
+                <P>"BloodKnight was born from a simple, urgent question: In a world of instant information, why is it still so difficult to get life-saving blood to those who need it most? </P>
+                <br>
+                 <P> Our vision is a future where the blood supply in Malaysia is always sufficient, where every donor feels valued, and where every call for help is answered instantly and efficiently.</P> 
+                 <br> 
+                 <P>Our mission is to empower every potential donor in \Malaysia by creating a centralized, intuitive platform that makes finding blood drives, scheduling donations, and responding to urgent needs as simple as a few clicks.</P>
+            </Div>
             
-                
+            <div> 
+                <img src="/images/Blood-Donor-Privileges-Malaysia.png" id="Blood-Donor-Privileges-Malaysia">
+            </div>
         </div>
-
-        <div> 
-            <img src="Blood-Donor-Privileges-Malaysia.png" id="Blood-Donor-Privileges-Malaysia">
-        </div>
-    </DIV>
-
     <div id="slider">
     
 
