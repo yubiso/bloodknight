@@ -131,8 +131,8 @@ float: left;
     padding: 0%;
     margin: 0%;
     position:relative;
-    top:100px;
-    background-color: #D9D9D9;
+    bottom:100px;
+    background-color:white;
     
 }
 
@@ -141,24 +141,94 @@ float: left;
     text-align: left;
     padding-top: 20px; 
     padding-bottom: 900px;
+    color:#2563EB;
 }
 
-#BDR{
- position:relative;
- bottom:19cm;
- left:3cm;
-}
 
-#rate{
-    width: 500px;
-    text-align:justify;
-}
 
-#Blood-Donor-Privileges-Malaysia{
+/*#Blood-Donor-Privileges-Malaysia{
     position:relative;
     width: 17cm;
     bottom:25cm;
     right:3cm;
     float:right;
 
+}*/
+
+#underwords{
+    color:#E62727;
+    font-size:19px;
+    position:relative;
+    bottom:24.5cm;
+    left:120px;
+}
+
+#secondwrapper{
+    background-color: white;
+}
+
+#mission-wrapper {
+   
+    background-color: white;
+    border: 3px solid grey;
+    border-right:none;
+    border-left:none;
+    border-bottom:none;
+    padding: 30px; /* Space inside the box */
+    position:relative;
+    bottom:27cm;
+
+  
+}
+
+#Blood-Donor-Privileges-Malaysia{
+    position:relative;
+    width: 18cm;
+    height: 12cm;
+    bottom:cm;
+    top:0cm;
+    right:2cm;
+    float:right;
+    border-radius: 30px;
+
+}
+
+#missioncontent{
+    position: relative;
+width: 491px;
+height: 100px;
+left: 125px;
+top: 50px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 29px;
+letter-spacing: -0.02em;
+
+color: #000000;
+}
+
+#image7{
+
+position: absolute;
+width: 1451px;
+height: 700px;
+left: 0px;
+top: 124px;
+
+background: url(image.png);
+opacity: 0.5;
+box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+filter: blur(2px);
+
+}
+
+body{
+    padding:0;
+    margin:0;
+    max-width: auto;
+    /* *** ADD THIS LINE *** */
+    overflow-x: hidden; 
 }
