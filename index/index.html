@@ -11,15 +11,7 @@
 </head>
 
 <body> 
-    <script>
-        document.addEventListener('wheel', function(event) {
-            // Check if the Control key (Windows/Linux) or Command key (Mac) is held down
-            if (event.ctrlKey || event.metaKey) {
-                // This prevents the default browser zoom action
-                event.preventDefault();
-            }
-        }, { passive: false }); // 'passive: false' is crucial for allowing preventDefault() to work in modern browsers.
-    </script>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <header>
     
@@ -47,7 +39,7 @@
         <img src="images/image7.png" id="image7">
         <div id="firstsection">
             <img src="/images/blood.PNG" id="blood2" alt="bloodumb">
-            <h3>
+            <h3 id="knight">
             WELCOME KNIGHTS!
             </h3>
             <p>Put the power to save lives in the palm of you hands!</p> 
@@ -90,10 +82,14 @@
             </Div>
             
             <div> 
-                <img src="/images/Blood-Donor-Privileges-Malaysia.png" id="Blood-Donor-Privileges-Malaysia">
+                <img src="/images/bloodbag.png" id="Blood-Donor-Privileges-Malaysia">
             </div>
         </div>
     <div id="slider">
+
+        <div id="findadrive">
+            <h1>Find a Drive</h3>
+        </div>
     
 
     </div>
