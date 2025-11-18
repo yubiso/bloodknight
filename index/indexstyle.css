@@ -88,8 +88,19 @@ float: left;
 
 #firstsection{
     padding:150px;
-    font-size:60px;
+    font-size:50px;
 }
+
+#knight{
+    position: relative;
+    font-size:40px;
+    bottom: 1cm;
+    color:#2563EB;
+
+
+    
+}
+
 
 #firstsection p{
     position:relative;
@@ -103,8 +114,11 @@ float: left;
     position: relative;
     width:700px;
     bottom: 100px;
+
+    height: 12cm;
+    width: 12cm;
     right:0px;
-    left:150px ;
+    left:100px ;
     float:right;
 }
 
@@ -145,16 +159,6 @@ float: left;
 }
 
 
-
-/*#Blood-Donor-Privileges-Malaysia{
-    position:relative;
-    width: 17cm;
-    bottom:25cm;
-    right:3cm;
-    float:right;
-
-}*/
-
 #underwords{
     color:#E62727;
     font-size:19px;
@@ -183,11 +187,11 @@ float: left;
 
 #Blood-Donor-Privileges-Malaysia{
     position:relative;
-    width: 18cm;
-    height: 12cm;
-    bottom:cm;
+    width: 15cm;
+    height: 11cm;
+    bottom: 33px;
     top:0cm;
-    right:2cm;
+    right:1cm;
     float:right;
     border-radius: 30px;
 
@@ -232,3 +236,10 @@ body{
     /* *** ADD THIS LINE *** */
     overflow-x: hidden; 
 }
+
+#findadrive{
+    color:#2563EB;
+    
+}
+
+
