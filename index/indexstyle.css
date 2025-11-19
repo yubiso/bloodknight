@@ -146,7 +146,7 @@ float: left;
     margin: 0%;
     position:relative;
     bottom:100px;
-    background-color:white;
+    background-color:rgb(255, 255, 255);
     
 }
 
@@ -168,7 +168,7 @@ float: left;
 }
 
 #secondwrapper{
-    background-color: white;
+    background-color: rgb(255, 255, 255);
 }
 
 #mission-wrapper {
@@ -237,9 +237,39 @@ body{
     overflow-x: hidden; 
 }
 
-#findadrive{
+.basicbox{
+    position:relative;
+    background-color:#FFF7F7;
+    color:#FFF7F7;
+    width:50cm;
+    height:30cm;
+    bottom:10cm;
+}
+
+.basicbox #findadrive{
+    font-family:'Inter';
     color:#2563EB;
-    
+    position:absolute;
+    bottom:0px;
+    top:0cm;
+    left:3cm;    
+}
+
+#hospital{
+    position:relative;
+    bottom:37cm;
+    height:10cm;
+    left:3cm;>
+}
+
+.white-background{
+    position:absolute;
+    background-color: rgb(255, 0, 0);
+    color: #2563EB;
+    width:50cm;
+    height:30cm;
+    bottom:10cm;
+
 }
 
 
