@@ -108,6 +108,33 @@ button:focus {
     outline: none;
 }
 
+.btn{
+    position: relative;
+    border-radius: 20px;
+    border: 1px solid #DC143C;
+    background-color: crimson;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 10px;
+    padding: 12px 80px;
+    letter-spacing: 1px;
+    text-transform: capitalize;
+    transition: 0.3s ;
+}
+
+.btn:hover {
+    letter-spacing: 3px;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn:focus {
+    outline: none;
+}
+
 button.ghost {
     background-color: rgba(225, 225, 225, 0.2);
     border: 2px solid #fff;
