@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Role - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .role-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .role-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #dc2626;
+        }
+
+        .role-card:hover .icon-wrapper {
+            background-color: #dc2626;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .role-card:hover .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Checkbox animation override */
+        .custom-radio:checked + div {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .custom-radio:checked + div .icon-wrapper {
+            background-color: #dc2626;
+            color: white;
+        }
+        
+        .custom-radio:checked + div .check-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+    <!-- Navbar (Minimal for focused flow) -->
+    <nav class="w-full bg-white border-b border-slate-200 px-6 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-red-600 rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm flex items-center justify-center text-white shadow-lg shadow-red-200">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">BloodKnight</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right">
+                    <p class="text-sm font-semibold text-slate-700">Logged in as sarah@example.com</p>
+                    <a href="#" class="text-xs text-slate-500 hover:text-slate-800 transition-colors">Not you? Log out</a>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border border-slate-200">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=b6e3f4" alt="Profile" class="h-full w-full object-cover">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-4xl w-full">
+            
+            <div class="text-center mb-12">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">How will you use BloodKnight?</h1>
+                <p class="text-slate-500 text-lg max-w-xl mx-auto">We need to set up your dashboard. Please select whether you are here to donate or to manage a medical facility.</p>
+            </div>
+
+            <form id="roleForm" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    
+                    <!-- Donor Option -->
+                    <label class="cursor-pointer relative group">
+                        <input type="radio" name="role" value="donor" class="custom-radio sr-only" onchange="handleSelection(this)">
+                        <div class="role-card h-full bg-white border-2 border-slate-200 rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+                            
+                            <!-- Selection Indicator -->
+                            <div class="check-indicator absolute top-4 right-4 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white opacity-0 transform scale-50 transition-all duration-300 shadow-lg">
+                                <i class="fas fa-check"></i>
+                            </div>
+
+                            <div class="icon-wrapper w-20 h-20 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-3xl mb-6 transition-all duration-300">
+                                <i class="fas fa-hand-holding-heart"></i>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold text-slate-900 mb-3">Become a Donor</h3>
+                            <p class="text-slate-500 mb-8 flex-1 leading-relaxed">
+                                I want to find blood drives, schedule appointments, track my donation history, and earn rewards for saving lives.
+                            </p>
+
+                            <ul class="text-left w-full space-y-3 text-sm text-slate-600 mb-8 bg-slate-50 p-5 rounded-xl">
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-green-500"></i> Track health vitals
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-green-500"></i> Earn donor badges
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-green-500"></i> Digital ID Card
+                                </li>
+                            </ul>
+                        </div>
+                    </label>
+
+                    <!-- Hospital Option -->
+                    <label class="cursor-pointer relative group">
+                        <input type="radio" name="role" value="hospital" class="custom-radio sr-only" onchange="handleSelection(this)">
+                        <div class="role-card h-full bg-white border-2 border-slate-200 rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+                            
+                            <!-- Selection Indicator -->
+                            <div class="check-indicator absolute top-4 right-4 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white opacity-0 transform scale-50 transition-all duration-300 shadow-lg">
+                                <i class="fas fa-check"></i>
+                            </div>
+
+                            <div class="icon-wrapper w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-6 transition-all duration-300">
+                                <i class="fas fa-hospital-alt"></i>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold text-slate-900 mb-3">Hospital Partner</h3>
+                            <p class="text-slate-500 mb-8 flex-1 leading-relaxed">
+                                I represent a hospital or clinic. I need to request blood units, manage inventory, and organize donation camps.
+                            </p>
+
+                            <ul class="text-left w-full space-y-3 text-sm text-slate-600 mb-8 bg-slate-50 p-5 rounded-xl">
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-blue-500"></i> Request blood units
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-blue-500"></i> Organize drives
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i class="fas fa-check text-blue-500"></i> Inventory analytics
+                                </li>
+                            </ul>
+                        </div>
+                    </label>
+
+                </div>
+
+                <!-- Action Bar -->
+                <div class="flex flex-col items-center justify-center pt-8 opacity-50 transition-opacity duration-300" id="submitSection">
+                    <button type="button" class="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 rounded-xl font-semibold text-lg transition-all shadow-xl shadow-slate-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3">
+                        Continue Setup <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p class="mt-4 text-slate-400 text-sm">You can add other roles later in settings.</p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function handleSelection(radio) {
+            // Visual feedback logic could go here if needed beyond CSS
+            const submitSection = document.getElementById('submitSection');
+            
+            // Make the button fully visible once a selection is made
+            if(radio.checked) {
+                submitSection.classList.remove('opacity-50');
+                submitSection.querySelector('button').removeAttribute('disabled');
+            }
+        }
+    </script>
+</body>
+</html>
