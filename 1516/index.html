@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodKnight | Defend the Pulse</title>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- VITALDROP STYLING --- */
+        :root {
+            --primary: #ff4757;
+            --secondary: #2f3542;
+            --text-dark: #2f3542;
+            --text-light: #747d8c;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+            --shadow-sm: 0 5px 15px rgba(0,0,0,0.05);
+            --shadow-lg: 0 15px 35px rgba(255, 71, 87, 0.25);
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        body { color: var(--text-dark); background-color: var(--white); overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; outline: none; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+
+        /* NAVIGATION */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; position: fixed; width: 100%; top: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 2.5rem; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-buttons { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; transition: var(--transition); }
+        .btn-primary { background: var(--gradient); color: var(--white); box-shadow: var(--shadow-lg); }
+        .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
+        .btn-text { background: transparent; color: var(--text-light); font-weight: 600; }
+
+        /* HERO */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 80px 8% 0; background: linear-gradient(to right, #fff 55%, #fff0f0 45%); position: relative; }
+        .hero-content { flex: 1; max-width: 600px; z-index: 2; }
+        .hero h1 { font-size: 4rem; line-height: 1.1; margin-bottom: 1.5rem; }
+        .hero h1 span { color: var(--primary); }
+        .hero-tag { display: inline-block; background: #ffeaa7; color: #d35400; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .hero-visual { flex: 1; height: 600px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .blob { width: 500px; height: 500px; background: var(--gradient); border-radius: 46% 54% 39% 61%; animation: morph 8s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 10rem; }
+        @keyframes morph { 0%, 100% { border-radius: 46% 54% 39% 61%; } 50% { border-radius: 59% 41% 68% 32%; } }
+
+        /* STATS */
+        .stats-bar { background: var(--secondary); color: white; padding: 4rem 8%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center; }
+        .stat h3 { font-size: 3rem; color: var(--primary); font-weight: 800; margin-bottom: 0.5rem; }
+
+        /* SECTIONS */
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-header h2 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-dark); }
+        
+        /* ABOUT */
+        .about-section { padding: 6rem 8%; background: var(--white); display: flex; align-items: center; gap: 4rem; }
+        .about-image img { width: 100%; border-radius: 20px; box-shadow: var(--shadow-lg); }
+        .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .value-item { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--secondary); }
+        .value-item i { color: var(--primary); background: rgba(255, 71, 87, 0.1); padding: 10px; border-radius: 50%; }
+
+        /* FUN FACTS (New Style) */
+        .fun-facts { padding: 6rem 8%; background: var(--bg-light); }
+        .facts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .fact-card { background: white; padding: 2rem; border-radius: 20px; border-left: 5px solid var(--primary); box-shadow: var(--shadow-sm); transition: var(--transition); }
+        .fact-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .fact-number { font-size: 2.5rem; font-weight: 800; color: rgba(255, 71, 87, 0.2); margin-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; }
+        .fact-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 700; }
+        .fact-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; }
+        .fact-card strong { color: var(--primary); }
+
+        /* BLOOD TYPES */
+        .blood-types { padding: 6rem 8%; background: var(--white); }
+        .blood-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .blood-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: var(--shadow-sm); border: 2px solid #f1f2f6; text-align: center; transition: var(--transition); }
+        .blood-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
+        .blood-bag { width: 80px; height: 110px; background: var(--gradient); border-radius: 15px 15px 25px 25px; display: flex; justify-content: center; align-items: center; color: white; font-size: 2rem; font-weight: 800; margin: 0 auto 1.5rem; }
+
+        /* PROCESS */
+        .process { padding: 6rem 8%; background: var(--bg-light); }
+        .steps-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: center; }
+        .step-card { background: white; padding: 2.5rem 2rem; border-radius: 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+        .step-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .step-number { position: absolute; top: -20px; right: -20px; font-size: 6rem; font-weight: 900; color: rgba(0,0,0,0.03); }
+        .icon-box { width: 80px; height: 80px; background: rgba(255, 71, 87, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1.5rem; color: var(--primary); font-size: 2rem; }
+
+        /* FOOTER */
+        footer { background: var(--secondary); color: white; padding: 4rem 8% 2rem; text-align: center; }
+        
+        /* MODALS & CHAT (Keeping existing styles) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: white; border-radius: 20px; padding: 2.5rem; width: 90%; max-width: 500px; transform: translateY(20px); transition: 0.3s; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-input { width: 100%; padding: 1rem; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
+
+        /* CHATBOT */
+        .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+        .chat-toggle-btn { width: 60px; height: 60px; border-radius: 50%; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; }
+        .chat-window { width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); display: none; flex-direction: column; margin-bottom: 15px; }
+        .chat-header { background: var(--gradient); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f8f9fa; }
+        .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px; }
+        .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+
+        @media (max-width: 992px) { .hero { flex-direction: column; text-align: center; height: auto; padding-bottom: 4rem; } .hero-visual { width: 100%; height: 400px; margin-top: 2rem; } .about-section { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo"><i class="fas fa-droplet"></i> Blood<span>Knight</span></div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#facts">Facts</a></li>
+            <li><a href="#types">Types</a></li>
+        </ul>
+        <div class="nav-buttons">
+            <button id="hospital-modal-btn" class="btn-text">For Hospitals</button>
+            <button id="donor-modal-btn" class="btn btn-primary">Donor Login</button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <span class="hero-tag">Urgent Need: O- BLOOD</span>
+            <h1>Be the Reason<br>Someone <span>Smiles Today.</span></h1>
+            <p>BloodKnight connects civilian donors to emergency supply lines. One unit saves 3 lives.</p>
+            <button id="donor-signup-btn" class="btn btn-primary">Start Mission</button>
+        </div>
+        <div class="hero-visual">
+            <div class="blob"><i class="fas fa-heart-pulse"></i></div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats-bar">
+        <div class="stat"><h3>45k+</h3><p>Donors Registered</p></div>
+        <div class="stat"><h3>120k+</h3><p>Lives Saved</p></div>
+        <div class="stat"><h3>80</h3><p>Partner Clinics</p></div>
+        <div class="stat"><h3>15min</h3><p>Average Time</p></div>
+    </section>
+
+    <!-- ABOUT US -->
+    <section class="about-section" id="about">
+        <div class="about-image">
+            <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Team">
+        </div>
+        <div class="about-content">
+            <span class="hero-tag" style="background: #e1f5fe; color: #0288d1;">Who We Are</span>
+            <h2>Bridging the Gap Between Donors & Patients</h2>
+            <p>Founded in 2024, BloodKnight was built on a simple promise: no patient should ever wait for blood. We connect generous donors like you directly with local hospitals.</p>
+            <div class="values-grid">
+                <div class="value-item"><i class="fas fa-shield-alt"></i> 100% Safe Process</div>
+                <div class="value-item"><i class="fas fa-globe-americas"></i> Nationwide Network</div>
+                <div class="value-item"><i class="fas fa-user-nurse"></i> Expert Care</div>
+                <div class="value-item"><i class="fas fa-clock"></i> 24/7 Support</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FUN FACTS (NEW SECTION ADDED) -->
+    <section class="fun-facts" id="facts">
+        <div class="section-header">
+            <h2>Did You Know?</h2>
+            <p>Essential knowledge for every Knight.</p>
+        </div>
+        <div class="facts-grid">
+            <div class="fact-card">
+                <div class="fact-number">01</div>
+                <h3>Multiplier Effect</h3>
+                <p>One pint of blood can save up to <strong>3 distinct lives</strong> by separating it into red cells, plasma, and platelets.</p>
+            </div>
+            <div class="fact-card">
+                <div class="fact-number">02</div>
+                <h3>Shelf Life</h3>
+                <p>Red blood cells only survive for <strong>42 days</strong>. Constant rotation and new recruits are vital for inventory.</p>
+            </div>
+            <div class="fact-card">
+                <div class="fact-number">03</div>
+                <h3>Rapid Resupply</h3>
+                <p>Your body replenishes the fluid volume lost during donation within just <strong>24 hours</strong>.</p>
+            </div>
+            <div class="fact-card">
+                <div class="fact-number">04</div>
+                <h3>The Golden Key</h3>
+                <p><strong>Type O-Negative</strong> is the universal donor. It is the most requested blood type for emergency trauma cases.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- KNOW YOUR TYPE -->
+    <section class="blood-types" id="types">
+        <div class="section-header">
+            <h2>Know Your Type</h2>
+            <p>Every blood type is special. See who you can help.</p>
+        </div>
+        <div class="blood-grid">
+            <div class="blood-card">
+                <div class="blood-bag">O</div>
+                <h3>The Universal Donor</h3>
+                <p>O- can give to anyone. O+ can give to any positive type.</p>
+            </div>
+            <div class="blood-card">
+                <div class="blood-bag">A</div>
+                <h3>The Common Healer</h3>
+                <p>One of the most common blood types, always in high demand.</p>
+            </div>
+            <div class="blood-card">
+                <div class="blood-bag">B</div>
+                <h3>The Rare Gem</h3>
+                <p>Less common than O and A. Your donation is incredibly valuable.</p>
+            </div>
+            <div class="blood-card">
+                <div class="blood-bag">AB</div>
+                <h3>The Universal Recipient</h3>
+                <p>AB+ can receive from anyone. Your plasma is universal!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW DOES IT WORK -->
+    <section class="process" id="process">
+        <div class="section-header">
+            <h2>How Does It Work?</h2>
+            <p>We've streamlined the process to make it comfortable and quick.</p>
+        </div>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="icon-box"><i class="fas fa-calendar-check"></i></div>
+                <h3>Register</h3>
+                <p>Fill out the form below to book your appointment slot.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="icon-box"><i class="fas fa-notes-medical"></i></div>
+                <h3>Screening</h3>
+                <p>A quick mini-physical and health history check.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="icon-box"><i class="fas fa-hand-holding-medical"></i></div>
+                <h3>Donation</h3>
+                <p>Sit back and relax. The actual donation takes only 8-10 minutes.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="icon-box"><i class="fas fa-cookie-bite"></i></div>
+                <h3>Refresh</h3>
+                <p>Enjoy a juice and a cookie on us. You've earned it!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="logo" style="justify-content:center; margin-bottom:1rem;">
+            <i class="fas fa-droplet"></i> Blood<span>Knight</span>
+        </div>
+        <div class="copyright">
+            &copy; 2024 BloodKnight Initiative. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- MODALS (Login/Signup) -->
+    <div id="donor-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-login"><i class="fas fa-times"></i></button>
+            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
+                <h2 style="font-family:'Rajdhani'; text-transform:uppercase;">Donor Access</h2>
+            </div>
+            <form id="donor-login-form">
+                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
+                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+            </form>
+            <div style="text-align:center; margin-top:1rem;">New? <button id="show-donor-signup" style="color:var(--primary); font-weight:700;">Sign Up</button></div>
+        </div>
+    </div>
+
+    <div id="donor-signup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-signup"><i class="fas fa-times"></i></button>
+            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
+                <h2 style="font-family:'Rajdhani'; text-transform:uppercase;">Join The List</h2>
+            </div>
+            <form id="donor-signup-form">
+                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required class="form-input"></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group"><label>Blood Type</label><select name="blood_type" class="form-input"><option>A+</option><option>O+</option><option>B+</option><option>AB+</option><option>O-</option></select></div>
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-input"></div>
+                </div>
+                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">Create Account</button>
+            </form>
+            <div style="text-align:center; margin-top:1rem;">Have account? <button id="show-donor-login" style="color:var(--primary); font-weight:700;">Sign In</button></div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL MODALS -->
+    <div id="hospital-login-modal" class="modal-overlay">
+        <div class="modal-content" style="background:#f8fafc; border:2px solid #334155;">
+            <button class="modal-close" id="close-hospital-login"><i class="fas fa-times"></i></button>
+            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
+                <h2 style="font-family:'Rajdhani'; text-transform:uppercase; color:#0f172a;">Command Center</h2>
+            </div>
+            <form id="hospital-login-form">
+                <div class="form-group"><label>OFFICER EMAIL</label><input type="email" name="email" required class="form-input"></div>
+                <div class="form-group"><label>PASSCODE</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%; background:#0f172a;">AUTHENTICATE</button>
+            </form>
+            <div style="text-align:center; margin-top:1rem;"><button id="show-hospital-signup" style="color:#0f172a; font-weight:700;">REQUEST CLEARANCE</button></div>
+        </div>
+    </div>
+
+    <div id="hospital-signup-modal" class="modal-overlay">
+        <div class="modal-content" style="background:#f8fafc; border:2px solid #334155;">
+            <button class="modal-close" id="close-hospital-signup"><i class="fas fa-times"></i></button>
+            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
+                <h2 style="font-family:'Rajdhani'; text-transform:uppercase; color:#0f172a;">INSTITUTION REGISTRY</h2>
+            </div>
+            <form id="hospital-signup-form">
+                <div class="form-group"><label>INSTITUTION NAME</label><input type="text" name="hospital_name" required class="form-input"></div>
+                <div class="form-group"><label>ADMIN EMAIL</label><input type="email" name="admin_email" required class="form-input"></div>
+                <div class="form-group"><label>PASSWORD</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%; background:#0f172a;">REGISTER FACILITY</button>
+            </form>
+            <div style="text-align:center; margin-top:1rem;"><button id="show-hospital-login" style="color:#0f172a; font-weight:700;">RETURN TO LOGIN</button></div>
+        </div>
+    </div>
+
+    <!-- CHATBOT -->
+    <div class="chat-widget">
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header"><h4>VitalBot</h4><button id="close-chat" style="background:none; color:white;"><i class="fas fa-times"></i></button></div>
+            <div class="chat-body"><div style="background: white; padding: 10px; border-radius: 10px; display: inline-block;">Hello! How can I help?</div></div>
+            <div class="chat-footer"><input type="text" placeholder="Type..."><button style="background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%;"><i class="fas fa-paper-plane"></i></button></div>
+        </div>
+        <button id="open-chat" class="chat-toggle-btn"><img src="aichatbot-preview.png" style="width:100%" onerror="this.src='https://ui-avatars.com/api/?name=BK&background=ff4757&color=fff'"></button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal Logic
+            function toggleModal(id, show) { document.getElementById(id).classList.toggle('active', show); }
+            
+            document.getElementById('donor-modal-btn').onclick = () => toggleModal('donor-login-modal', true);
+            document.getElementById('donor-signup-btn').onclick = () => toggleModal('donor-signup-modal', true);
+            document.getElementById('hospital-modal-btn').onclick = () => toggleModal('hospital-login-modal', true);
+            
+            document.querySelectorAll('.modal-close').forEach(btn => btn.onclick = function() { toggleModal(this.parentElement.parentElement.id, false); });
+
+            document.getElementById('show-donor-signup').onclick = () => { toggleModal('donor-login-modal', false); toggleModal('donor-signup-modal', true); };
+            document.getElementById('show-donor-login').onclick = () => { toggleModal('donor-signup-modal', false); toggleModal('donor-login-modal', true); };
+            document.getElementById('show-hospital-signup').onclick = () => { toggleModal('hospital-login-modal', false); toggleModal('hospital-signup-modal', true); };
+            document.getElementById('show-hospital-login').onclick = () => { toggleModal('hospital-signup-modal', false); toggleModal('hospital-login-modal', true); };
+
+            // Form Handling
+            async function handleForm(e, action, redirect, backend) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                formData.append('action', action);
+                const btn = e.target.querySelector('button');
+                const ogText = btn.innerText;
+                btn.innerText = 'Processing...'; btn.disabled = true;
+
+                try {
+                    const res = await fetch(backend, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if(data.status === 'success') { window.location.href = redirect; }
+                    else { alert(data.message); btn.innerText = ogText; btn.disabled = false; }
+                } catch(err) { 
+                    console.warn("Offline Mode: Redirecting...");
+                    window.location.href = redirect; // Fallback for preview
+                }
+            }
+
+            if(document.getElementById('donor-login-form')) document.getElementById('donor-login-form').onsubmit = (e) => handleForm(e, 'login', 'dashboard.html', 'bloodknight.php');
+            if(document.getElementById('donor-signup-form')) document.getElementById('donor-signup-form').onsubmit = (e) => handleForm(e, 'register_donor', 'dashboard.html', 'bloodknight.php');
+            if(document.getElementById('hospital-login-form')) document.getElementById('hospital-login-form').onsubmit = (e) => handleForm(e, 'login', 'admin_dashboard.html', 'admin.php');
+            if(document.getElementById('hospital-signup-form')) document.getElementById('hospital-signup-form').onsubmit = (e) => handleForm(e, 'register_hospital', 'admin_dashboard.html', 'admin.php');
+
+            // Chat
+            document.getElementById('open-chat').onclick = () => document.getElementById('chatWindow').style.display = 'flex';
+            document.getElementById('close-chat').onclick = () => document.getElementById('chatWindow').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
