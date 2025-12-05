@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-100">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-full fixed left-0 top-0 z-20 shadow-sm">
+            <div class="p-6 flex items-center gap-3">
+                <i class="fas fa-shield-alt text-3xl text-red-600"></i>
+                <span class="text-2xl font-bold tactical-font uppercase tracking-tighter">Blood<span class="text-red-600">Knight</span></span>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-th-large w-5"></i> Dashboard
+                </a>
+                <a href="find_drives.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-map-marker-alt w-5"></i> Find Missions
+                </a>
+                <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-history w-5"></i> History
+                </a>
+                <a href="profile.html" class="flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-user-cog w-5"></i> Profile
+                </a>
+            </nav>
+            <div class="p-4 mt-auto">
+                <button onclick="handleLogout()" class="w-full bg-slate-900 text-white text-xs py-3 px-3 rounded-lg hover:bg-slate-800 transition-colors uppercase font-bold tracking-wider">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-64 h-full overflow-y-auto pt-4 md:pt-0 relative">
+            <div class="md:hidden px-6 py-4 flex justify-between items-center bg-white border-b mb-4">
+                <span class="text-xl font-bold tactical-font uppercase">Blood<span class="text-red-600">Knight</span></span>
+                <button onclick="handleLogout()" class="text-slate-500"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+
+            <div class="max-w-4xl mx-auto p-6 md:p-8 space-y-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Operative Profile</h1>
+                    <p class="text-slate-500 text-sm">Manage your personal dossier.</p>
+                </div>
+
+                <form onsubmit="updateProfile(event)" enctype="multipart/form-data" class="space-y-6">
+                    
+                    <!-- Profile Picture Upload (New) -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
+                        <div class="relative group">
+                            <img id="preview-img" src="https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                            <label for="file-upload" class="absolute bottom-0 right-0 bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-700 transition-all shadow-md">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="file-upload" name="profile_pic" class="hidden" accept="image/*" onchange="previewFile()">
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3">Allowed: JPG, PNG. Max 2MB.</p>
+                    </div>
+
+                    <!-- Personal Info Card -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                            <i class="fas fa-id-card text-red-600"></i> Personal Information
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Full Name</label>
+                                <input type="text" name="full_name" id="full_name" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Email (ID)</label>
+                                <input type="email" id="email" disabled class="w-full bg-slate-100 border border-slate-200 rounded-lg p-3 text-slate-500 cursor-not-allowed">
+                                <p class="text-[10px] text-slate-400 mt-1">Contact HQ to update email ID.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Contact Number</label>
+                                <input type="text" name="phone" id="phone" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Blood Type</label>
+                                <select name="blood_type" id="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500">
+                                    <option value="A+">A+</option><option value="A-">A-</option>
+                                    <option value="B+">B+</option><option value="B-">B-</option>
+                                    <option value="O+">O+</option><option value="O-">O-</option>
+                                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="flex items-center justify-between">
+                        <div id="msg" class="text-sm font-bold"></div>
+                        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white py-3 px-8 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-slate-200">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Fallback data for preview environment
+        const MOCK_PROFILE = {
+            full_name: "Sarah Jenkins",
+            email: "sarah@example.com",
+            phone_number: "012-3333333",
+            blood_type: "O+",
+            profile_pic: null
+        };
+
+        async function loadProfile() {
+            try {
+                // Try fetching from backend
+                const res = await fetch('bloodknight.php?action=get_profile');
+                
+                // If fetch fails (e.g. 404/500), throw error to trigger catch block
+                if (!res.ok) throw new Error("Backend response not OK");
+
+                const json = await res.json();
+                
+                if (json.status === 'success') {
+                    populateForm(json.data);
+                } else {
+                    // Session invalid or other logic error
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.warn("Backend unavailable (Simulation Mode Active):", error);
+                // Fallback to simulation data so UI doesn't break
+                populateForm(MOCK_PROFILE);
+            }
+        }
+
+        function populateForm(data) {
+            document.getElementById('full_name').value = data.full_name || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('phone').value = data.phone_number || '';
+            document.getElementById('blood_type').value = data.blood_type || 'O+';
+            
+            // Load Profile Pic if exists
+            if (data.profile_pic) {
+                document.getElementById('preview-img').src = data.profile_pic + '?t=' + new Date().getTime();
+            }
+        }
+
+        function previewFile() {
+            const preview = document.getElementById('preview-img');
+            const file = document.querySelector('input[type=file]').files[0];
+            const reader = new FileReader();
+
+            reader.addEventListener("load", function () {
+                preview.src = reader.result;
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('msg');
+            const formData = new FormData(e.target);
+            formData.append('action', 'update_profile');
+
+            btn.disabled = true;
+            btn.innerText = 'SAVING...';
+            msg.innerText = '';
+
+            try {
+                const res = await fetch('bloodknight.php', { method: 'POST', body: formData });
+                if (!res.ok) throw new Error("Backend offline");
+                
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    msg.className = 'text-green-600';
+                    msg.innerText = "Profile updated successfully.";
+                } else {
+                    msg.className = 'text-red-600';
+                    msg.innerText = json.message;
+                }
+            } catch (error) {
+                console.warn("Backend offline (Simulation Mode):", error);
+                // Simulate success for preview
+                setTimeout(() => {
+                    msg.className = 'text-green-600';
+                    msg.innerText = "Simulation: Profile updated successfully.";
+                }, 800);
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = 'SAVE CHANGES';
+                }, 800);
+            }
+        }
+
+        function handleLogout() {
+            fetch('bloodknight.php?action=logout').finally(() => {
+                window.location.href = 'index.html';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>

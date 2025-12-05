@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+    <nav class="w-full bg-white border-b border-slate-200 px-6 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <i class="fas fa-shield-alt text-red-600 text-2xl"></i>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">BloodKnight</span>
+            </a>
+            <a href="login.html" class="text-sm font-bold text-slate-500 hover:text-red-600">Already a member?</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-xl w-full">
+            
+            <!-- Step 1: Role Selection -->
+            <div id="step1" class="text-center">
+                <h1 class="text-3xl font-bold text-slate-900 mb-8">Join the Initiative</h1>
+                
+                <label class="cursor-pointer block mb-6 group">
+                    <input type="radio" name="role" value="donor" class="peer sr-only" checked>
+                    <div class="bg-white border-2 border-slate-200 peer-checked:border-red-600 peer-checked:bg-red-50 rounded-2xl p-6 flex items-center gap-4 transition-all shadow-sm hover:shadow-md">
+                        <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-900">I am a Donor</h3>
+                            <p class="text-sm text-slate-500">I want to find drives and track my impact.</p>
+                        </div>
+                        <i class="fas fa-check-circle text-red-600 text-xl ml-auto opacity-0 peer-checked:opacity-100"></i>
+                    </div>
+                </label>
+
+                <button onclick="goToStep2()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-colors">
+                    Continue <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: Registration Form (Hidden Initially) -->
+            <div id="step2" class="hidden fade-in bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Create Donor Profile</h2>
+                    <button onclick="location.reload()" class="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase">Cancel</button>
+                </div>
+                
+                <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                        <input type="text" name="full_name" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                        <input type="email" name="email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Blood Type</label>
+                            <select name="blood_type" class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 outline-none">
+                                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                            <input type="text" name="phone" placeholder="012-3456789" class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                        <input type="password" name="password" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold transition-colors mt-4 shadow-lg shadow-red-200">
+                        Create Account
+                    </button>
+                </form>
+                <div id="msg" class="text-center mt-4 text-sm font-medium"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function goToStep2() {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('msg');
+            const formData = new FormData(e.target);
+            formData.append('action', 'register_donor');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const response = await fetch('bloodknight.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    msg.className = 'text-green-600';
+                    msg.innerText = "Account created! Redirecting...";
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                } else {
+                    msg.className = 'text-red-600';
+                    msg.innerText = result.message;
+                    btn.disabled = false;
+                    btn.innerText = 'Create Account';
+                }
+            } catch (error) {
+                console.error(error);
+                msg.className = 'text-red-600';
+                msg.innerText = "Server connection error.";
+                btn.disabled = false;
+                btn.innerText = 'Create Account';
+            }
+        }
+    </script>
+</body>
+</html>

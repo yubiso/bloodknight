@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodKnight | Defend the Pulse</title>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- VITALDROP STYLING --- */
+        :root {
+            --primary: #ff4757;
+            --secondary: #2f3542;
+            --text-dark: #2f3542;
+            --text-light: #747d8c;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+            --shadow-lg: 0 15px 35px rgba(255, 71, 87, 0.25);
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        body { color: var(--text-dark); background-color: var(--white); overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; outline: none; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+
+        /* NAVIGATION */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; position: fixed; width: 100%; top: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 2.5rem; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-buttons { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; transition: var(--transition); }
+        .btn-primary { background: var(--gradient); color: var(--white); box-shadow: var(--shadow-lg); }
+        .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
+        .btn-text { background: transparent; color: var(--text-light); font-weight: 600; }
+
+        /* HERO & SECTIONS */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 80px 8% 0; background: linear-gradient(to right, #fff 55%, #fff0f0 45%); position: relative; }
+        .hero-content { flex: 1; max-width: 600px; z-index: 2; }
+        .hero h1 { font-size: 4rem; line-height: 1.1; margin-bottom: 1.5rem; }
+        .hero h1 span { color: var(--primary); }
+        .hero-visual { flex: 1; height: 600px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .blob { width: 500px; height: 500px; background: var(--gradient); border-radius: 46% 54% 39% 61%; animation: morph 8s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 10rem; }
+        @keyframes morph { 0%, 100% { border-radius: 46% 54% 39% 61%; } 50% { border-radius: 59% 41% 68% 32%; } }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: white; border-radius: 20px; padding: 2.5rem; width: 90%; max-width: 500px; transform: translateY(20px); transition: 0.3s; position: relative; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-input { width: 100%; padding: 1rem; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
+
+        /* TACTICAL MODAL STYLES (Hospital) */
+        #hospital-login-modal .modal-content, #hospital-signup-modal .modal-content { border: 2px solid #334155; background: #f8fafc; }
+        #hospital-login-modal h2, #hospital-signup-modal h2 { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; color: #0f172a; }
+        #hospital-login-modal button.btn-primary, #hospital-signup-modal button.btn-primary { background: #0f172a; border-radius: 8px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* CHATBOT */
+        .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+        .chat-toggle-btn { width: 60px; height: 60px; border-radius: 50%; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; }
+        .chat-window { width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); display: none; flex-direction: column; margin-bottom: 15px; }
+        .chat-header { background: var(--gradient); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f8f9fa; }
+        .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px; }
+        .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo"><i class="fas fa-droplet"></i> Blood<span>Knight</span></div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#types">Blood Types</a></li>
+        </ul>
+        <div class="nav-buttons">
+            <button id="hospital-modal-btn" class="btn-text">For Hospitals</button>
+            <button id="donor-modal-btn" class="btn btn-primary">Donor Login</button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <span style="background: #ffeaa7; color: #d35400; padding: 5px 15px; border-radius: 15px; font-weight: 700; font-size: 0.9rem;">URGENT NEED: O- BLOOD</span>
+            <h1>Be the Reason<br>Someone <span>Smiles Today.</span></h1>
+            <p>BloodKnight connects civilian donors to emergency supply lines. One unit saves 3 lives.</p>
+            <button id="donor-signup-btn" class="btn btn-primary">Start Mission</button>
+        </div>
+        <div class="hero-visual">
+            <div class="blob"><i class="fas fa-heart-pulse"></i></div>
+        </div>
+    </section>
+
+    <!-- DONOR LOGIN MODAL -->
+    <div id="donor-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-login"><i class="fas fa-times"></i></button>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 800;">Donor Access</h2>
+            </div>
+            <form id="donor-login-form">
+                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
+                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+            </form>
+            <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
+                New here? <button id="show-donor-signup" style="color: var(--primary); font-weight: 700;">Sign Up</button>
+            </div>
+            <div id="donor-login-msg" style="text-align: center; margin-top: 10px; font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <!-- DONOR SIGNUP MODAL -->
+    <div id="donor-signup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-signup"><i class="fas fa-times"></i></button>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 800;">Join The List</h2>
+            </div>
+            <form id="donor-signup-form">
+                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required class="form-input"></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Blood Type</label><select name="blood_type" class="form-input"><option>A+</option><option>O+</option><option>B+</option><option>AB+</option><option>O-</option></select></div>
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-input"></div>
+                </div>
+                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+            </form>
+            <div id="donor-signup-msg" style="text-align: center; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL LOGIN MODAL -->
+    <div id="hospital-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-hospital-login"><i class="fas fa-times"></i></button>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2 class="tactical-font" style="font-size: 1.8rem;">COMMAND CENTER</h2>
+                <div style="height: 1px; width: 50px; background: #334155; margin: 10px auto;"></div>
+            </div>
+            <form id="hospital-login-form">
+                <div class="form-group"><label style="font-weight: 700; font-size: 0.8rem; color: #64748b;">OFFICER EMAIL</label><input type="email" name="email" required class="form-input"></div>
+                <div class="form-group"><label style="font-weight: 700; font-size: 0.8rem; color: #64748b;">PASSCODE</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">AUTHENTICATE</button>
+            </form>
+            <div style="text-align: center; margin-top: 1rem; font-size: 0.8rem;">
+                <button id="show-hospital-signup" style="color: #0f172a; font-weight: 700;">REQUEST CLEARANCE (REGISTER)</button>
+            </div>
+            <div id="hospital-login-msg" style="text-align: center; margin-top: 10px; font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL SIGNUP MODAL -->
+    <div id="hospital-signup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-hospital-signup"><i class="fas fa-times"></i></button>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2 class="tactical-font" style="font-size: 1.8rem;">INSTITUTION REGISTRY</h2>
+            </div>
+            <form id="hospital-signup-form">
+                <div class="form-group"><label>Institution Name</label><input type="text" name="hospital_name" required class="form-input"></div>
+                <div class="form-group"><label>Type</label><select name="hospital_type" class="form-input"><option>Government</option><option>Private</option></select></div>
+                <div class="form-group"><label>Address</label><input type="text" name="hospital_address" required class="form-input"></div>
+                <div class="form-group"><label>Admin Name</label><input type="text" name="admin_name" required class="form-input"></div>
+                <div class="form-group"><label>Admin Email</label><input type="email" name="admin_email" required class="form-input"></div>
+                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">REGISTER FACILITY</button>
+            </form>
+            <div id="hospital-signup-msg" style="text-align: center; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- CHATBOT -->
+    <div class="chat-widget">
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header"><h4>VitalBot</h4><button id="close-chat" style="background:none; color:white;"><i class="fas fa-times"></i></button></div>
+            <div class="chat-body"><div style="background: white; padding: 10px; border-radius: 10px; display: inline-block;">Hello! How can I help?</div></div>
+            <div class="chat-footer"><input type="text" placeholder="Type..."><button style="background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%;"><i class="fas fa-paper-plane"></i></button></div>
+        </div>
+        <button id="open-chat" class="chat-toggle-btn"><img src="https://ui-avatars.com/api/?name=BK&background=ff4757&color=fff" style="width:100%"></button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- MODAL LOGIC ---
+            function toggleModal(id, show) {
+                document.getElementById(id).classList.toggle('active', show);
+            }
+            
+            document.getElementById('donor-modal-btn').onclick = () => toggleModal('donor-login-modal', true);
+            document.getElementById('donor-signup-btn').onclick = () => toggleModal('donor-signup-modal', true);
+            document.getElementById('hospital-modal-btn').onclick = () => toggleModal('hospital-login-modal', true);
+            
+            // Close Buttons
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.onclick = function() { toggleModal(this.parentElement.parentElement.id, false); }
+            });
+
+            // Switchers
+            document.getElementById('show-donor-signup').onclick = () => { toggleModal('donor-login-modal', false); toggleModal('donor-signup-modal', true); };
+            document.getElementById('show-hospital-signup').onclick = () => { toggleModal('hospital-login-modal', false); toggleModal('hospital-signup-modal', true); };
+
+            // --- FORM HANDLING (THE FIX IS HERE) ---
+            async function handleForm(e, action, redirect, backend = 'bloodknight.php') {
+                e.preventDefault();
+                const form = e.target;
+                const msg = form.nextElementSibling.nextElementSibling || form.nextElementSibling; // Finding msg div
+                const btn = form.querySelector('button');
+                const originalText = btn.innerText;
+                
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.disabled = true;
+
+                const formData = new FormData(form);
+                formData.append('action', action);
+
+                try {
+                    // Send request to the correct backend file (admin.php for hospitals, bloodknight.php for donors)
+                    const res = await fetch(backend, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if(data.status === 'success') {
+                        if(msg) { msg.style.color = '#2ed573'; msg.innerText = 'Success! Redirecting...'; }
+                        setTimeout(() => window.location.href = redirect, 1000);
+                    } else {
+                        if(msg) { msg.style.color = '#ff4757'; msg.innerText = data.message || 'Error occurred'; }
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    if(msg) { msg.style.color = '#ff4757'; msg.innerText = 'Connection Error'; }
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            }
+
+            // BIND FORMS TO CORRECT FILES
+            // Donors -> bloodknight.php
+            if(document.getElementById('donor-login-form')) document.getElementById('donor-login-form').onsubmit = (e) => handleForm(e, 'login', 'dashboard.html', 'bloodknight.php');
+            if(document.getElementById('donor-signup-form')) document.getElementById('donor-signup-form').onsubmit = (e) => handleForm(e, 'register_donor', 'dashboard.html', 'bloodknight.php');
+            
+            // Hospitals -> admin.php (FIXED)
+            if(document.getElementById('hospital-login-form')) document.getElementById('hospital-login-form').onsubmit = (e) => handleForm(e, 'login', 'admin_dashboard.html', 'admin.php');
+            if(document.getElementById('hospital-signup-form')) document.getElementById('hospital-signup-form').onsubmit = (e) => handleForm(e, 'register_hospital', 'admin_dashboard.html', 'admin.php');
+
+            // Chatbot Toggle
+            document.getElementById('open-chat').onclick = () => document.getElementById('chatWindow').style.display = 'flex';
+            document.getElementById('close-chat').onclick = () => document.getElementById('chatWindow').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
