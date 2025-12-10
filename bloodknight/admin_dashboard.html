@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Dashboard - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+            <i class="fas fa-shield-alt text-3xl text-red-600"></i>
+            <div>
+                <h1 class="text-xl font-bold tactical-font uppercase tracking-wider text-slate-900">Blood<span class="text-red-600">Knight</span></h1>
+                <p class="text-xs text-slate-500 uppercase font-bold tracking-wide">Command Center</p>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="showSection('overview')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-chart-pie w-5 group-hover:text-red-600"></i> Overview
+            </button>
+            <button onclick="showSection('reports')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-chart-line w-5 group-hover:text-red-600"></i> Mission Reports
+            </button>
+            <button onclick="showSection('drives')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-calendar-plus w-5 group-hover:text-red-600"></i> Create Mission
+            </button>
+            <button onclick="showSection('pending-approvals')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-user-clock w-5 group-hover:text-red-600"></i> Pending Appts
+            </button>
+            <button onclick="showSection('active-roster')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-users-cog w-5 group-hover:text-red-600"></i> Active Appointments
+            </button>
+            <button onclick="showSection('walkin')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-handshake w-5 group-hover:text-red-600"></i> Walk-in Appt
+            </button>
+            <button onclick="showSection('donation')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-notes-medical w-5 group-hover:text-red-600"></i> Process Donation
+            </button>
+            <button onclick="showSection('alerts')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-broadcast-tower w-5 group-hover:text-red-600"></i> Gmail Alerts
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="logout()" class="w-full bg-slate-900 text-white hover:bg-slate-800 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-slate-200 transition-all">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
+        
+        <!-- TOAST -->
+        <div id="toast" class="fixed top-5 right-5 bg-white border border-slate-200 text-slate-800 px-6 py-4 rounded-xl shadow-2xl transform translate-x-full transition-transform duration-300 z-50 font-bold flex items-center gap-3">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i> <span id="toast-msg">Success</span>
+        </div>
+
+        <!-- 1. OVERVIEW SECTION -->
+        <section id="overview" class="space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Sector Status</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Donors</div>
+                        <i class="fas fa-users text-blue-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-donors">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Pending Appts</div>
+                        <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-pending">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Confirmed Appts</div>
+                        <i class="fas fa-calendar-check text-green-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-confirmed">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Total Donations</div>
+                        <i class="fas fa-briefcase-medical text-purple-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-donations-total">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Volume Secured (L)</div>
+                        <i class="fas fa-tint text-red-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-red-600" id="stat-volume">--</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                <div>
+                    <h3 class="text-xl font-bold tactical-font uppercase text-slate-900 mb-4 border-l-2 border-green-600 pl-3">Upcoming Roster (Confirmed)</h3>
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                <tr>
+                                    <th class="p-4">Donor ID</th>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Date / Time</th>
+                                    <th class="p-4 text-right">Drive</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-confirmed-body" class="text-sm">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading roster...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold tactical-font uppercase text-slate-900 mb-4 border-l-2 border-purple-600 pl-3">Recent Donations (Completed)</h3>
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                <tr>
+                                    <th class="p-4">Donor ID</th>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Date</th>
+                                    <th class="p-4 text-right">Volume (ml)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-history-body" class="text-sm">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ANALYTICS REPORTS -->
+        <section id="reports" class="hidden space-y-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 border-l-4 border-red-600 pl-4">Tactical Analytics</h2>
+                <button onclick="loadAnalytics()" class="text-sm font-bold text-red-600 hover:text-red-800"><i class="fas fa-sync mr-2"></i> Refresh Data</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donor Blood Type Distribution</h3>
+                    <div class="h-64 relative"><canvas id="bloodTypeChart"></canvas></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donation Volume (Last 6 Months)</h3>
+                    <div class="h-64 relative"><canvas id="trendsChart"></canvas></div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Campaign Performance (Appointments per Drive)</h3>
+                <div class="h-64 relative"><canvas id="performanceChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- 3. CREATE DRIVE -->
+        <section id="drives" class="hidden max-w-3xl">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Initiate New Mission</h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form onsubmit="createDrive(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Mission Location</label>
+                        <input type="text" name="location" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
+                    </div>
+                    <div class="grid grid-cols-3 gap-6">
+                        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-2">Date</label><input type="date" name="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></div>
+                        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-2">Start</label><input type="time" name="start_time" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></div>
+                        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-2">End</label><input type="time" name="end_time" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></div>
+                    </div>
+                    <button class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-slate-200 mt-2">Deploy Mission</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 4. PENDING APPOINTMENTS -->
+        <section id="pending-approvals" class="hidden">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Pending Approvals</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-5">Operative</th>
+                            <th class="p-5">Blood Type</th>
+                            <th class="p-5">Mission Point</th>
+                            <th class="p-5">Time</th>
+                            <th class="p-5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appt-table-body" class="text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- 4b. Active Roster Section -->
+        <section id="active-roster" class="hidden">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-blue-600 pl-4">Active Appointments (Confirmed)</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-5">Operative</th>
+                            <th class="p-5">Blood Type</th>
+                            <th class="p-5">Mission Point</th>
+                            <th class="p-5">Date / Time</th>
+                            <th class="p-5 text-right">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roster-table-body" class="text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+         <!-- 5. WALKIN APPOINTMENT -->
+        <section id="walkin" class="hidden max-w-3xl">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4"><i class="fas fa-handshake mr-2"></i> Book Walk-in Appointment</h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form onsubmit="bookWalkinAppt(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Select Donor</label>
+                        <select name="user_id" id="donor-select" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                            <option value="">-- Select Donor Email (ID) --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Select Blood Drive</label>
+                        <select name="drive_id" id="drive-select" required onchange="loadSlots(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                            <option value="">-- Select Upcoming Drive --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Select Time Slot</label>
+                        <select name="time" id="slot-select" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none" disabled>
+                            <option value="">-- Select Drive First --</option>
+                        </select>
+                    </div>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg mt-2">
+                        <i class="fas fa-plus-circle mr-2"></i> Book Appointment
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 6. PROCESS DONATION (MODIFIED TO REMOVE SELECT AND MAKE READONLY) -->
+        <section id="donation" class="hidden max-w-3xl">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Process Donation</h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form onsubmit="processDonation(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Select Donor</label>
+                        <select name="user_id" id="donation-donor-select" onchange="autoFillDrive(this.value)" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                            <option value="">-- Select Donor Email (ID) --</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Volume (ml)</label>
+                            <input type="number" name="volume" value="450" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Drive</label>
+                            <!-- REPLACED SELECT WITH READONLY INPUT FOR DISPLAY + HIDDEN INPUT FOR ID -->
+                            <input type="text" id="donation-drive-display" readonly placeholder="No active appointment" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-3 outline-none text-slate-500 cursor-not-allowed">
+                            <input type="hidden" name="drive_id" id="donation-drive-id">
+                        </div>
+                    </div>
+                    <div><label class="block text-xs font-bold uppercase text-slate-500 mb-2">Notes</label><textarea name="notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></textarea></div>
+                    <button class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg mt-2">
+                        <i class="fas fa-check-circle mr-2"></i> Confirm & Notify Donor
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 7. GMAIL ALERTS -->
+        <section id="alerts" class="hidden max-w-3xl">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">
+                <i class="fab fa-google text-red-600 mr-2"></i> Gmail Alert Broadcast
+            </h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6 text-sm flex items-start gap-3">
+                    <i class="fas fa-info-circle mt-1"></i>
+                    <div>
+                        <strong>Tactical Advisory:</strong> Use this to summon donors for critical supply shortages. 
+                        <br>For testing without real donors, enable "Test Mode".
+                    </div>
+                </div>
+                <form onsubmit="sendGmailAlert(event)" class="space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Target Blood Type</label>
+                            <select name="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                                <option value="O-">O Negative (Universal)</option>
+                                <option value="O+">O Positive</option>
+                                <option value="A+">A Positive</option>
+                                <option value="B+">B Positive</option>
+                                <option value="AB+">AB Positive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Urgency</label>
+                            <select name="urgency" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                                <option value="High">High Priority</option>
+                                <option value="Critical">CRITICAL (Immediate)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Test Mode Toggle -->
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <label class="flex items-center gap-3 cursor-pointer mb-2">
+                            <input type="checkbox" id="test-mode-toggle" onchange="toggleTestMode()" class="w-5 h-5 text-red-600 rounded">
+                            <span class="font-bold text-slate-700">Enable Test Mode</span>
+                        </label>
+                        <div id="test-email-container" class="hidden mt-2">
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Send Test To (Your Email)</label>
+                            <input type="email" name="test_email" placeholder="admin@bloodknight.com" class="w-full bg-white border border-slate-300 rounded-lg p-3 outline-none text-red-600 font-bold">
+                            <p class="text-xs text-slate-400 mt-1">This will ignore the database and send 1 email to you.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Message Body</label>
+                        <textarea name="message" required rows="4" placeholder="URGENT: Low supply at HQ. Immediate response required..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></textarea>
+                    </div>
+                    <button class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg mt-2">
+                        <i class="fas fa-paper-plane mr-2"></i> Send via Gmail
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'overview') loadStats();
+            if(id === 'pending-approvals') loadAppointments(); 
+            if(id === 'active-roster') loadActiveRoster();
+            if(id === 'reports') loadAnalytics();
+            if(id === 'walkin') loadDonorsAndDrives();
+            if(id === 'donation') loadDonorsAndDrives(); 
+        }
+
+        async function loadActiveRoster() {
+            const fd = new FormData(); 
+            fd.append('action', 'get_active_roster'); 
+            const data = await api(fd);
+            const tbody = document.getElementById('roster-table-body');
+            tbody.innerHTML = '';
+            if(data && data.length) {
+                data.forEach(row => {
+                    const sourceClass = row.source === 'Walk-in' ? 'text-blue-600 font-bold' : 'text-slate-600';
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50" id="roster-row-${row.appt_id}">
+                            <td class="p-5 font-bold">${row.full_name}</td>
+                            <td class="p-5 text-red-600 font-mono font-bold">${row.blood_type}</td>
+                            <td class="p-5 text-slate-600">${row.location_name}</td>
+                            <td class="p-5 text-slate-600">${row.drive_date} @ ${row.selected_time}</td>
+                            <td class="p-5 text-right ${sourceClass}">${row.source}</td>
+                        </tr>`;
+                });
+            } else { 
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">No active appointments confirmed.</td></tr>`; 
+            }
+        }
+
+        function toggleTestMode() {
+            const isChecked = document.getElementById('test-mode-toggle').checked;
+            const container = document.getElementById('test-email-container');
+            const input = container.querySelector('input');
+            if(isChecked) {
+                container.classList.remove('hidden');
+                input.required = true;
+            } else {
+                container.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.className = `fixed top-5 right-5 bg-white border-l-4 ${isError ? 'border-red-600' : 'border-green-600'} text-slate-800 px-6 py-4 rounded-xl shadow-2xl transform transition-transform duration-300 z-50 font-bold flex items-center gap-3 translate-x-0`;
+            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+        }
+
+        async function api(formData) {
+            try {
+                const res = await fetch('admin_controller.php', { method: 'POST', body: formData });
+                const text = await res.text();
+                try {
+                    const json = JSON.parse(text);
+                    if(json.status === 'success') {
+                        // showToast(json.message); 
+                        return json.data || true; 
+                    } else {
+                        showToast(json.message, true);
+                        return null;
+                    }
+                } catch (e) { console.error("Server Error:", text); showToast("Server Error", true); return null; }
+            } catch(e) { showToast("Connection Error", true); return null; }
+        }
+
+        async function loadStats() {
+            const fd = new FormData(); fd.append('action', 'get_stats');
+            const data = await api(fd);
+            if(data) {
+                document.getElementById('stat-donors').innerText = data.donors;
+                document.getElementById('stat-pending').innerText = data.pending_appt;
+                document.getElementById('stat-volume').innerText = data.volume_l;
+                document.getElementById('stat-confirmed').innerText = data.confirmed_appt || 0;
+                document.getElementById('stat-donations-total').innerText = data.total_donations || 0;
+                if (data.confirmed_roster) renderOverviewConfirmed(data.confirmed_roster);
+                if (data.donation_history) renderOverviewHistory(data.donation_history);
+            }
+        }
+
+        function renderOverviewConfirmed(roster) {
+            const tbody = document.getElementById('overview-confirmed-body');
+            tbody.innerHTML = '';
+            if (roster.length > 0) {
+                roster.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-4 text-xs font-mono text-slate-500">${row.user_id}</td>
+                            <td class="p-4 font-medium">${row.full_name}</td>
+                            <td class="p-4 text-sm text-slate-600">${row.drive_date} @ ${row.selected_time}</td>
+                            <td class="p-4 text-right text-sm font-semibold text-green-700">${row.location_name}</td>
+                        </tr>`;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No upcoming confirmed appointments.</td></tr>`;
+            }
+        }
+
+        function renderOverviewHistory(history) {
+            const tbody = document.getElementById('overview-history-body');
+            tbody.innerHTML = '';
+            if (history.length > 0) {
+                history.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-4 text-xs font-mono text-slate-500">${row.user_id}</td>
+                            <td class="p-4 font-medium">${row.full_name}</td>
+                            <td class="p-4 text-sm text-slate-600">${row.donation_date}</td>
+                            <td class="p-4 text-right text-sm font-semibold text-purple-700">${row.volume_ml} ml</td>
+                        </tr>`;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No recent donation records.</td></tr>`;
+            }
+        }
+
+        async function loadAnalytics() {
+            const fd = new FormData(); fd.append('action', 'get_analytics');
+            const data = await api(fd);
+            if(!data) return;
+            const ctx1 = document.getElementById('bloodTypeChart').getContext('2d');
+            if(bloodChartInstance) bloodChartInstance.destroy();
+            bloodChartInstance = new Chart(ctx1, { type: 'doughnut', data: { labels: data.blood_types.map(i => i.type), datasets: [{ data: data.blood_types.map(i => i.count), backgroundColor: ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#475569', '#64748b', '#94a3b8', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } } });
+            
+            const ctx2 = document.getElementById('trendsChart').getContext('2d');
+            if(trendsChartInstance) trendsChartInstance.destroy();
+            trendsChartInstance = new Chart(ctx2, { type: 'line', data: { labels: data.trends.map(i => i.month), datasets: [{ label: 'Volume (ml)', data: data.trends.map(i => i.volume), borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            
+            const ctx3 = document.getElementById('performanceChart').getContext('2d');
+            if(perfChartInstance) perfChartInstance.destroy();
+            perfChartInstance = new Chart(ctx3, { type: 'bar', data: { labels: data.performance.map(i => i.location), datasets: [{ label: 'Successful Appointments', data: data.performance.map(i => i.count), backgroundColor: '#1e293b', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false } });
+        }
+        let bloodChartInstance = null; let trendsChartInstance = null; let perfChartInstance = null;
+
+        async function sendGmailAlert(e) {
+            e.preventDefault();
+            if(!confirm("Are you sure you want to broadcast this alert?")) return;
+            const btn = e.target.querySelector('button');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending via SMTP...';
+            btn.disabled = true;
+            const fd = new FormData(e.target);
+            fd.append('action', 'send_gmail_alert');
+            await api(fd);
+            showToast('Alert broadcasted successfully');
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+            e.target.reset();
+            document.getElementById('test-email-container').classList.add('hidden');
+        }
+
+        async function createDrive(e) { e.preventDefault(); const fd = new FormData(e.target); fd.append('action', 'create_drive'); if(await api(fd)) { showToast('Mission created successfully'); e.target.reset(); } }
+        
+        async function processDonation(e) { 
+            e.preventDefault(); 
+            const btn = e.target.querySelector('button');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing & Emailing...';
+            btn.disabled = true;
+            const fd = new FormData(e.target); 
+            fd.append('action', 'process_donation'); 
+            if(await api(fd)) { 
+                showToast('Donation processed successfully');
+                e.target.reset(); 
+                
+                // Clear the readonly fields too
+                document.getElementById('donation-drive-display').value = '';
+                document.getElementById('donation-drive-id').value = '';
+
+                loadStats(); 
+            }
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
+
+        async function loadAppointments() {
+            const fd = new FormData(); fd.append('action', 'get_appointments');
+            const data = await api(fd);
+            const tbody = document.getElementById('appt-table-body');
+            tbody.innerHTML = '';
+            if(data && data.length) {
+                data.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50" id="row-${row.appt_id}">
+                            <td class="p-5 font-bold">${row.full_name}</td>
+                            <td class="p-5 text-red-600 font-mono font-bold">${row.blood_type}</td>
+                            <td class="p-5 text-slate-600">${row.location_name}</td>
+                            <td class="p-5 text-slate-600">${row.selected_time}</td>
+                            <td class="p-5 text-right">
+                                <button onclick="confirmAppt(${row.appt_id}, this)" class="bg-slate-900 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
+                                    Approve
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+            } else { tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">No pending approvals.</td></tr>`; }
+        }
+
+        async function confirmAppt(id, btn) { 
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Notifying...';
+            btn.disabled = true;
+            const fd = new FormData(); 
+            fd.append('action', 'confirm_appt'); 
+            fd.append('appt_id', id); 
+            
+            const result = await api(fd);
+            if(result) showToast('Appointment confirmed');
+
+            loadAppointments(); 
+            loadActiveRoster(); 
+            loadStats();
+        }
+
+         async function loadDonorsAndDrives() {
+            const fd = new FormData(); fd.append('action', 'get_donors_and_drives');
+            const data = await api(fd);
+            if (!data) return;
+
+            const fillSelect = (select, items, valKey, txtFn) => {
+                if(!select) return;
+                select.innerHTML = '<option value="">-- Select --</option>';
+                items.forEach(item => { select.innerHTML += `<option value="${item[valKey]}">${txtFn(item)}</option>`; });
+            };
+
+            const donorText = d => `${d.email} (${d.full_name})`;
+            const driveText = d => {
+                const date = new Date(d.drive_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return `${date} - ${d.location_name}`;
+            };
+
+            fillSelect(document.getElementById('donor-select'), data.donors, 'user_id', donorText);
+            fillSelect(document.getElementById('drive-select'), data.drives, 'drive_id', driveText);
+            fillSelect(document.getElementById('donation-donor-select'), data.donors, 'user_id', donorText);
+            // Don't populate donation-drive-select because we replaced it with a text box
+
+            const slotSelect = document.getElementById('slot-select');
+            if(slotSelect) {
+                slotSelect.innerHTML = '<option value="">-- Select Drive First --</option>';
+                slotSelect.disabled = true;
+            }
+        }
+
+        // === UPDATED: Auto-fill active appointment for donation processing (Text Input) ===
+        async function autoFillDrive(userId) {
+            const driveDisplay = document.getElementById('donation-drive-display');
+            const driveIdHidden = document.getElementById('donation-drive-id');
+            
+            // Reset to default state first
+            if(driveDisplay) {
+                driveDisplay.value = "";
+                driveIdHidden.value = "";
+            }
+
+            if (!userId) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'get_donor_active_appointment');
+            fd.append('user_id', userId);
+            
+            const data = await api(fd);
+            
+            // If data exists (active appt found), update the text value and hidden ID
+            if (data && data.drive_id) {
+                if(driveDisplay) {
+                    driveDisplay.value = `${data.location_name} (${data.drive_date})`; // Show readable name
+                    driveIdHidden.value = data.drive_id; // Set actual ID for form submission
+                }
+            } else {
+                if(driveDisplay) {
+                    driveDisplay.value = "No active appointment found";
+                }
+            }
+        }
+
+        async function loadSlots(drive_id) {
+            const slotSelect = document.getElementById('slot-select');
+            slotSelect.innerHTML = '<option value="">-- Loading Slots... --</option>';
+            slotSelect.disabled = true;
+            if (!drive_id) {
+                slotSelect.innerHTML = '<option value="">-- Select Drive First --</option>';
+                return;
+            }
+            const fd = new FormData();
+            fd.append('action', 'get_slots');
+            fd.append('drive_id', drive_id);
+            const data = await api(fd);
+            slotSelect.innerHTML = '<option value="">-- Select Time Slot --</option>';
+            if (data && data.length) {
+                data.forEach(slot => {
+                    if (!slot.is_taken) {
+                        slotSelect.innerHTML += `<option value="${slot.raw_time}">${slot.display_time}</option>`;
+                    }
+                });
+                slotSelect.disabled = false;
+            } else {
+                slotSelect.innerHTML = '<option value="">No slots available.</option>';
+            }
+        }
+
+        async function bookWalkinAppt(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking...';
+            btn.disabled = true;
+            const fd = new FormData(e.target);
+            fd.append('action', 'book_walkin_appointment');
+            if(await api(fd)) {
+                showToast('Walk-in appointment booked successfully');
+                e.target.reset();
+                loadSlots(fd.get('drive_id'));
+                loadActiveRoster(); 
+                loadStats();
+            }
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
+
+        function logout() { const fd = new FormData(); fd.append('action', 'logout'); api(fd).then(() => window.location.href = 'admin_login.html'); }
+
+        document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>

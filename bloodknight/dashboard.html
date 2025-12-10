@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+        .blood-drop { animation: drop 3s infinite ease-in-out; }
+        @keyframes drop {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Typing cursor animation */
+        .typing-cursor::after {
+            content: '▋';
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* CIRCULAR PROGRESS STYLES */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-100">
+
+    <div class="flex h-screen overflow-hidden">
+        <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-full fixed left-0 top-0 z-20 shadow-sm">
+            <div class="p-6 flex items-center gap-3">
+                <i class="fas fa-shield-alt text-3xl text-red-600"></i>
+                <span class="text-2xl font-bold tactical-font uppercase tracking-tighter">Blood<span class="text-red-600">Knight</span></span>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-th-large w-5"></i> Dashboard
+                </a>
+                <a href="find_drives.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-map-marker-alt w-5"></i> Find Missions
+                </a>
+                <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-history w-5"></i> History
+                </a>
+                <a href="profile.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-user-cog w-5"></i> Profile
+                </a>
+            </nav>
+            <div class="p-4 mt-auto">
+                <button onclick="handleLogout()" class="w-full bg-slate-900 text-white text-xs py-3 px-3 rounded-lg hover:bg-slate-800 transition-colors uppercase font-bold tracking-wider">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 md:ml-64 h-full overflow-y-auto pt-4 md:pt-0 relative">
+            <div class="md:hidden px-6 py-4 flex justify-between items-center bg-white border-b mb-4">
+                <span class="text-xl font-bold tactical-font uppercase">Blood<span class="text-red-600">Knight</span></span>
+                <button onclick="handleLogout()" class="text-slate-500"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+
+            <div id="status-banner" class="hidden bg-yellow-100 text-yellow-800 px-6 py-2 text-xs font-bold text-center border-b border-yellow-200">
+                <i class="fas fa-wifi mr-2"></i> OFFLINE MODE - Displaying Simulation Data
+            </div>
+
+            <div class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <img id="header-profile-pic" src="https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff" class="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover hidden md:block">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900">Welcome back, <span id="user-name-header">Soldier</span> 👋</h1>
+                            <p class="text-slate-500 text-sm">Codename: <span id="user-codename-display" class="font-mono text-slate-700 bg-slate-200 px-2 py-0.5 rounded text-xs font-bold">LOADING...</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <div id="urgent-alert-widget" class="hidden bg-red-100 border-l-4 border-red-600 p-4 rounded-r shadow-sm flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-600 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-red-800 font-bold text-sm uppercase">Urgent Request</p>
+                                <p id="alert-message" class="text-red-700 text-xs">Loading alerts...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div class="col-span-1 md:col-span-6 lg:col-span-5 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 relative overflow-hidden group">
+                        <div id="status-bg" class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-red-50 to-transparent rounded-bl-full opacity-50 -mr-10 -mt-10 pointer-events-none transition-colors"></div>
+                        
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wide mb-1">Status</h3>
+                                <p id="eligibility-text" class="text-3xl font-bold text-slate-900">Checking...</p>
+                                <div id="countdown-container" class="hidden mt-2 font-mono text-xl text-orange-600 font-bold tracking-widest bg-orange-50 px-3 py-1 rounded-lg border border-orange-100 inline-block">
+                                    00d 00h 00m 00s
+                                </div>
+                                <p id="eligibility-subtext" class="text-xs text-slate-400 font-medium mt-2">Calculations in progress...</p>
+                            </div>
+
+                            <div id="status-visual" class="w-20 h-20 relative">
+                                <svg id="progress-svg" class="w-full h-full" viewBox="0 0 40 40">
+                                    <circle class="progress-ring__circle" stroke-width="4" stroke="#e5e7eb" fill="transparent" r="18" cx="20" cy="20" />
+                                    <circle id="progress-indicator" class="progress-ring__circle" stroke-width="4" stroke="#f97316" fill="transparent" r="18" cx="20" cy="20" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
+                                </svg>
+                                <div id="status-icon-center" class="absolute inset-0 flex items-center justify-center text-2xl text-slate-400">
+                                    <i id="eligibility-icon" class="fas fa-spinner fa-spin"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <div class="flex justify-between text-sm font-medium mb-2">
+                                <span class="text-slate-600">Next Rank</span>
+                                <span class="text-red-600 font-bold"><span id="next-milestone-count">5</span> Donations left</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                <div class="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <a id="find-mission-btn" href="find_drives.html" class="flex-1 text-center bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-medium transition-all shadow-lg shadow-red-200">
+                                Find Mission
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 md:col-span-3 lg:col-span-3 grid grid-rows-2 gap-6">
+                        <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg shadow-red-200">
+                            <i class="fas fa-tint absolute -bottom-4 -right-4 text-9xl text-white opacity-10 blood-drop"></i>
+                            <p class="text-red-100 text-xs font-semibold uppercase mb-2">Blood Type</p>
+                            <h2 id="blood-type-display" class="text-5xl font-bold">--</h2>
+                        </div>
+                        <div class="bg-white rounded-3xl p-5 border border-slate-100 flex items-center gap-4 shadow-sm">
+                            <div class="w-14 h-14 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0 text-yellow-500 text-2xl">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 font-bold uppercase">Current Rank</p>
+                                <p id="rank-display" class="text-lg font-bold text-slate-800">Recruit</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wide">Your Impact</h3>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="p-4 rounded-2xl bg-slate-50">
+                                <p id="stat-donations" class="text-2xl font-bold text-slate-800">0</p>
+                                <p class="text-xs text-slate-500 font-medium">Donations</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50">
+                                <p id="stat-lives" class="text-2xl font-bold text-slate-800">0</p>
+                                <p class="text-xs text-slate-500 font-medium">Lives Saved</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50">
+                                <p id="stat-volume" class="text-2xl font-bold text-slate-800">0</p>
+                                <p class="text-xs text-slate-500 font-medium">Liters</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4 tactical-font uppercase">Mission Status (Appointments)</h2>
+                    <div id="appointments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Checking tactical log...
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-6 tactical-font uppercase">Armory Reserves (Live Telemetry)</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="supply-grid">
+                        <div class="text-center py-4 text-slate-400 col-span-full"><i class="fas fa-sync fa-spin mr-2"></i> Fetching live blood supply data...</div>
+                        </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button onclick="openIntelModal()" class="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50 group">
+        <i class="fas fa-robot text-2xl"></i>
+        <span class="absolute right-full mr-4 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Tactical Intel</span>
+    </button>
+
+    <div id="intel-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[80vh]">
+            <div class="bg-slate-900 p-4 flex justify-between items-center border-b border-slate-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                        <i class="fas fa-robot text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold tactical-font text-lg tracking-wide">TACTICAL MEDICAL INTEL ✨</h3>
+                        <p class="text-indigo-300 text-xs uppercase tracking-wider">Secure Channel | AI Powered</p>
+                    </div>
+                </div>
+                <button onclick="closeIntelModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div id="chat-history" class="p-6 bg-slate-50 overflow-y-auto flex-1 space-y-4">
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white text-xs">AI</div>
+                    <div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none text-sm text-slate-700 shadow-sm">
+                        <p><strong>Medical Officer Online.</strong> Greetings, Soldier. I am your Tactical Health Advisor.</p>
+                        <p class="mt-2">Ask me about donor eligibility, iron-rich diets, recovery protocols, or mission readiness. How can I assist?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-white border-t border-slate-100">
+                <form id="intel-form" class="flex gap-2" onsubmit="handleIntelSubmit(event)">
+                    <input type="text" id="intel-input" placeholder="E.g., Can I donate if I took aspirin?" 
+                        class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    <button type="submit" id="intel-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_USER = { 
+            name: "Soldier", 
+            email: "loading@bloodknight.com", 
+            blood_type: "--", 
+            rank: "Recruit", 
+            donations: 0, 
+            lives_saved: 0, 
+            volume_l: 0, 
+            next_milestone: 5, 
+            last_donation: null,
+            profile_pic: null
+        };
+        
+        let countdownInterval;
+        const progressIndicator = document.getElementById('progress-indicator');
+        const radius = 18;
+        const circumference = 2 * Math.PI * radius;
+        progressIndicator.style.strokeDasharray = `${circumference} ${circumference}`;
+        
+        function setProgress(percent) {
+            const offset = circumference - percent / 100 * circumference;
+            progressIndicator.style.strokeDashoffset = offset;
+        }
+
+        async function loadDashboardData() {
+            let activeUser = { ...DEFAULT_USER };
+
+            // 1. Load from LocalStorage 
+            const savedProfile = localStorage.getItem('bk_user_profile');
+            const savedDonation = localStorage.getItem('bk_last_donation'); 
+            
+            if (savedProfile) {
+                try {
+                    const parsed = JSON.parse(savedProfile);
+                    activeUser.name = parsed.full_name || activeUser.name;
+                    activeUser.email = parsed.email || activeUser.email;
+                    activeUser.blood_type = parsed.blood_type || activeUser.blood_type;
+                    activeUser.profile_pic = parsed.profile_pic || activeUser.profile_pic;
+                } catch(e) { console.error("Profile parsing error", e); }
+            }
+            if (savedDonation) {
+                activeUser.last_donation = savedDonation;
+            }
+
+            // 2. Try to fetch from backend (Real data source)
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(`bloodknight.php?action=get_dashboard_data&t=${timestamp}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.status === 'success') { 
+                        activeUser = { ...activeUser, ...result.data };
+                        
+                        if (result.data.last_donation) {
+                            localStorage.setItem('bk_last_donation', result.data.last_donation);
+                            activeUser.last_donation = result.data.last_donation;
+                        }
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } else {
+                    throw new Error("Backend offline");
+                }
+            } catch (error) {
+                console.warn("Using Simulation Mode (Offline):", error);
+                document.getElementById('status-banner').classList.remove('hidden');
+            }
+
+            renderUser(activeUser);
+        }
+
+        function renderUser(data) {
+            let displayName = "Soldier";
+            if (data.name && data.name !== "Demo User") { displayName = data.name.split(' ')[0]; } 
+            else if (data.email) { displayName = data.email.split('@')[0]; }
+            
+            document.getElementById('user-name-header').textContent = displayName;
+            document.getElementById('user-codename-display').textContent = "OP-" + Math.floor(Math.random() * 10000);
+            document.getElementById('blood-type-display').textContent = data.blood_type || '--';
+            document.getElementById('rank-display').textContent = data.rank || 'Recruit';
+            document.getElementById('stat-donations').textContent = data.donations || 0;
+            document.getElementById('stat-lives').textContent = data.lives_saved || (data.donations * 3 || 0);
+            document.getElementById('stat-volume').textContent = data.volume_l || ((data.donations * 0.45).toFixed(1) || 0);
+            document.getElementById('next-milestone-count').textContent = data.next_milestone || 5;
+
+            if (data.profile_pic) {
+                const img = document.getElementById('header-profile-pic');
+                if (data.profile_pic.startsWith('data:')) { img.src = data.profile_pic; } 
+                else { img.src = data.profile_pic + '?t=' + new Date().getTime(); }
+                img.classList.remove('hidden');
+            }
+
+            // === ELIGIBILITY LOGIC WITH TIMER (90 DAYS) ===
+            const elText = document.getElementById('eligibility-text');
+            const elSub = document.getElementById('eligibility-subtext');
+            const elIconCenter = document.getElementById('status-icon-center');
+            const btn = document.getElementById('find-mission-btn');
+            const timerContainer = document.getElementById('countdown-container');
+
+            let isEligible = true;
+            let nextDate = null;
+            const COOLDOWN_DAYS = 90;
+
+            if (data.last_donation) {
+                const lastDate = new Date(data.last_donation);
+                nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + COOLDOWN_DAYS); // 90 DAYS RULE
+                const today = new Date();
+
+                if (today < nextDate) {
+                    isEligible = false;
+                }
+            }
+
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            if (isEligible) {
+                elText.textContent = "Eligible";
+                elText.className = "text-3xl font-bold text-green-600";
+                elSub.textContent = "Ready for deployment immediately";
+                timerContainer.classList.add('hidden');
+                
+                // Visuals for ELIGIBLE
+                progressIndicator.style.stroke = "#10b981"; // green
+                setProgress(100);
+                elIconCenter.className = "absolute inset-0 flex items-center justify-center text-3xl text-green-600";
+                document.getElementById('eligibility-icon').className = "fas fa-check-circle";
+
+                // Button state
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                btn.innerHTML = "Find Mission";
+                btn.href = "find_drives.html";
+            } else {
+                elText.textContent = "Recovering";
+                elText.className = "text-3xl font-bold text-orange-500";
+                elSub.textContent = "Rest period active. Replenishing forces.";
+                timerContainer.classList.remove('hidden');
+                
+                // Visuals for RECOVERING
+                progressIndicator.style.stroke = "#f97316"; // orange
+                elIconCenter.className = "absolute inset-0 flex items-center justify-center text-2xl text-orange-500";
+                document.getElementById('eligibility-icon').className = "fas fa-hourglass-half fa-spin-pulse";
+                
+                // Button state
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                btn.innerHTML = `<i class="fas fa-lock mr-2"></i> Cooldown Active`;
+                btn.removeAttribute('href'); 
+
+                startCountdown(nextDate, timerContainer, COOLDOWN_DAYS, data.last_donation);
+            }
+        }
+
+        function startCountdown(targetDate, displayElement, totalDays, lastDonationDate) {
+            const lastDate = new Date(lastDonationDate).getTime();
+            const totalDuration = totalDays * 24 * 60 * 60 * 1000;
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = targetDate.getTime() - now;
+                const elapsed = now - lastDate;
+                
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    location.reload(); 
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                displayElement.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                
+                // Calculate Progress (Elapsed time vs Total duration)
+                let percentComplete = Math.min(100, (elapsed / totalDuration) * 100);
+                setProgress(percentComplete);
+            }
+
+            updateTimer(); 
+            countdownInterval = setInterval(updateTimer, 1000);
+        }
+
+        async function loadAppointments() {
+            const container = document.getElementById('appointments-container');
+            const activeAppt = localStorage.getItem('bk_active_appt');
+            
+            try {
+                const ts = new Date().getTime();
+                const response = await fetch(`bloodknight.php?action=get_my_appointments&t=${ts}`);
+                const res = await response.json();
+                
+                if (res.status === 'success' && res.data.length > 0) {
+                    localStorage.setItem('bk_active_appt', JSON.stringify(res.data[0]));
+                    renderAppointmentsList(res.data);
+                } else {
+                    localStorage.removeItem('bk_active_appt'); 
+                    container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">No active missions found. Book a slot to begin.</div>`;
+                }
+            } catch (error) {
+                console.warn("Backend unavailable, falling back to local storage.");
+                if(activeAppt) {
+                    renderAppointmentsList([JSON.parse(activeAppt)]);
+                } else {
+                    container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">Backend offline. Cannot retrieve live appointment data.</div>`;
+                }
+            }
+        }
+
+        function renderAppointmentsList(appointments) {
+            const container = document.getElementById('appointments-container');
+            container.innerHTML = appointments.map(appt => {
+                const statusColor = appt.status === 'Confirmed' ? 'text-green-600 bg-green-50 border-green-200' : 'text-yellow-600 bg-yellow-50 border-yellow-200';
+                const icon = appt.status === 'Confirmed' ? 'fa-check-circle' : 'fa-clock';
+                const displayStatus = appt.status === 'Confirmed' ? 'APPROVED' : 'PENDING APPROVAL';
+
+                return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-slate-800">${appt.location_name}</h4>
+                            <span class="text-[10px] font-bold px-2 py-1 rounded border uppercase ${statusColor}">
+                                <i class="fas ${icon} mr-1"></i> ${displayStatus}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-1"><i class="fas fa-building mr-2 w-4"></i> ${appt.hospital_name || 'Medical Facility'}</p>
+                        <p class="text-sm text-slate-500"><i class="fas fa-calendar mr-2 w-4"></i> ${appt.drive_date} @ ${appt.selected_time}</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">ID: #${appt.appt_id || 'LOCAL'}</span>
+                        <button onclick="cancelAppointment(${appt.appt_id || 0})" class="text-red-600 hover:text-red-800 font-bold uppercase transition-colors text-xs">
+                            <i class="fas fa-times-circle mr-1"></i> Cancel Mission
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        
+        async function cancelAppointment(apptId) {
+            if (!confirm("Are you sure you want to cancel this appointment? This cannot be undone.")) return;
+
+            const targetId = `#appointments-container button[onclick="cancelAppointment(${apptId})"]`;
+            const btn = document.querySelector(targetId);
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Cancelling...';
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'cancel_appointment');
+            formData.append('appt_id', apptId);
+
+            try {
+                const response = await fetch('bloodknight.php', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert("Appointment cancelled successfully!");
+                } else {
+                    alert("Error: " + (result.message || "Failed to contact HQ."));
+                }
+            } catch (error) {
+                console.warn("Backend offline. Assuming cancellation success for simulation.");
+                alert("Cancellation process started. Please check dashboard status.");
+            } finally {
+                localStorage.removeItem('bk_active_appt');
+                window.location.reload(); 
+            }
+        }
+
+
+        async function checkUrgentAlerts() {
+            try {
+                const response = await fetch('bloodknight.php?action=get_alerts');
+                const result = await response.json();
+                if (result.status === 'success' && result.data.alerts && result.data.alerts.length > 0) {
+                    displayAlert(result.data.alerts[0]);
+                } else {
+                    document.getElementById('urgent-alert-widget').classList.add('hidden');
+                }
+            } catch (error) { 
+                document.getElementById('urgent-alert-widget').classList.add('hidden');
+            }
+        }
+
+        function displayAlert(alert) {
+            const widget = document.getElementById('urgent-alert-widget');
+            const msg = document.getElementById('alert-message');
+            if(widget && msg) {
+                widget.classList.remove('hidden');
+                msg.textContent = `${alert.urgency} Priority: ${alert.message}`;
+            }
+        }
+
+        async function renderSupply() {
+            const grid = document.getElementById('supply-grid');
+            try {
+                const response = await fetch('bloodknight.php?action=get_supply_levels');
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data.length > 0) {
+                    grid.innerHTML = result.data.map(blood => {
+                        let statusClass = 'bg-green-50 text-green-700 border border-green-100';
+                        let barColor = 'bg-green-600';
+                        const level = blood.level || 50; 
+                        
+                        if (level <= 60) { statusClass = 'bg-yellow-50 text-yellow-700 border border-yellow-100'; barColor = 'bg-yellow-500'; }
+                        if (level <= 30) { statusClass = 'bg-orange-50 text-orange-700 border border-orange-100'; barColor = 'bg-orange-600'; }
+                        if (level <= 15) { statusClass = 'bg-red-50 text-red-700 border border-red-100'; barColor = 'bg-red-600'; }
+                        
+                        const statusText = level > 60 ? 'Stable' : level > 30 ? 'Moderate' : level > 15 ? 'Low Supply' : 'Critical';
+
+                        return `
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 hover:border-red-200 hover:shadow-lg transition-all relative overflow-hidden group shadow-sm">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                            <div class="flex justify-between items-end mb-4 relative z-10">
+                                <span class="text-5xl font-black tactical-font text-slate-900 tracking-tighter">${blood.type}</span>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 mt-3 overflow-hidden border border-slate-100">
+                                <div class=\"${barColor} h-full rounded-full transition-all duration-1000 ease-out shadow-sm\" style=\"width: ${level}%\"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    grid.innerHTML = `<div class="text-center py-4 text-slate-400 col-span-full">No current supply data available from HQ.</div>`;
+                }
+            } catch (error) {
+                 grid.innerHTML = `<div class="text-center py-4 text-slate-400 col-span-full"><i class="fas fa-exclamation-triangle mr-2"></i> Failed to connect to supply telemetry.</div>`;
+            }
+        }
+
+        function handleLogout() {
+            fetch('bloodknight.php?action=logout').finally(() => {
+                // Clear local data on logout for clean session start
+                localStorage.removeItem('bk_user_profile');
+                localStorage.removeItem('bk_last_donation');
+                localStorage.removeItem('bk_active_appt');
+                window.location.href = 'index.html';
+            });
+        }
+
+        // --- GEMINI AI INTEGRATION & MODAL LOGIC (Unchanged) ---
+        function openIntelModal() {
+            const modal = document.getElementById('intel-modal');
+            const content = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+            document.getElementById('intel-input').focus();
+        }
+
+        function closeIntelModal() {
+            const modal = document.getElementById('intel-modal');
+            const content = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function handleIntelSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('intel-input');
+            const btn = document.getElementById('intel-btn');
+            const userText = input.value.trim();
+            if (!userText) return;
+            appendMessage('user', userText);
+            input.value = '';
+            btn.disabled = true;
+            const loadingId = appendMessage('ai', 'Accessing secure medical database...', true);
+            try {
+                const apiKey = ""; // Runtime key injection
+                const prompt = `You are the Tactical Medical Officer. Answer: "${userText}". Short, helpful.`;
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                if (!response.ok) throw new Error('Comms link unstable');
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+                updateMessage(loadingId, aiText);
+            } catch (error) {
+                updateMessage(loadingId, "Connection disrupted. HQ unavailable.");
+            } finally {
+                btn.disabled = false;
+                input.focus();
+            }
+        }
+
+        function appendMessage(sender, text, isLoading = false) {
+            const chatHistory = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = "flex gap-4 " + (sender === 'user' ? "flex-row-reverse" : "");
+            const avatar = sender === 'user' 
+                ? `<div class="w-8 h-8 rounded-full bg-slate-300 flex-shrink-0 flex items-center justify-center text-slate-600 text-xs"><i class="fas fa-user"></i></div>`
+                : `<div class="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white text-xs">AI</div>`;
+            const bubbleStyle = sender === 'user'
+                ? "bg-indigo-600 text-white rounded-tr-none"
+                : "bg-white border border-slate-200 text-slate-700 rounded-tl-none ai-response";
+            const msgId = 'msg-' + new Date().getTime();
+            div.innerHTML = `${avatar}<div id="${msgId}" class="${bubbleStyle} p-3 rounded-2xl text-sm shadow-sm max-w-[80%] ${isLoading ? 'typing-cursor' : ''}">${text}</div>`;
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return msgId;
+        }
+
+        function updateMessage(id, text) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('typing-cursor');
+                let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                el.innerHTML = formatted;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            loadAppointments();
+            checkUrgentAlerts();
+            renderSupply();
+        });
+    </script>
+</body>
+</html>

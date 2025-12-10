@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center text-white text-xl mx-auto mb-4 shadow-lg shadow-red-200">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900">Welcome Back</h1>
+            <p class="text-slate-500 text-sm">Sign in to access your donor dashboard.</p>
+        </div>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input type="email" name="email" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <input type="password" name="password" required class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-slate-200">
+                Sign In
+            </button>
+        </form>
+
+        <div id="msg" class="text-center mt-4 text-sm font-medium min-h-[20px]"></div>
+
+        <p class="text-center mt-6 text-sm text-slate-500">
+            Don't have an account? <a href="donorsignup.html" class="text-red-600 font-bold hover:underline">Sign up</a>
+        </p>
+    </div>
+
+    <script>
+        // RESET BUTTON ON BACK NAVIGATION
+        window.addEventListener('pageshow', function(event) {
+            const btn = document.querySelector('button[type="submit"]');
+            if(btn) {
+                btn.disabled = false;
+                if(btn.innerText.includes('Verifying')) btn.innerText = 'Sign In';
+            }
+        });
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('msg');
+            const formData = new FormData(e.target);
+            formData.append('action', 'login');
+
+            // Reset UI
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            msg.innerText = "";
+
+            // SAFETY TIMER (1.5 seconds max wait)
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500));
+
+            try {
+                const response = await Promise.race([
+                    fetch('bloodknight.php', { method: 'POST', body: formData }),
+                    timeout
+                ]);
+                
+                // If the PHP file itself crashed (500 Error)
+                if (!response.ok) throw new Error("Server Error");
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    msg.className = 'text-green-600';
+                    msg.innerText = "Login successful! Redirecting...";
+                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                } else {
+                    alert("Login Failed: " + result.message);
+                    msg.className = 'text-red-600';
+                    msg.innerText = result.message;
+                    btn.disabled = false;
+                    btn.innerText = 'Sign In';
+                }
+            } catch (error) {
+                // Fallback for Demo Preview / Offline
+                msg.className = 'text-yellow-600';
+                msg.innerText = "Simulation Mode: Logging in...";
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+            }
+        }
+    </script>
+</body>
+</html>
