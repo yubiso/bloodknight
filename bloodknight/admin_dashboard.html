@@ -20,7 +20,7 @@
 
     <!-- SIDEBAR -->
     <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10">
-        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" onclick="showSection('overview')" title="Go to Overview">
             <i class="fas fa-shield-alt text-3xl text-red-600"></i>
             <div>
                 <h1 class="text-xl font-bold tactical-font uppercase tracking-wider text-slate-900">Blood<span class="text-red-600">Knight</span></h1>
@@ -52,6 +52,9 @@
             </button>
             <button onclick="showSection('alerts')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
                 <i class="fas fa-broadcast-tower w-5 group-hover:text-red-600"></i> Gmail Alerts
+            </button>
+            <button onclick="showSection('blood-reports')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-file-medical w-5 group-hover:text-red-600"></i> Blood Reports
             </button>
         </nav>
 
@@ -158,19 +161,49 @@
                 <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 border-l-4 border-red-600 pl-4">Tactical Analytics</h2>
                 <button onclick="loadAnalytics()" class="text-sm font-bold text-red-600 hover:text-red-800"><i class="fas fa-sync mr-2"></i> Refresh Data</button>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donor Blood Type Distribution</h3>
-                    <div class="h-64 relative"><canvas id="bloodTypeChart"></canvas></div>
+            
+            <!-- Donation & Appointment Analytics -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold tactical-font uppercase text-slate-700 mb-4 border-l-2 border-slate-300 pl-3">Donation & Appointment Metrics</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donor Blood Type Distribution</h3>
+                        <div class="h-64 relative"><canvas id="bloodTypeChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donation Volume (Last 6 Months)</h3>
+                        <div class="h-64 relative"><canvas id="trendsChart"></canvas></div>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donation Volume (Last 6 Months)</h3>
-                    <div class="h-64 relative"><canvas id="trendsChart"></canvas></div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
+                    <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Campaign Performance (Appointments per Drive)</h3>
+                    <div class="h-64 relative"><canvas id="performanceChart"></canvas></div>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Campaign Performance (Appointments per Drive)</h3>
-                <div class="h-64 relative"><canvas id="performanceChart"></canvas></div>
+
+            <!-- Blood Reports Analytics -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold tactical-font uppercase text-slate-700 mb-4 border-l-2 border-red-500 pl-3">Blood Reports Analytics</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Blood Reports Generated (Last 6 Months)</h3>
+                        <div class="h-64 relative"><canvas id="bloodReportTrendsChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Average Hemoglobin Levels (Last 6 Months)</h3>
+                        <div class="h-64 relative"><canvas id="hemoglobinTrendsChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Blood Reports by Location</h3>
+                        <div class="h-64 relative"><canvas id="bloodReportLocationChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Hemoglobin Range Distribution</h3>
+                        <div class="h-64 relative"><canvas id="hemoglobinRangeChart"></canvas></div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -261,34 +294,78 @@
             </div>
         </section>
 
-        <!-- 6. PROCESS DONATION (MODIFIED TO REMOVE SELECT AND MAKE READONLY) -->
+        <!-- 6. PROCESS DONATION (COMPLETELY REDESIGNED) -->
         <section id="donation" class="hidden max-w-3xl">
             <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Process Donation</h2>
             <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
                 <form onsubmit="processDonation(event)" class="space-y-6">
+                    <!-- Step 1: Select Today's Mission -->
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Select Donor</label>
-                        <select name="user_id" id="donation-donor-select" onchange="autoFillDrive(this.value)" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
-                            <option value="">-- Select Donor Email (ID) --</option>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">1. Select Active Appointment (Today)</label>
+                        <select name="drive_id" id="donation-drive-select" onchange="loadDriveParticipants(this.value)" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">-- Loading Active Appointments... --</option>
                         </select>
                     </div>
+
+                    <!-- Step 2: Select Participant from that mission -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">2. Select Donor</label>
+                        <select name="user_id" id="donation-donor-select" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-red-500" disabled>
+                            <option value="">-- Select Appointment First --</option>
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Volume (ml)</label>
-                            <input type="number" name="volume" value="450" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none">
+                            <input type="number" name="volume" id="vol-input" value="450" max="500" required 
+                                   oninput="validateVolume(this)"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none transition-colors focus:border-blue-500">
+                            <p id="vol-msg" class="text-xs text-red-600 font-bold mt-1 hidden"><i class="fas fa-exclamation-circle"></i> Max amount reached</p>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Drive</label>
-                            <!-- REPLACED SELECT WITH READONLY INPUT FOR DISPLAY + HIDDEN INPUT FOR ID -->
-                            <input type="text" id="donation-drive-display" readonly placeholder="No active appointment" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-3 outline-none text-slate-500 cursor-not-allowed">
-                            <input type="hidden" name="drive_id" id="donation-drive-id">
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Notes <span id="notes-counter" class="float-right text-xs font-normal text-slate-400">0/30</span></label>
+                            <input type="text" name="notes" id="notes-input" maxlength="30" placeholder="Standard procedure" 
+                                   oninput="validateNotes(this)"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none transition-colors focus:border-blue-500">
+                            <p id="notes-msg" class="text-xs text-red-600 font-bold mt-1 hidden">Max characters reached</p>
                         </div>
                     </div>
-                    <div><label class="block text-xs font-bold uppercase text-slate-500 mb-2">Notes</label><textarea name="notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none"></textarea></div>
+                    
                     <button class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg mt-2">
                         <i class="fas fa-check-circle mr-2"></i> Confirm & Notify Donor
                     </button>
                 </form>
+            </div>
+        </section>
+
+        <!-- 8. BLOOD REPORTS -->
+        <section id="blood-reports" class="hidden space-y-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 border-l-4 border-red-600 pl-4">Blood Reports</h2>
+                <button onclick="loadBloodReports()" class="text-sm font-bold text-red-600 hover:text-red-800"><i class="fas fa-sync mr-2"></i> Refresh</button>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 mb-6">
+                <div class="flex flex-wrap items-center gap-4">
+                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wide">Filter by Date Range:</label>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-600 font-medium">From:</label>
+                        <input type="date" id="blood-report-date-from" onchange="filterBloodReportsByDate()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-600 font-medium">To:</label>
+                        <input type="date" id="blood-report-date-to" onchange="filterBloodReportsByDate()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <button onclick="clearDateFilter()" class="text-xs font-medium text-red-600 hover:text-red-800 px-3 py-2 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                        <i class="fas fa-times mr-1"></i> Clear
+                    </button>
+                    <span id="blood-reports-count" class="text-sm text-slate-500 font-medium ml-auto"></span>
+                </div>
+            </div>
+            <div id="blood-reports-container" class="space-y-4">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading blood reports...
+                </div>
             </div>
         </section>
 
@@ -359,9 +436,13 @@
             if(id === 'overview') loadStats();
             if(id === 'pending-approvals') loadAppointments(); 
             if(id === 'active-roster') loadActiveRoster();
-            if(id === 'reports') loadAnalytics();
+            if(id === 'reports') {
+                // Small delay to ensure canvas elements are rendered
+                setTimeout(() => loadAnalytics(), 100);
+            }
             if(id === 'walkin') loadDonorsAndDrives();
-            if(id === 'donation') loadDonorsAndDrives(); 
+            if(id === 'donation') loadTodaysDrives(); // CHANGED: Load specific drive function
+            if(id === 'blood-reports') loadBloodReports(); 
         }
 
         async function loadActiveRoster() {
@@ -408,6 +489,23 @@
             setTimeout(() => toast.classList.add('translate-x-full'), 3000);
         }
 
+        // Check authentication before loading dashboard
+        async function checkAuth() {
+            try {
+                const response = await fetch('admin_controller.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    window.location.href = 'admin_login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                window.location.href = 'admin_login.html';
+                return false;
+            }
+        }
+
         async function api(formData) {
             try {
                 const res = await fetch('admin_controller.php', { method: 'POST', body: formData });
@@ -418,6 +516,11 @@
                         // showToast(json.message); 
                         return json.data || true; 
                     } else {
+                        // If unauthorized, redirect to login
+                        if (json.message && json.message.includes('Unauthorized') || json.message.includes('Please Login')) {
+                            window.location.href = 'admin_login.html';
+                            return null;
+                        }
                         showToast(json.message, true);
                         return null;
                     }
@@ -462,12 +565,22 @@
             tbody.innerHTML = '';
             if (history.length > 0) {
                 history.forEach(row => {
+                    // Format date
+                    const donationDate = row.donation_date ? new Date(row.donation_date).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    }) : 'Date not available';
+                    
+                    // Ensure volume is displayed (default to 0 if null)
+                    const volume = row.volume_ml || 0;
+                    
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-slate-50">
                             <td class="p-4 text-xs font-mono text-slate-500">${row.user_id}</td>
                             <td class="p-4 font-medium">${row.full_name}</td>
-                            <td class="p-4 text-sm text-slate-600">${row.donation_date}</td>
-                            <td class="p-4 text-right text-sm font-semibold text-purple-700">${row.volume_ml} ml</td>
+                            <td class="p-4 text-sm text-slate-600">${donationDate}</td>
+                            <td class="p-4 text-right text-sm font-semibold text-purple-700">${volume} ml</td>
                         </tr>`;
                 });
             } else {
@@ -476,22 +589,274 @@
         }
 
         async function loadAnalytics() {
-            const fd = new FormData(); fd.append('action', 'get_analytics');
-            const data = await api(fd);
-            if(!data) return;
-            const ctx1 = document.getElementById('bloodTypeChart').getContext('2d');
-            if(bloodChartInstance) bloodChartInstance.destroy();
-            bloodChartInstance = new Chart(ctx1, { type: 'doughnut', data: { labels: data.blood_types.map(i => i.type), datasets: [{ data: data.blood_types.map(i => i.count), backgroundColor: ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#475569', '#64748b', '#94a3b8', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } } });
+            console.log('Loading analytics...');
             
-            const ctx2 = document.getElementById('trendsChart').getContext('2d');
-            if(trendsChartInstance) trendsChartInstance.destroy();
-            trendsChartInstance = new Chart(ctx2, { type: 'line', data: { labels: data.trends.map(i => i.month), datasets: [{ label: 'Volume (ml)', data: data.trends.map(i => i.volume), borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            // Check if canvas elements exist
+            const canvases = [
+                'bloodTypeChart', 'trendsChart', 'performanceChart',
+                'bloodReportTrendsChart', 'hemoglobinTrendsChart', 
+                'bloodReportLocationChart', 'hemoglobinRangeChart'
+            ];
             
-            const ctx3 = document.getElementById('performanceChart').getContext('2d');
-            if(perfChartInstance) perfChartInstance.destroy();
-            perfChartInstance = new Chart(ctx3, { type: 'bar', data: { labels: data.performance.map(i => i.location), datasets: [{ label: 'Successful Appointments', data: data.performance.map(i => i.count), backgroundColor: '#1e293b', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            for (const canvasId of canvases) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error(`Canvas element ${canvasId} not found`);
+                    // Try again after a short delay
+                    setTimeout(() => loadAnalytics(), 200);
+                    return;
+                }
+            }
+            
+            try {
+                const fd = new FormData(); 
+                fd.append('action', 'get_analytics');
+                const data = await api(fd);
+                console.log('Analytics data received:', data);
+                
+                if(!data) {
+                    // Show error state or use default empty data
+                    console.warn('No data received, using empty defaults');
+                    data = {
+                        blood_types: [],
+                        trends: [],
+                        performance: [],
+                        blood_report_trends: [],
+                        hemoglobin_trends: [],
+                        blood_report_locations: [],
+                        hemoglobin_ranges: []
+                    };
+                }
+                
+                // Helper function to ensure arrays exist
+                const safeArray = (arr) => Array.isArray(arr) ? arr : [];
+                
+                // Helper to ensure we always have something to display
+                const ensureData = (arr, defaultValue) => {
+                    if (Array.isArray(arr) && arr.length > 0) return arr;
+                    return defaultValue || [];
+                };
+            
+                // Donation & Appointment Charts
+                const bloodTypes = ensureData(data.blood_types);
+                const ctx1 = document.getElementById('bloodTypeChart').getContext('2d');
+                if(bloodChartInstance) bloodChartInstance.destroy();
+                bloodChartInstance = new Chart(ctx1, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: bloodTypes.length > 0 ? bloodTypes.map(i => i.type) : ['No Data'], 
+                        datasets: [{ 
+                            data: bloodTypes.length > 0 ? bloodTypes.map(i => parseInt(i.count) || 0) : [1], 
+                            backgroundColor: ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#475569', '#64748b', '#94a3b8', '#cbd5e1'], 
+                            borderWidth: 0 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { position: 'right' },
+                            tooltip: {
+                                enabled: true
+                            }
+                        } 
+                    } 
+                });
+            
+                const trends = ensureData(data.trends);
+                const ctx2 = document.getElementById('trendsChart').getContext('2d');
+                if(trendsChartInstance) trendsChartInstance.destroy();
+                trendsChartInstance = new Chart(ctx2, { 
+                    type: 'line', 
+                    data: { 
+                        labels: trends.length > 0 ? trends.map(i => i.month) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                        datasets: [{ 
+                            label: 'Volume (ml)', 
+                            data: trends.length > 0 ? trends.map(i => parseInt(i.volume) || 0) : [0, 0, 0, 0, 0, 0], 
+                            borderColor: '#dc2626', 
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+                            fill: true, 
+                            tension: 0.4 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    } 
+                });
+                
+                const performance = ensureData(data.performance);
+                const ctx3 = document.getElementById('performanceChart').getContext('2d');
+                if(perfChartInstance) perfChartInstance.destroy();
+                perfChartInstance = new Chart(ctx3, { 
+                    type: 'bar', 
+                    data: { 
+                        labels: performance.length > 0 ? performance.map(i => i.location) : ['No Data'], 
+                        datasets: [{ 
+                            label: 'Successful Appointments', 
+                            data: performance.length > 0 ? performance.map(i => parseInt(i.count) || 0) : [0], 
+                            backgroundColor: '#1e293b', 
+                            borderRadius: 6 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    } 
+                });
+            
+                // Blood Reports Charts
+                const bloodReportTrends = ensureData(data.blood_report_trends);
+                const ctx4 = document.getElementById('bloodReportTrendsChart').getContext('2d');
+                if(bloodReportTrendsChartInstance) bloodReportTrendsChartInstance.destroy();
+                bloodReportTrendsChartInstance = new Chart(ctx4, { 
+                    type: 'bar', 
+                    data: { 
+                        labels: bloodReportTrends.length > 0 ? bloodReportTrends.map(i => i.month) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                        datasets: [{ 
+                            label: 'Reports Generated', 
+                            data: bloodReportTrends.length > 0 ? bloodReportTrends.map(i => parseInt(i.count) || 0) : [0, 0, 0, 0, 0, 0], 
+                            backgroundColor: '#dc2626', 
+                            borderRadius: 6 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                enabled: true
+                            }
+                        }
+                    } 
+                });
+                
+                const hemoglobinTrends = ensureData(data.hemoglobin_trends);
+                const ctx5 = document.getElementById('hemoglobinTrendsChart').getContext('2d');
+                if(hemoglobinTrendsChartInstance) hemoglobinTrendsChartInstance.destroy();
+                hemoglobinTrendsChartInstance = new Chart(ctx5, { 
+                    type: 'line', 
+                    data: { 
+                        labels: hemoglobinTrends.length > 0 ? hemoglobinTrends.map(i => i.month) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                        datasets: [{ 
+                            label: 'Avg Hemoglobin (g/dL)', 
+                            data: hemoglobinTrends.length > 0 ? hemoglobinTrends.map(i => parseFloat(i.avg_hemoglobin) || 0) : [0, 0, 0, 0, 0, 0], 
+                            borderColor: '#dc2626', 
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+                            fill: true, 
+                            tension: 0.4 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                title: {
+                                    display: true,
+                                    text: 'g/dL'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                enabled: true
+                            }
+                        }
+                    } 
+                });
+                
+                const bloodReportLocations = ensureData(data.blood_report_locations);
+                const ctx6 = document.getElementById('bloodReportLocationChart').getContext('2d');
+                if(bloodReportLocationChartInstance) bloodReportLocationChartInstance.destroy();
+                bloodReportLocationChartInstance = new Chart(ctx6, { 
+                    type: 'bar', 
+                    data: { 
+                        labels: bloodReportLocations.length > 0 ? bloodReportLocations.map(i => i.location) : ['No Data'], 
+                        datasets: [{ 
+                            label: 'Blood Reports', 
+                            data: bloodReportLocations.length > 0 ? bloodReportLocations.map(i => parseInt(i.count) || 0) : [0], 
+                            backgroundColor: '#ef4444', 
+                            borderRadius: 6 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                enabled: true
+                            }
+                        }
+                    } 
+                });
+                
+                const hemoglobinRanges = ensureData(data.hemoglobin_ranges);
+                const ctx7 = document.getElementById('hemoglobinRangeChart').getContext('2d');
+                if(hemoglobinRangeChartInstance) hemoglobinRangeChartInstance.destroy();
+                hemoglobinRangeChartInstance = new Chart(ctx7, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: hemoglobinRanges.length > 0 ? hemoglobinRanges.map(i => i.range_label) : ['No Data'], 
+                        datasets: [{ 
+                            data: hemoglobinRanges.length > 0 ? hemoglobinRanges.map(i => parseInt(i.count) || 0) : [1], 
+                            backgroundColor: ['#fca5a5', '#10b981', '#f59e0b', '#dc2626'], 
+                            borderWidth: 0 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { position: 'right' },
+                            tooltip: {
+                                enabled: true
+                            }
+                        } 
+                    } 
+                });
+                
+                console.log('All charts initialized successfully');
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showToast('Error loading analytics data', true);
+            }
         }
-        let bloodChartInstance = null; let trendsChartInstance = null; let perfChartInstance = null;
+        let bloodChartInstance = null; 
+        let trendsChartInstance = null; 
+        let perfChartInstance = null;
+        let bloodReportTrendsChartInstance = null;
+        let hemoglobinTrendsChartInstance = null;
+        let bloodReportLocationChartInstance = null;
+        let hemoglobinRangeChartInstance = null;
 
         async function sendGmailAlert(e) {
             e.preventDefault();
@@ -514,6 +879,12 @@
         
         async function processDonation(e) { 
             e.preventDefault(); 
+            
+            // Double confirmation before processing
+            if (!confirm('Are you sure you want to process this donation and notify the donor?')) {
+                return;
+            }
+            
             const btn = e.target.querySelector('button');
             const ogText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing & Emailing...';
@@ -524,14 +895,37 @@
                 showToast('Donation processed successfully');
                 e.target.reset(); 
                 
-                // Clear the readonly fields too
-                document.getElementById('donation-drive-display').value = '';
-                document.getElementById('donation-drive-id').value = '';
-
+                // Refresh drive/participant lists
+                loadTodaysDrives();
+                
                 loadStats(); 
+                
+                // Reset validation states
+                resetValidationStates();
             }
             btn.innerHTML = ogText;
             btn.disabled = false;
+        }
+
+        function resetValidationStates() {
+            // Reset volume input style
+            const volInput = document.getElementById('vol-input');
+            const volMsg = document.getElementById('vol-msg');
+            if(volInput) {
+                volInput.classList.remove('border-red-500', 'bg-red-50');
+                volInput.classList.add('border-slate-200', 'bg-slate-50');
+            }
+            if(volMsg) volMsg.classList.add('hidden');
+
+            // Reset notes input style
+            const notesInput = document.getElementById('notes-input');
+            const notesMsg = document.getElementById('notes-msg');
+            if(notesInput) {
+                notesInput.classList.remove('border-red-500', 'bg-red-50');
+            }
+            if(notesMsg) notesMsg.classList.add('hidden');
+            const notesCounter = document.getElementById('notes-counter');
+            if(notesCounter) notesCounter.innerText = '0/30';
         }
 
         async function loadAppointments() {
@@ -548,9 +942,14 @@
                             <td class="p-5 text-slate-600">${row.location_name}</td>
                             <td class="p-5 text-slate-600">${row.selected_time}</td>
                             <td class="p-5 text-right">
-                                <button onclick="confirmAppt(${row.appt_id}, this)" class="bg-slate-900 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
-                                    Approve
-                                </button>
+                                <div class="flex gap-2 justify-end">
+                                    <button onclick="confirmAppt(${row.appt_id}, this)" class="bg-slate-900 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
+                                        Approve
+                                    </button>
+                                    <button onclick="rejectAppt(${row.appt_id}, this)" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
+                                        Reject
+                                    </button>
+                                </div>
                             </td>
                         </tr>`;
                 });
@@ -570,6 +969,34 @@
 
             loadAppointments(); 
             loadActiveRoster(); 
+            loadStats();
+        }
+
+        async function rejectAppt(id, btn) {
+            if (!confirm('Are you sure you want to reject this appointment? The donor will be notified.')) {
+                return;
+            }
+            
+            const ogText = btn.innerHTML;
+            const row = btn.closest('tr');
+            const buttons = row.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.disabled = true;
+                if (b === btn) {
+                    b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+                }
+            });
+            
+            const fd = new FormData();
+            fd.append('action', 'reject_appt');
+            fd.append('appt_id', id);
+            
+            const result = await api(fd);
+            if(result) {
+                showToast('Appointment rejected');
+            }
+
+            loadAppointments();
             loadStats();
         }
 
@@ -634,6 +1061,110 @@
             }
         }
 
+        // === NEW FUNCTIONS FOR PROCESS DONATION ===
+        
+        // 1. Load active missions happening TODAY
+        async function loadTodaysDrives() {
+            const select = document.getElementById('donation-drive-select');
+            if(!select) return; // Element might not exist if section not loaded yet
+            select.innerHTML = '<option value="">Loading...</option>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_todays_drives');
+            
+            const data = await api(fd);
+            
+            select.innerHTML = '<option value="">-- Select Today\'s Appointment --</option>';
+            if(data && data.length) {
+                data.forEach(d => {
+                    select.innerHTML += `<option value="${d.drive_id}">${d.location_name} (${d.start_time.substring(0,5)} - ${d.end_time.substring(0,5)})</option>`;
+                });
+            } else {
+                 select.innerHTML = '<option value="">No Active Appointments Found Today</option>';
+            }
+            
+            // Reset dependent dropdown
+            const donorSelect = document.getElementById('donation-donor-select');
+            if(donorSelect) {
+                donorSelect.innerHTML = '<option value="">-- Select Appointment First --</option>';
+                donorSelect.disabled = true;
+            }
+        }
+
+        // 2. Load participants for that specific mission
+        async function loadDriveParticipants(driveId) {
+            const select = document.getElementById('donation-donor-select');
+            if(!select) return;
+            
+            if(!driveId) {
+                select.innerHTML = '<option value="">-- Select Appointment First --</option>';
+                select.disabled = true;
+                return;
+            }
+
+            select.innerHTML = '<option value="">Loading Donors...</option>';
+            select.disabled = false;
+
+            const fd = new FormData();
+            fd.append('action', 'get_drive_participants');
+            fd.append('drive_id', driveId);
+            
+            const data = await api(fd);
+            
+            select.innerHTML = '<option value="">-- Select Donor --</option>';
+            if(data && data.length) {
+                data.forEach(u => {
+                    select.innerHTML += `<option value="${u.user_id}">${u.full_name} (${u.blood_type})</option>`;
+                });
+            } else {
+                select.innerHTML = '<option value="">No bookings for this appointment</option>';
+            }
+        }
+
+        // === VALIDATION FUNCTIONS ===
+
+        function validateVolume(input) {
+            const msg = document.getElementById('vol-msg');
+            if(!msg) return; // Element might not exist
+            let val = parseInt(input.value);
+            
+            // Enforce max limit like maxlength
+            if (val > 500) {
+                input.value = 500;
+                val = 500;
+            }
+
+            // Show warning at limit (Just like Notes)
+            if (val >= 500) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                input.classList.remove('border-slate-200', 'bg-slate-50');
+                msg.classList.remove('hidden');
+                msg.innerText = 'Max amount reached';
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                input.classList.add('border-slate-200', 'bg-slate-50');
+                msg.classList.add('hidden');
+            }
+        }
+
+        function validateNotes(input) {
+            const len = input.value.length;
+            const max = 30;
+            const counter = document.getElementById('notes-counter');
+            if(counter) counter.innerText = `${len}/${max}`;
+            
+            const msg = document.getElementById('notes-msg');
+            if(!msg) return;
+            
+            if (len >= max) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                msg.classList.remove('hidden');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                msg.classList.add('hidden');
+            }
+        }
+
         async function loadSlots(drive_id) {
             const slotSelect = document.getElementById('slot-select');
             slotSelect.innerHTML = '<option value="">-- Loading Slots... --</option>';
@@ -678,9 +1209,140 @@
             btn.disabled = false;
         }
 
-        function logout() { const fd = new FormData(); fd.append('action', 'logout'); api(fd).then(() => window.location.href = 'admin_login.html'); }
+        let allBloodReportsData = []; // Store all reports for filtering
 
-        document.addEventListener('DOMContentLoaded', loadStats);
+        async function loadBloodReports() {
+            const container = document.getElementById('blood-reports-container');
+            const countSpan = document.getElementById('blood-reports-count');
+            
+            container.innerHTML = '<div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm"><i class="fas fa-spinner fa-spin mr-2"></i> Loading blood reports...</div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_all_blood_reports');
+            const data = await api(fd);
+            
+            if (data && data.length > 0) {
+                allBloodReportsData = data;
+                
+                // Display all reports initially
+                filterBloodReportsByDate();
+            } else {
+                container.innerHTML = `
+                    <div class="bg-white p-12 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-file-medical text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500 text-lg font-medium">No blood reports available</p>
+                        <p class="text-slate-400 text-sm mt-2">Blood reports will appear here when created.</p>
+                    </div>
+                `;
+                countSpan.textContent = '';
+            }
+        }
+
+        function filterBloodReportsByDate() {
+            const container = document.getElementById('blood-reports-container');
+            const dateFrom = document.getElementById('blood-report-date-from');
+            const dateTo = document.getElementById('blood-report-date-to');
+            const countSpan = document.getElementById('blood-reports-count');
+            
+            const fromDate = dateFrom.value;
+            const toDate = dateTo.value;
+            
+            let filteredData = allBloodReportsData;
+            
+            // Filter by date range if dates are provided
+            if (fromDate || toDate) {
+                filteredData = allBloodReportsData.filter(report => {
+                    const reportDate = new Date(report.report_date);
+                    const from = fromDate ? new Date(fromDate) : null;
+                    const to = toDate ? new Date(toDate) : null;
+                    
+                    // If only from date is provided, show reports from that date onwards
+                    if (from && !to) {
+                        return reportDate >= from;
+                    }
+                    // If only to date is provided, show reports up to that date
+                    else if (!from && to) {
+                        return reportDate <= to;
+                    }
+                    // If both dates are provided, show reports within the range
+                    else if (from && to) {
+                        // Set to date to end of day for inclusive range
+                        to.setHours(23, 59, 59, 999);
+                        return reportDate >= from && reportDate <= to;
+                    }
+                    return true;
+                });
+            }
+            
+            // Update count
+            countSpan.textContent = `${filteredData.length} report${filteredData.length !== 1 ? 's' : ''}`;
+            
+            if (filteredData.length > 0) {
+                container.innerHTML = filteredData.map(report => `
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">${report.full_name}</h3>
+                                <p class="text-sm text-slate-500">
+                                    <i class="fas fa-envelope mr-2"></i>${report.email}
+                                    <span class="ml-4"><i class="fas fa-tint mr-2"></i>${report.blood_type}</span>
+                                    <span class="ml-4"><i class="fas fa-calendar mr-2"></i>${report.report_date}</span>
+                                </p>
+                                ${report.hospital_name !== 'N/A' ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-hospital mr-2"></i>${report.hospital_name} - ${report.location_name}</p>` : ''}
+                            </div>
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-700">Report #${report.report_id}</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            ${report.hemoglobin ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Hemoglobin</p><p class="text-lg font-bold text-slate-900">${report.hemoglobin} g/dL</p></div>` : ''}
+                            ${report.hematocrit ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Hematocrit</p><p class="text-lg font-bold text-slate-900">${report.hematocrit}%</p></div>` : ''}
+                            ${report.platelet_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Platelets</p><p class="text-lg font-bold text-slate-900">${(report.platelet_count / 1000).toFixed(0)}K</p></div>` : ''}
+                            ${report.blood_pressure ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Blood Pressure</p><p class="text-lg font-bold text-slate-900">${report.blood_pressure}</p></div>` : ''}
+                            ${report.white_blood_cell_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">WBC Count</p><p class="text-lg font-bold text-slate-900">${report.white_blood_cell_count} ×10³/µL</p></div>` : ''}
+                            ${report.red_blood_cell_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">RBC Count</p><p class="text-lg font-bold text-slate-900">${report.red_blood_cell_count} ×10⁶/µL</p></div>` : ''}
+                            ${report.temperature ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Temperature</p><p class="text-lg font-bold text-slate-900">${report.temperature}°F</p></div>` : ''}
+                            ${report.volume_ml ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Blood Volume</p><p class="text-lg font-bold text-slate-900">${report.volume_ml} ml</p></div>` : ''}
+                        </div>
+                        ${report.notes ? `<div class="mt-4 pt-4 border-t border-slate-100"><p class="text-sm text-slate-600"><strong>Notes:</strong> ${report.notes}</p></div>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                const hasFilter = fromDate || toDate;
+                const message = hasFilter 
+                    ? `No blood reports found for the selected date range.`
+                    : `No blood reports available.`;
+                const subMessage = hasFilter 
+                    ? 'Try selecting a different date range or clear the filter to view all reports.'
+                    : 'Blood reports will appear here when created.';
+                container.innerHTML = `
+                    <div class="bg-white p-12 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-file-medical text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500 text-lg font-medium">${message}</p>
+                        <p class="text-slate-400 text-sm mt-2">${subMessage}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function clearDateFilter() {
+            document.getElementById('blood-report-date-from').value = '';
+            document.getElementById('blood-report-date-to').value = '';
+            filterBloodReportsByDate();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                const fd = new FormData();
+                fd.append('action', 'logout');
+                api(fd).then(() => window.location.href = 'index.html');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadStats();
+            }
+        });
     </script>
 </body>
 </html>
