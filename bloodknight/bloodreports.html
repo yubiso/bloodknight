@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Reports - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+        
+        /* TAB STYLES */
+        .report-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-width: 120px;
+            max-width: 200px;
+        }
+        
+        .report-tab.active {
+            background: white;
+            border-color: #cbd5e1;
+            border-bottom-color: white;
+            position: relative;
+            z-index: 1;
+            margin-bottom: -1px;
+        }
+        
+        .report-tab:hover:not(.active) {
+            background: #e2e8f0;
+        }
+        
+        .report-tab-close {
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .report-tab-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        #report-tabs-container {
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-100">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col fixed left-0 top-0 h-full z-20 shadow-sm">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">
+                <i class="fas fa-shield-alt text-3xl text-red-600"></i>
+                <span class="text-2xl font-bold tactical-font uppercase tracking-tighter text-slate-800">Blood<span class="text-red-600">Knight</span></span>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-th-large w-5"></i> Dashboard
+                </a>
+                <a href="find_drives.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-map-marker-alt w-5"></i> Find Missions
+                </a>
+                <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-history w-5"></i> History
+                </a>
+                <a href="bloodreports.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-file-medical w-5"></i> Blood Reports
+                </a>
+                <a href="profile.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-user-cog w-5"></i> Profile
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-100">
+                <button onclick="handleLogout()" class="flex items-center gap-3 px-4 py-3 w-full text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 md:ml-64 overflow-y-auto h-full">
+            <div class="md:hidden px-6 py-4 flex justify-between items-center bg-white border-b">
+                <span class="text-xl font-bold tactical-font uppercase cursor-pointer hover:text-red-600 transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">Blood<span class="text-red-600">Knight</span></span>
+                <button onclick="handleLogout()" class="text-slate-500"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+
+            <div class="max-w-7xl mx-auto p-6 md:p-8">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-slate-900 mb-2 tactical-font uppercase">Blood Reports</h1>
+                    <p class="text-slate-500">View and manage your medical blood test reports.</p>
+                </div>
+                
+                <!-- Reports List -->
+                <div id="blood-reports-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading reports...
+                    </div>
+                </div>
+                
+                <!-- Tab Container -->
+                <div id="report-tabs-container" class="hidden">
+                    <!-- Tab Headers -->
+                    <div class="flex items-center gap-2 border-b border-slate-200 mb-4 overflow-x-auto">
+                        <div id="report-tabs" class="flex gap-2 min-w-0 flex-1"></div>
+                    </div>
+                    
+                    <!-- Tab Content Area -->
+                    <div id="report-tab-content" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 min-h-[400px]">
+                        <div class="text-center text-slate-400 py-12">
+                            <i class="fas fa-file-medical text-4xl mb-4"></i>
+                            <p>Select a blood report to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let allBloodReports = []; // Store all reports globally
+        
+        // Tab management
+        let openTabs = [];
+        let activeTabId = null;
+
+        function openReportTab(reportId) {
+            const report = allBloodReports.find(r => r.report_id == reportId);
+            if (!report) return;
+            
+            // Check if tab already exists
+            const existingTab = openTabs.find(t => t.reportId == reportId);
+            if (existingTab) {
+                // Switch to existing tab
+                switchToTab(reportId);
+                return;
+            }
+            
+            // Create new tab
+            const tab = {
+                reportId: reportId,
+                report: report
+            };
+            
+            openTabs.push(tab);
+            activeTabId = reportId;
+            
+            // Show tab container
+            const tabsContainer = document.getElementById('report-tabs-container');
+            if (tabsContainer) {
+                tabsContainer.classList.remove('hidden');
+            }
+            
+            renderTabs();
+            renderTabContent(reportId);
+        }
+
+        function switchToTab(reportId) {
+            activeTabId = reportId;
+            renderTabs();
+            renderTabContent(reportId);
+        }
+
+        function closeTab(reportId, event) {
+            if (event) {
+                event.stopPropagation(); // Prevent triggering tab switch
+            }
+            
+            openTabs = openTabs.filter(t => t.reportId != reportId);
+            
+            // If we closed the active tab, switch to another one
+            if (activeTabId == reportId) {
+                if (openTabs.length > 0) {
+                    activeTabId = openTabs[openTabs.length - 1].reportId;
+                } else {
+                    activeTabId = null;
+                }
+            }
+            
+            // Hide tab container if no tabs left
+            if (openTabs.length === 0) {
+                const tabsContainer = document.getElementById('report-tabs-container');
+                if (tabsContainer) {
+                    tabsContainer.classList.add('hidden');
+                }
+            }
+            
+            renderTabs();
+            
+            if (activeTabId) {
+                renderTabContent(activeTabId);
+            } else {
+                // Show empty state
+                const contentDiv = document.getElementById('report-tab-content');
+                if (contentDiv) {
+                    contentDiv.innerHTML = `
+                        <div class="text-center text-slate-400 py-12">
+                            <i class="fas fa-file-medical text-4xl mb-4"></i>
+                            <p>Select a blood report to view details</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function renderTabs() {
+            const tabsDiv = document.getElementById('report-tabs');
+            if (!tabsDiv) return;
+            
+            if (openTabs.length === 0) {
+                tabsDiv.innerHTML = '';
+                return;
+            }
+            
+            tabsDiv.innerHTML = openTabs.map(tab => {
+                const report = tab.report;
+                const reportDate = new Date(report.report_date);
+                const formattedDate = reportDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                const isActive = activeTabId == tab.reportId;
+                
+                return `
+                    <div class="report-tab ${isActive ? 'active' : ''}" onclick="switchToTab(${tab.reportId})">
+                        <i class="fas fa-file-medical text-xs"></i>
+                        <span class="text-sm font-medium truncate">Report #${report.report_id}</span>
+                        <span class="text-xs text-slate-500">${formattedDate}</span>
+                        <button onclick="closeTab(${tab.reportId}, event)" class="report-tab-close ml-auto">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTabContent(reportId) {
+            const report = allBloodReports.find(r => r.report_id == reportId);
+            if (!report) return;
+            
+            const contentDiv = document.getElementById('report-tab-content');
+            if (!contentDiv) return;
+            
+            // Format date
+            const reportDate = new Date(report.report_date);
+            const formattedDate = reportDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            contentDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900">Blood Report #${report.report_id}</h3>
+                        <p class="text-sm text-slate-500 mt-2">
+                            <i class="fas fa-calendar mr-2"></i>${formattedDate}
+                            ${report.hospital_name !== 'N/A' ? `<span class="ml-4"><i class="fas fa-hospital mr-2"></i>${report.hospital_name}</span>` : ''}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    ${report.hemoglobin ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">Hemoglobin</p><p class="text-2xl font-bold text-slate-900">${report.hemoglobin} <span class="text-sm font-normal text-slate-600">g/dL</span></p></div>` : ''}
+                    ${report.hematocrit ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">Hematocrit</p><p class="text-2xl font-bold text-slate-900">${report.hematocrit} <span class="text-sm font-normal text-slate-600">%</span></p></div>` : ''}
+                    ${report.platelet_count ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">Platelets</p><p class="text-2xl font-bold text-slate-900">${(report.platelet_count / 1000).toFixed(0)} <span class="text-sm font-normal text-slate-600">K</span></p></div>` : ''}
+                    ${report.blood_pressure ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">Blood Pressure</p><p class="text-2xl font-bold text-slate-900">${report.blood_pressure}</p></div>` : ''}
+                    ${report.white_blood_cell_count ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">WBC Count</p><p class="text-2xl font-bold text-slate-900">${report.white_blood_cell_count} <span class="text-sm font-normal text-slate-600">×10³/µL</span></p></div>` : ''}
+                    ${report.red_blood_cell_count ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">RBC Count</p><p class="text-2xl font-bold text-slate-900">${report.red_blood_cell_count} <span class="text-sm font-normal text-slate-600">×10⁶/µL</span></p></div>` : ''}
+                    ${report.temperature ? `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200"><p class="text-xs text-slate-500 uppercase mb-2 font-bold">Temperature</p><p class="text-2xl font-bold text-slate-900">${report.temperature} <span class="text-sm font-normal text-slate-600">°F</span></p></div>` : ''}
+                </div>
+                
+                ${report.volume_ml ? `
+                <div class="mt-6 pt-6 border-t border-slate-200">
+                    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="bg-red-100 rounded-full p-3">
+                                <i class="fas fa-tint text-red-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 uppercase tracking-wide">Donation Information</h4>
+                                <p class="text-xs text-slate-600">Blood Volume Donated</p>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-4xl font-black text-red-600">${report.volume_ml}</p>
+                            <p class="text-xl font-semibold text-slate-700">ml</p>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">This is the amount of blood collected during your donation</p>
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${report.notes ? `<div class="mt-6 pt-6 border-t border-slate-200"><p class="text-sm text-slate-700 leading-relaxed"><strong class="text-slate-900">Notes:</strong> ${report.notes}</p></div>` : ''}
+            `;
+        }
+
+        function showReportDetails(reportId) {
+            openReportTab(reportId);
+        }
+
+        async function loadBloodReports() {
+            const listContainer = document.getElementById('blood-reports-list');
+            
+            try {
+                const response = await fetch('bloodknight.php?action=get_my_blood_reports');
+                const result = await response.json();
+                
+                if (result.status === 'error') {
+                    listContainer.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-xl col-span-full">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>${result.message || 'Failed to load blood reports'}
+                        </div>
+                    `;
+                    console.error('Blood reports error:', result.message);
+                    return;
+                }
+                
+                if (result.status === 'success' && result.data.length > 0) {
+                    allBloodReports = result.data; // Store globally
+                    
+                    listContainer.innerHTML = result.data.map(report => {
+                        const reportDate = new Date(report.report_date);
+                        const formattedDate = reportDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                        });
+                        const dayName = reportDate.toLocaleDateString('en-US', { weekday: 'short' });
+                        
+                        // Calculate days ago
+                        const today = new Date();
+                        const diffTime = Math.abs(today - reportDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const daysAgo = diffDays === 0 ? 'Today' : diffDays === 1 ? 'Yesterday' : `${diffDays} days ago`;
+                        
+                        return `
+                            <div onclick="showReportDetails(${report.report_id})" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-red-300 cursor-pointer transition-all group">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-400 uppercase mb-1">${dayName}</div>
+                                        <div class="text-xl font-bold text-slate-900 group-hover:text-red-600 transition-colors">${formattedDate}</div>
+                                        <div class="text-xs text-slate-500 mt-1">${daysAgo}</div>
+                                    </div>
+                                    <span class="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">#${report.report_id}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-slate-600 mt-3 pt-3 border-t border-slate-100">
+                                    ${report.hemoglobin ? `<span class="text-xs"><i class="fas fa-tint text-red-500 mr-1"></i>Hb: ${report.hemoglobin}</span>` : ''}
+                                    ${report.blood_pressure ? `<span class="text-xs"><i class="fas fa-heartbeat text-red-500 mr-1"></i>BP: ${report.blood_pressure}</span>` : ''}
+                                    ${report.volume_ml ? `<span class="text-xs"><i class="fas fa-flask text-red-500 mr-1"></i>Vol: ${report.volume_ml}ml</span>` : ''}
+                                </div>
+                                <div class="mt-3 text-xs text-slate-400 group-hover:text-red-600 transition-colors">
+                                    <i class="fas fa-chevron-right mr-1"></i>View full report
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    listContainer.innerHTML = `
+                        <div class="bg-white p-8 rounded-xl border border-slate-200 text-center col-span-full">
+                            <i class="fas fa-file-medical text-5xl text-slate-300 mb-4"></i>
+                            <p class="text-slate-500 text-lg font-medium">No blood reports available</p>
+                            <p class="text-slate-400 text-sm mt-2">Your blood reports will appear here after donation.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error loading blood reports:", error);
+                listContainer.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl col-span-full">
+                        <i class="fas fa-exclamation-circle mr-2"></i>Failed to load blood reports. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to log out?')) {
+                fetch('bloodknight.php?action=logout').finally(() => {
+                    // Clear local data on logout for clean session start
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'index.html';
+                });
+            }
+        }
+
+        // Make functions accessible globally
+        window.showReportDetails = showReportDetails;
+        window.switchToTab = switchToTab;
+        window.closeTab = closeTab;
+
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const response = await fetch('bloodknight.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                const savedProfile = localStorage.getItem('bk_user_profile');
+                if (!savedProfile) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadBloodReports();
+            }
+        });
+    </script>
+</body>
+</html>
+
