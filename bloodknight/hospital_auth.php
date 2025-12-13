@@ -1,6 +1,12 @@
 <?php
 // hospital_auth.php
 header('Content-Type: application/json');
+
+// Configure session for persistence
+ini_set('session.cookie_lifetime', 86400 * 7); // 7 days
+ini_set('session.gc_maxlifetime', 86400 * 7); // 7 days
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
 session_start();
 
 require_once 'db_connect.php';
