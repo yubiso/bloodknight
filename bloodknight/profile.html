@@ -18,7 +18,7 @@
     <div class="flex h-screen overflow-hidden">
         
         <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
-            <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">
                 <i class="fas fa-shield-alt text-3xl text-red-600"></i>
                 <span class="text-2xl font-bold tactical-font uppercase tracking-tighter text-slate-800">Blood<span class="text-red-600">Knight</span></span>
             </div>
@@ -33,6 +33,9 @@
                 <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
                     <i class="fa-solid fa-clock-rotate-left"></i> History
                 </a>
+                <a href="bloodreports.html" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-file-medical w-5"></i> Blood Reports
+                </a>
                 <a href="profile.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium transition-colors">
                     <i class="fa-solid fa-user"></i> Profile
                 </a>
@@ -46,7 +49,7 @@
 
         <main class="flex-1 overflow-y-auto">
             <div class="md:hidden px-6 py-4 flex justify-between items-center bg-white border-b">
-                <span class="text-xl font-bold tactical-font uppercase">Blood<span class="text-red-600">Knight</span></span>
+                <span class="text-xl font-bold tactical-font uppercase cursor-pointer hover:text-red-600 transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">Blood<span class="text-red-600">Knight</span></span>
                 <button onclick="logout()" class="text-slate-500"><i class="fas fa-sign-out-alt"></i></button>
             </div>
 
@@ -87,6 +90,17 @@
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phone Number</label>
                                 <input type="tel" name="phone" id="phone" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Gender</label>
+                                <select name="gender" id="gender" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Blood Type</label>
                                 <select name="blood_type" id="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 transition-all">
@@ -137,6 +151,29 @@
             }
         });
 
+        // Check authentication before loading profile
+        async function checkAuth() {
+            try {
+                const response = await fetch('bloodknight.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                const savedProfile = localStorage.getItem('bk_user_profile');
+                if (!savedProfile) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+        }
+
         async function loadProfile() {
             // 1. First, check LocalStorage (fastest)
             const stored = localStorage.getItem('bk_user_profile');
@@ -156,6 +193,9 @@
                     const result = await response.json();
                     if (result.status === 'success') {
                         populateForm(result.data);
+                    } else if (result.message === 'Not logged in') {
+                        window.location.href = 'login.html';
+                        return;
                     }
                 }
             } catch (err) {
@@ -167,6 +207,7 @@
             document.getElementById('full_name').value = data.full_name || '';
             document.getElementById('email').value = data.email || 'demo@bloodknight.com';
             document.getElementById('phone').value = data.phone_number || data.phone || '';
+            document.getElementById('gender').value = data.gender || '';
             document.getElementById('blood_type').value = data.blood_type || 'A+';
 
             if (data.profile_pic) {
@@ -190,6 +231,7 @@
                 full_name: formData.get('full_name'),
                 email: document.getElementById('email').value,
                 phone: formData.get('phone'),
+                gender: formData.get('gender'),
                 blood_type: formData.get('blood_type'),
                 profile_pic: safeImgSrc 
             };
@@ -221,11 +263,18 @@
         }
 
         async function logout() {
-            try { await fetch('bloodknight.php?action=logout'); } catch(e){}
-            window.location.href = 'index.html';
+            if (confirm('Are you sure you want to log out?')) {
+                try { await fetch('bloodknight.php?action=logout'); } catch(e){}
+                window.location.href = 'index.html';
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', loadProfile);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadProfile();
+            }
+        });
     </script>
 </body>
 </html>
