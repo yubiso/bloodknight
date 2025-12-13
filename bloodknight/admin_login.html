@@ -51,7 +51,13 @@
         </form>
         <p id="msg" class="text-center mt-6 text-red-600 text-sm font-bold min-h-[20px]"></p>
         
-        <div class="mt-8 text-center">
+        <div class="mt-6 text-center">
+            <a href="admin_forgot_password.html" class="text-slate-400 text-xs hover:text-red-600 transition-colors">
+                <i class="fas fa-key mr-1"></i> Forgot Password?
+            </a>
+        </div>
+        
+        <div class="mt-4 text-center">
             <a href="index.html" class="text-slate-400 text-xs hover:text-red-600 transition-colors">
                 <i class="fas fa-arrow-left mr-1"></i> Return to Public Interface
             </a>
@@ -70,7 +76,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> VERIFYING ID...';
 
             try {
-                const res = await fetch('admin.php', { method: 'POST', body: formData });
+                const res = await fetch('admin_controller.php', { method: 'POST', body: formData });
                 const data = await res.json();
 
                 if (data.status === 'success') {
