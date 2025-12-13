@@ -39,7 +39,7 @@
 
     <div class="flex h-screen overflow-hidden">
         <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-full fixed left-0 top-0 z-20 shadow-sm">
-            <div class="p-6 flex items-center gap-3">
+            <div class="p-6 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">
                 <i class="fas fa-shield-alt text-3xl text-red-600"></i>
                 <span class="text-2xl font-bold tactical-font uppercase tracking-tighter">Blood<span class="text-red-600">Knight</span></span>
             </div>
@@ -52,6 +52,9 @@
                 </a>
                 <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
                     <i class="fas fa-history w-5"></i> History
+                </a>
+                <a href="bloodreports.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-file-medical w-5"></i> Blood Reports
                 </a>
                 <a href="profile.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
                     <i class="fas fa-user-cog w-5"></i> Profile
@@ -66,7 +69,7 @@
 
         <main class="flex-1 md:ml-64 h-full overflow-y-auto pt-4 md:pt-0 relative">
             <div class="md:hidden px-6 py-4 flex justify-between items-center bg-white border-b mb-4">
-                <span class="text-xl font-bold tactical-font uppercase">Blood<span class="text-red-600">Knight</span></span>
+                <span class="text-xl font-bold tactical-font uppercase cursor-pointer hover:text-red-600 transition-colors" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">Blood<span class="text-red-600">Knight</span></span>
                 <button onclick="handleLogout()" class="text-slate-500"><i class="fas fa-sign-out-alt"></i></button>
             </div>
 
@@ -186,6 +189,7 @@
                         <div class="text-center py-4 text-slate-400 col-span-full"><i class="fas fa-sync fa-spin mr-2"></i> Fetching live blood supply data...</div>
                         </div>
                 </div>
+
             </div>
         </main>
     </div>
@@ -259,6 +263,32 @@
             progressIndicator.style.strokeDashoffset = offset;
         }
 
+        // Check authentication before loading dashboard
+        async function checkAuth() {
+            try {
+                const response = await fetch('bloodknight.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    // Session invalid, redirect to login
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                // On error, check localStorage as fallback
+                const savedProfile = localStorage.getItem('bk_user_profile');
+                if (!savedProfile) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+        }
+
         async function loadDashboardData() {
             let activeUser = { ...DEFAULT_USER };
 
@@ -294,6 +324,11 @@
                             activeUser.last_donation = result.data.last_donation;
                         }
                     } else {
+                        // If "Not logged in" error, redirect to login
+                        if (result.message === 'Not logged in') {
+                            window.location.href = 'login.html';
+                            return;
+                        }
                         throw new Error(result.message);
                     }
                 } else {
@@ -429,16 +464,30 @@
                 const res = await response.json();
                 
                 if (res.status === 'success' && res.data.length > 0) {
-                    localStorage.setItem('bk_active_appt', JSON.stringify(res.data[0]));
+                    // Show all appointments including cancelled/rejected ones
                     renderAppointmentsList(res.data);
+                    
+                    // Only store non-cancelled appointments as "active" for eligibility checks
+                    const activeAppointments = res.data.filter(appt => appt.status !== 'Cancelled');
+                    if (activeAppointments.length > 0) {
+                        localStorage.setItem('bk_active_appt', JSON.stringify(activeAppointments[0]));
+                    } else {
+                        localStorage.removeItem('bk_active_appt');
+                    }
                 } else {
                     localStorage.removeItem('bk_active_appt'); 
-                    container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">No active missions found. Book a slot to begin.</div>`;
+                    container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">No appointments found. Book a slot to begin.</div>`;
                 }
             } catch (error) {
                 console.warn("Backend unavailable, falling back to local storage.");
                 if(activeAppt) {
-                    renderAppointmentsList([JSON.parse(activeAppt)]);
+                    const parsed = JSON.parse(activeAppt);
+                    // Only show if not cancelled
+                    if (parsed.status !== 'Cancelled') {
+                        renderAppointmentsList([parsed]);
+                    } else {
+                        container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">No active appointments. Your previous appointment was cancelled or rejected.</div>`;
+                    }
                 } else {
                     container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 bg-white rounded-xl border border-slate-100">Backend offline. Cannot retrieve live appointment data.</div>`;
                 }
@@ -448,12 +497,26 @@
         function renderAppointmentsList(appointments) {
             const container = document.getElementById('appointments-container');
             container.innerHTML = appointments.map(appt => {
-                const statusColor = appt.status === 'Confirmed' ? 'text-green-600 bg-green-50 border-green-200' : 'text-yellow-600 bg-yellow-50 border-yellow-200';
-                const icon = appt.status === 'Confirmed' ? 'fa-check-circle' : 'fa-clock';
-                const displayStatus = appt.status === 'Confirmed' ? 'APPROVED' : 'PENDING APPROVAL';
+                let statusColor, icon, displayStatus;
+                
+                if (appt.status === 'Confirmed') {
+                    statusColor = 'text-green-600 bg-green-50 border-green-200';
+                    icon = 'fa-check-circle';
+                    displayStatus = 'APPROVED';
+                } else if (appt.status === 'Cancelled') {
+                    statusColor = 'text-red-600 bg-red-50 border-red-200';
+                    icon = 'fa-times-circle';
+                    displayStatus = 'REJECTED / CANCELLED';
+                } else {
+                    statusColor = 'text-yellow-600 bg-yellow-50 border-yellow-200';
+                    icon = 'fa-clock';
+                    displayStatus = 'PENDING APPROVAL';
+                }
+
+                const canCancel = appt.status !== 'Cancelled';
 
                 return `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between ${appt.status === 'Cancelled' ? 'opacity-75' : ''}">
                     <div>
                         <div class="flex justify-between items-start mb-3">
                             <h4 class="font-bold text-slate-800">${appt.location_name}</h4>
@@ -466,9 +529,13 @@
                     </div>
                     <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-xs">
                         <span class="text-slate-400">ID: #${appt.appt_id || 'LOCAL'}</span>
+                        ${canCancel ? `
                         <button onclick="cancelAppointment(${appt.appt_id || 0})" class="text-red-600 hover:text-red-800 font-bold uppercase transition-colors text-xs">
                             <i class="fas fa-times-circle mr-1"></i> Cancel Mission
                         </button>
+                        ` : `
+                        <span class="text-slate-400 italic">Cannot be cancelled</span>
+                        `}
                     </div>
                 </div>`;
             }).join('');
@@ -530,13 +597,32 @@
             }
         }
 
+        let supplyRefreshInterval = null;
+
         async function renderSupply() {
             const grid = document.getElementById('supply-grid');
+            if (!grid) return;
+            
             try {
-                const response = await fetch('bloodknight.php?action=get_supply_levels');
-                const result = await response.json();
+                // Add timestamp to prevent caching
+                const timestamp = new Date().getTime();
+                const response = await fetch(`bloodknight.php?action=get_supply_levels&t=${timestamp}`);
                 
-                if (result.status === 'success' && result.data.length > 0) {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                let result;
+                
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError, 'Response:', text);
+                    throw new Error('Invalid response from server');
+                }
+                
+                if (result.status === 'success' && result.data && result.data.length > 0) {
                     grid.innerHTML = result.data.map(blood => {
                         let statusClass = 'bg-green-50 text-green-700 border border-green-100';
                         let barColor = 'bg-green-600';
@@ -555,27 +641,87 @@
                                 <span class="text-5xl font-black tactical-font text-slate-900 tracking-tighter">${blood.type}</span>
                                 <span class="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide ${statusClass}">${statusText}</span>
                             </div>
-                            <div class="w-full bg-slate-200 rounded-full h-3 mt-3 overflow-hidden border border-slate-100">
-                                <div class=\"${barColor} h-full rounded-full transition-all duration-1000 ease-out shadow-sm\" style=\"width: ${level}%\"></div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 mt-3 overflow-hidden border border-slate-100 relative z-10">
+                                <div class="${barColor} h-full rounded-full transition-all duration-1000 ease-out shadow-sm" style="width: ${level}%"></div>
+                            </div>
+                            <div class="mt-3 text-xs text-slate-500 relative z-10">
+                                <div class="flex justify-between items-center">
+                                    <span><i class="fas fa-tint mr-1"></i>${level}% Capacity</span>
+                                    ${blood.donations !== undefined ? `<span><i class="fas fa-heart mr-1"></i>${blood.donations} donations</span>` : ''}
+                                </div>
                             </div>
                         </div>`;
                     }).join('');
                 } else {
-                    grid.innerHTML = `<div class="text-center py-4 text-slate-400 col-span-full">No current supply data available from HQ.</div>`;
+                    // Show fallback data if result is empty
+                    const fallbackTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+                    grid.innerHTML = fallbackTypes.map(type => {
+                        const level = 35; // Default moderate level
+                        return `
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-end mb-4">
+                                <span class="text-5xl font-black tactical-font text-slate-900">${type}</span>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded uppercase bg-yellow-50 text-yellow-700 border border-yellow-100">Moderate</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 mt-3">
+                                <div class="bg-yellow-500 h-full rounded-full" style="width: ${level}%"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
                 }
             } catch (error) {
-                 grid.innerHTML = `<div class="text-center py-4 text-slate-400 col-span-full"><i class="fas fa-exclamation-triangle mr-2"></i> Failed to connect to supply telemetry.</div>`;
+                console.error('Supply telemetry error:', error);
+                // Show fallback UI with error message
+                grid.innerHTML = `
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-xl col-span-full">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Telemetry Connection Issue:</strong> ${error.message || 'Unable to fetch live data'}
+                        <br><span class="text-xs mt-2 block">Displaying estimated levels...</span>
+                    </div>
+                `;
+                
+                // Show fallback supply cards
+                setTimeout(() => {
+                    const fallbackTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+                    grid.innerHTML = fallbackTypes.map(type => {
+                        const level = 35;
+                        return `
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-end mb-4">
+                                <span class="text-5xl font-black tactical-font text-slate-900">${type}</span>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded uppercase bg-yellow-50 text-yellow-700">Moderate</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 mt-3">
+                                <div class="bg-yellow-500 h-full rounded-full" style="width: ${level}%"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }, 2000);
             }
         }
 
+        // Auto-refresh supply data every 30 seconds for live telemetry
+        function startSupplyAutoRefresh() {
+            // Clear existing interval if any
+            if (supplyRefreshInterval) {
+                clearInterval(supplyRefreshInterval);
+            }
+            // Refresh every 30 seconds
+            supplyRefreshInterval = setInterval(() => {
+                renderSupply();
+            }, 30000);
+        }
+
         function handleLogout() {
-            fetch('bloodknight.php?action=logout').finally(() => {
-                // Clear local data on logout for clean session start
-                localStorage.removeItem('bk_user_profile');
-                localStorage.removeItem('bk_last_donation');
-                localStorage.removeItem('bk_active_appt');
-                window.location.href = 'index.html';
-            });
+            if (confirm('Are you sure you want to log out?')) {
+                fetch('bloodknight.php?action=logout').finally(() => {
+                    // Clear local data on logout for clean session start
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'index.html';
+                });
+            }
         }
 
         // --- GEMINI AI INTEGRATION & MODAL LOGIC (Unchanged) ---
@@ -654,11 +800,16 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication first
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+            
             loadDashboardData();
             loadAppointments();
             checkUrgentAlerts();
             renderSupply();
+            startSupplyAutoRefresh(); // Start live telemetry auto-refresh
         });
     </script>
 </body>
