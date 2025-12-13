@@ -40,6 +40,10 @@
 
         <div id="msg" class="text-center mt-4 text-sm font-medium min-h-[20px]"></div>
 
+        <p class="text-center mt-4">
+            <a href="forgot_password.html" class="text-sm text-red-600 hover:underline font-medium">Forgot Password?</a>
+        </p>
+
         <p class="text-center mt-6 text-sm text-slate-500">
             Don't have an account? <a href="donorsignup.html" class="text-red-600 font-bold hover:underline">Sign up</a>
         </p>
@@ -82,6 +86,20 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
+                    // Save user data to localStorage for session persistence
+                    if (result.data) {
+                        const userProfile = {
+                            full_name: result.data.full_name,
+                            email: result.data.email,
+                            blood_type: result.data.blood_type,
+                            phone: result.data.phone,
+                            profile_pic: result.data.profile_pic || ""
+                        };
+                        localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
+                        if (result.data.last_donation) {
+                            localStorage.setItem('bk_last_donation', result.data.last_donation);
+                        }
+                    }
                     msg.className = 'text-green-600';
                     msg.innerText = "Login successful! Redirecting...";
                     setTimeout(() => window.location.href = 'dashboard.html', 1000);
@@ -99,6 +117,7 @@
                 setTimeout(() => window.location.href = 'dashboard.html', 1000);
             }
         }
+
     </script>
 </body>
 </html>
