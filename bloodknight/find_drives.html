@@ -10,7 +10,7 @@
 <body class="bg-slate-50 text-slate-800">
 
     <nav class="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 hover:scale-105 transition-all px-2 py-1 rounded-lg" onclick="window.location.href='dashboard.html'" title="Go to Dashboard">
             <i class="fas fa-shield-alt text-red-600 text-2xl"></i>
             <span class="text-xl font-bold uppercase tracking-tight">BloodKnight</span>
         </div>
@@ -246,13 +246,29 @@
             const container = document.getElementById('slotsContainer');
             container.innerHTML = '';
 
+            // Get current date/time for comparison
+            const now = new Date();
+            const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+            const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
+
             slots.forEach(slot => {
                 const btn = document.createElement('button');
                 btn.classList.add("py-2", "px-1", "rounded-lg", "text-sm", "font-semibold", "transition-all", "border", "hover:border-red-500");
                 
+                // Check if slot is in the past
+                const isPast = currentDriveDate && (
+                    currentDriveDate < currentDate || 
+                    (currentDriveDate === currentDate && slot.raw_time < currentTime)
+                );
+                
                 if (slot.is_taken) {
                     btn.classList.add("bg-slate-100", "text-slate-400", "border-transparent", "cursor-not-allowed");
                     btn.innerHTML = `${slot.display_time}<br><span class='text-[10px] uppercase'>Taken</span>`;
+                    btn.disabled = true;
+                } else if (isPast) {
+                    // Slot is in the past - make it unavailable
+                    btn.classList.add("bg-slate-100", "text-slate-400", "border-transparent", "cursor-not-allowed");
+                    btn.innerHTML = `${slot.display_time}<br><span class='text-[10px] uppercase'>Past</span>`;
                     btn.disabled = true;
                 } else {
                     // Initial state for available slots
@@ -321,10 +337,36 @@
             selectedTimeSlot = null; // Clear state on close
         }
 
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const response = await fetch('bloodknight.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    localStorage.removeItem('bk_user_profile');
+                    localStorage.removeItem('bk_last_donation');
+                    localStorage.removeItem('bk_active_appt');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                const savedProfile = localStorage.getItem('bk_user_profile');
+                if (!savedProfile) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            }
+        }
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            checkEligibility();
-            fetchDrives();
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                checkEligibility();
+                fetchDrives();
+            }
         });
     </script>
 </body>
