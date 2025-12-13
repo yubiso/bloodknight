@@ -2,6 +2,12 @@
 // admin.php - OPTIMIZED HOSPITAL COMMAND CENTER CONTROLLER
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
+
+// Configure session for persistence
+ini_set('session.cookie_lifetime', 86400 * 7); // 7 days
+ini_set('session.gc_maxlifetime', 86400 * 7); // 7 days
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
 session_start();
 
 ini_set('display_errors', 0);
@@ -20,7 +26,19 @@ function sendJson($status, $message, $data = []) {
 // 1. HOSPITAL AUTHENTICATION
 // =============================================================
 
-if ($action === 'login') {
+if ($action === 'check_session') {
+    if (isset($_SESSION['hospital_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'hospital') {
+        sendJson('success', 'Session valid', [
+            'hospital_id' => $_SESSION['hospital_id'],
+            'hospital_name' => $_SESSION['hospital_name'],
+            'admin_name' => $_SESSION['admin_name']
+        ]);
+    } else {
+        sendJson('error', 'Not logged in');
+    }
+}
+
+elseif ($action === 'login') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
