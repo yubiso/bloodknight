@@ -6,6 +6,11 @@
     <title>Donor Dashboard - BloodKnight</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
@@ -33,6 +38,27 @@
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
+
+        /* HOSPITAL MAP MARKER STYLES */
+        .hospital-marker {
+            background: transparent;
+            border: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+            }
+        }
+
+        .hospital-marker:hover {
+            z-index: 1000 !important;
+        }
     </style>
 </head>
 <body class="text-slate-800 bg-slate-100">
@@ -49,6 +75,9 @@
                 </a>
                 <a href="find_drives.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
                     <i class="fas fa-map-marker-alt w-5"></i> Find Missions
+                </a>
+                <a href="hospitals.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
+                    <i class="fas fa-hospital w-5"></i> Hospital Map
                 </a>
                 <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors">
                     <i class="fas fa-history w-5"></i> History
@@ -188,6 +217,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="supply-grid">
                         <div class="text-center py-4 text-slate-400 col-span-full"><i class="fas fa-sync fa-spin mr-2"></i> Fetching live blood supply data...</div>
                         </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-900 tactical-font uppercase">Hospital Locations</h2>
+                        <a href="hospitals.html" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                            View Full Map <i class="fas fa-external-link-alt ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div id="hospital-map" style="height: 500px; width: 100%;"></div>
+                    </div>
                 </div>
 
             </div>
@@ -800,6 +841,262 @@
             }
         }
 
+        // Hospital Map Functions
+        let hospitalMap;
+        let hospitalMarkers = [];
+
+        function createHospitalIcon(hospitalName) {
+            return L.divIcon({
+                className: 'hospital-marker',
+                html: `
+                    <div style="position: relative;">
+                        <div style="background: #dc2626; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 4px solid white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); animation: pulse 2s infinite;">
+                            <i class="fas fa-hospital"></i>
+                        </div>
+                        <div style="position: absolute; top: 45px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: rgba(30, 41, 59, 0.95); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3); pointer-events: none; z-index: 1000;">
+                            ${hospitalName.length > 20 ? hospitalName.substring(0, 20) + '...' : hospitalName}
+                            <div style="position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 4px solid rgba(30, 41, 59, 0.95);"></div>
+                        </div>
+                    </div>
+                `,
+                iconSize: [40, 60],
+                iconAnchor: [20, 40],
+                popupAnchor: [0, -40]
+            });
+        }
+
+        // Hardcoded coordinates for known Sabah hospitals (fallback)
+        const hospitalCoordinates = {
+            'Queen Elizabeth Hospital': { lat: 5.9764, lon: 116.0708 },
+            'KPJ Sabah Specialist Hospital': { lat: 5.9789, lon: 116.0756 },
+            'Gleneagles Kota Kinabalu': { lat: 5.9372, lon: 116.0528 },
+            'Sabah Women and Children Hospital': { lat: 6.0125, lon: 116.1000 },
+            'Tawau Hospital': { lat: 4.2448, lon: 117.8912 },
+            'Sandakan Hospital': { lat: 5.8388, lon: 118.1173 },
+            'Keningau Hospital': { lat: 5.3378, lon: 116.1600 },
+            'Lahad Datu Hospital': { lat: 5.0267, lon: 118.3250 },
+            'Beaufort Hospital': { lat: 5.3456, lon: 115.7456 },
+            'Pantai Hospital Likas': { lat: 6.0125, lon: 116.1000 }
+        };
+
+        async function geocodeAddress(address, hospitalName) {
+            // First check if we have hardcoded coordinates
+            if (hospitalName && hospitalCoordinates[hospitalName]) {
+                console.log(`Using hardcoded coordinates for: ${hospitalName}`);
+                return hospitalCoordinates[hospitalName];
+            }
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Sabah, Malaysia')}&limit=1`, {
+                    headers: {
+                        'User-Agent': 'BloodKnight Hospital Map'
+                    }
+                });
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lon: parseFloat(data[0].lon)
+                    };
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+            return null;
+        }
+
+        function addHospitalMarker(hospital, coordinates) {
+            if (!coordinates) return null;
+
+            const popupContent = `
+                <div style="max-width: 280px; padding: 4px;">
+                    <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 12px; border-radius: 8px 8px 0 0; margin: -4px -4px 8px -4px;">
+                        <h3 style="font-weight: 700; margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-hospital"></i> ${hospital.hospital_name}
+                        </h3>
+                    </div>
+                    <div style="padding: 8px 0;">
+                        <p style="margin: 0.5rem 0; color: #64748b; font-size: 0.85rem; display: flex; align-items: start; gap: 8px;">
+                            <i class="fas fa-map-marker-alt" style="color: #dc2626; margin-top: 2px; flex-shrink: 0;"></i>
+                            <span>${hospital.hospital_address}</span>
+                        </p>
+                        ${hospital.contact_number ? `
+                        <p style="margin: 0.5rem 0; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-phone" style="color: #dc2626; flex-shrink: 0;"></i>
+                            <a href="tel:${hospital.contact_number}" style="color: #dc2626; text-decoration: none; font-weight: 600;">${hospital.contact_number}</a>
+                        </p>
+                        ` : ''}
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                            <span style="display: inline-block; background: #fee2e2; color: #dc2626; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600;">
+                                ${hospital.hospital_type}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const marker = L.marker([coordinates.lat, coordinates.lon], {
+                icon: createHospitalIcon(hospital.hospital_name),
+                riseOnHover: true
+            }).addTo(hospitalMap).bindPopup(popupContent);
+
+            // Add hover effect to show label
+            marker.on('mouseover', function() {
+                this.setZIndexOffset(1000);
+            });
+
+            marker.on('mouseout', function() {
+                this.setZIndexOffset(0);
+            });
+
+            hospitalMarkers.push(marker);
+            return marker;
+        }
+
+        async function loadHospitalMap() {
+            // Initialize map if not already initialized
+            if (!hospitalMap) {
+                // Sabah, Malaysia bounds
+                const sabahBounds = L.latLngBounds(
+                    [4.0, 115.0],  // Southwest corner (South, West)
+                    [7.5, 119.5]   // Northeast corner (North, East)
+                );
+
+                hospitalMap = L.map('hospital-map', {
+                    zoomControl: true,
+                    scrollWheelZoom: true,
+                    maxBounds: sabahBounds,
+                    maxBoundsViscosity: 1.0, // Prevent panning outside bounds
+                    minZoom: 8,  // Minimum zoom level to keep Sabah visible
+                    maxZoom: 16  // Maximum zoom level
+                }).setView([5.9804, 116.0735], 10); // Center on Kota Kinabalu
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(hospitalMap);
+
+                // Restrict map to Sabah bounds
+                hospitalMap.setMaxBounds(sabahBounds);
+
+                // Add custom control to show hospital count
+                const hospitalCountControl = L.control({ position: 'topright' });
+                hospitalCountControl.onAdd = function(map) {
+                    const div = L.DomUtil.create('div', 'hospital-count-control');
+                    div.style.cssText = 'background: white; padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-size: 12px; font-weight: 600; color: #1e293b;';
+                    div.innerHTML = '<i class="fas fa-hospital" style="color: #dc2626; margin-right: 6px;"></i><span id="hospital-count">Loading...</span>';
+                    return div;
+                };
+                hospitalCountControl.addTo(hospitalMap);
+
+                // Add Sabah region indicator
+                const sabahIndicator = L.control({ position: 'bottomleft' });
+                sabahIndicator.onAdd = function(map) {
+                    const div = L.DomUtil.create('div', 'sabah-indicator');
+                    div.style.cssText = 'background: rgba(220, 38, 38, 0.9); color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.2);';
+                    div.innerHTML = '<i class="fas fa-map-marker-alt" style="margin-right: 4px;"></i>Sabah, Malaysia';
+                    return div;
+                };
+                sabahIndicator.addTo(hospitalMap);
+            }
+
+            try {
+                const response = await fetch('bloodknight.php?action=get_hospitals');
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    const hospitals = result.data;
+                    
+                    // Clear existing markers
+                    hospitalMarkers.forEach(marker => hospitalMap.removeLayer(marker));
+                    hospitalMarkers = [];
+
+                    // Update count display
+                    const countEl = document.getElementById('hospital-count');
+                    if (countEl) {
+                        countEl.textContent = `${hospitals.length} Hospitals`;
+                    }
+
+                    // Geocode and add markers (limit to first 15 for performance)
+                    const hospitalsToShow = hospitals.slice(0, 15);
+                    let geocodedCount = 0;
+                    const totalHospitals = hospitalsToShow.length;
+
+                    // Show loading indicator
+                    if (countEl) {
+                        countEl.innerHTML = `<i class="fas fa-spinner fa-spin" style="color: #dc2626; margin-right: 6px;"></i>Loading ${geocodedCount}/${totalHospitals}...`;
+                    }
+
+                    for (const hospital of hospitalsToShow) {
+                        const coordinates = await geocodeAddress(hospital.hospital_address, hospital.hospital_name);
+                        if (coordinates) {
+                            addHospitalMarker(hospital, coordinates);
+                        }
+                        geocodedCount++;
+                        
+                        // Update loading indicator
+                        if (countEl) {
+                            countEl.innerHTML = `<i class="fas fa-spinner fa-spin" style="color: #dc2626; margin-right: 6px;"></i>Loading ${geocodedCount}/${totalHospitals}...`;
+                        }
+                    }
+
+                    // Final count update
+                    if (countEl) {
+                        countEl.innerHTML = `<i class="fas fa-hospital" style="color: #dc2626; margin-right: 6px;"></i>${hospitalMarkers.length} Hospitals Found`;
+                    }
+
+                    // Fit map to show all markers with padding, but stay within Sabah bounds
+                    if (hospitalMarkers.length > 0) {
+                        const group = new L.featureGroup(hospitalMarkers);
+                        const bounds = group.getBounds();
+                        
+                        // Ensure bounds are within Sabah
+                        const sabahBounds = L.latLngBounds(
+                            [4.0, 115.0],
+                            [7.5, 119.5]
+                        );
+                        
+                        // Clamp bounds to Sabah if needed
+                        const clampedBounds = L.latLngBounds(
+                            [
+                                Math.max(bounds.getSouth(), sabahBounds.getSouth()),
+                                Math.max(bounds.getWest(), sabahBounds.getWest())
+                            ],
+                            [
+                                Math.min(bounds.getNorth(), sabahBounds.getNorth()),
+                                Math.min(bounds.getEast(), sabahBounds.getEast())
+                            ]
+                        );
+                        
+                        hospitalMap.fitBounds(clampedBounds.pad(0.15), {
+                            maxZoom: 12
+                        });
+                        
+                        // If only one marker, zoom in closer but respect bounds
+                        if (hospitalMarkers.length === 1) {
+                            const markerLatLng = hospitalMarkers[0].getLatLng();
+                            // Ensure marker is within Sabah bounds
+                            if (sabahBounds.contains(markerLatLng)) {
+                                hospitalMap.setView([markerLatLng.lat, markerLatLng.lng], 13);
+                            }
+                        }
+                    } else {
+                        // If no markers found, reset to Sabah center
+                        hospitalMap.setView([5.9804, 116.0735], 10);
+                        if (countEl) {
+                            countEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 6px;"></i>No locations found';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading hospitals:', error);
+                const countEl = document.getElementById('hospital-count');
+                if (countEl) {
+                    countEl.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #dc2626; margin-right: 6px;"></i>Error loading';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Check authentication first
             const isAuthenticated = await checkAuth();
@@ -810,6 +1107,7 @@
             checkUrgentAlerts();
             renderSupply();
             startSupplyAutoRefresh(); // Start live telemetry auto-refresh
+            loadHospitalMap(); // Load hospital map
         });
     </script>
 </body>
