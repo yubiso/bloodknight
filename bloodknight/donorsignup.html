@@ -6,6 +6,9 @@
     <title>Sign Up - BloodKnight</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -98,20 +101,73 @@
                     </div>
 
                     <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold transition-colors mt-4 shadow-lg shadow-red-200">
-                        Create Account
+                        Send Verification Code
                     </button>
                 </form>
                 
                 <div id="msg" class="text-center mt-4 text-sm font-bold"></div>
             </div>
 
+            <div id="step3" class="hidden fade-in bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Verify Email</h2>
+                    <button onclick="goBackToStep2()" class="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase">Back</button>
+                </div>
+                
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-envelope text-red-600 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-600 mb-2">We've sent a verification code to</p>
+                    <p class="font-bold text-slate-900" id="otp-email-display"></p>
+                    <p class="text-sm text-slate-400 mt-2">Please check your email and enter the code below</p>
+                </div>
+                
+                <form id="otpForm" onsubmit="handleOTPVerification(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Verification Code</label>
+                        <input type="text" name="otp" id="otp-input" required maxlength="6" pattern="[0-9]{6}" class="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none text-center text-2xl tracking-widest font-mono" placeholder="000000">
+                        <p class="text-xs text-slate-400 mt-1 text-center">Enter the 6-digit code</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold transition-colors mt-4 shadow-lg shadow-red-200">
+                        Verify & Create Account
+                    </button>
+                    
+                    <div class="text-center">
+                        <button type="button" onclick="resendOTP()" class="text-sm text-slate-500 hover:text-red-600 font-medium">
+                            <i class="fas fa-redo mr-1"></i> Resend Code
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="otp-msg" class="text-center mt-4 text-sm font-bold"></div>
+            </div>
+
         </div>
     </main>
 
     <script>
+        let registrationData = {};
+        let verificationToken = '';
+
         function goToStep2() {
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
+        }
+
+        function goToStep3(email) {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            document.getElementById('otp-email-display').textContent = email;
+            document.getElementById('otp-input').focus();
+        }
+
+        function goBackToStep2() {
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            document.getElementById('otp-msg').innerText = '';
+            document.getElementById('otp-input').value = '';
         }
 
         // RESET BUTTON ON BACK NAVIGATION
@@ -119,7 +175,7 @@
             const btn = document.querySelector('button[type="submit"]');
             if(btn) {
                 btn.disabled = false;
-                if(btn.innerText.includes('Processing')) btn.innerText = 'Create Account';
+                if(btn.innerText.includes('Processing')) btn.innerText = 'Send Verification Code';
             }
         });
 
@@ -127,8 +183,16 @@
             e.preventDefault();
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('msg');
+            
+            // --- 0. VERIFY reCAPTCHA ---
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                msg.className = 'text-red-600';
+                msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please complete the reCAPTCHA verification';
+                return;
+            }
+            
             const formData = new FormData(e.target);
-            formData.append('action', 'register_donor');
 
             // --- 1. PASSWORD CHECK (Display error on screen) ---
             const password = formData.get('password');
@@ -136,57 +200,189 @@
             if (!requirementRegex.test(password)) {
                 msg.className = 'text-red-600';
                 msg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Weak Password! Needs 1 Uppercase & 1 Number.';
+                grecaptcha.reset();
                 return; // Stop here if password is weak
             }
 
-            // --- 2. SAVE LOCAL DATA (For Profile Page) ---
-            const userProfile = {
+            // --- 2. SAVE REGISTRATION DATA ---
+            registrationData = {
                 full_name: formData.get('full_name'),
                 email: formData.get('email'),
                 phone: formData.get('phone'),
                 gender: formData.get('gender'),
                 blood_type: formData.get('blood_type'),
-                profile_pic: ""
+                password: password
             };
-            localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
 
             // --- 3. UI LOADING STATE ---
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Code...';
             msg.innerText = "";
 
-            // --- 4. ATTEMPT BACKEND (With 1-Second Timeout) ---
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000));
+            // --- 4. SEND OTP ---
+            const otpFormData = new FormData();
+            otpFormData.append('action', 'send_otp');
+            otpFormData.append('email', registrationData.email);
+            otpFormData.append('full_name', registrationData.full_name);
+            otpFormData.append('g-recaptcha-response', recaptchaResponse);
 
             try {
-                const response = await Promise.race([
-                    fetch('bloodknight.php', { method: 'POST', body: formData }),
-                    timeout
-                ]);
-
+                const response = await fetch('bloodknight.php', { method: 'POST', body: otpFormData });
+                
                 if (!response.ok) throw new Error("Backend Offline");
                 
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     msg.className = 'text-green-600';
-                    msg.innerText = "Account created! Redirecting...";
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                    msg.innerText = "Verification code sent!";
+                    setTimeout(() => {
+                        goToStep3(registrationData.email);
+                    }, 500);
                 } else {
-                    // This handles real errors like "Email already exists"
                     msg.className = 'text-red-600';
                     msg.innerText = result.message;
                     btn.disabled = false;
-                    btn.innerText = 'Create Account';
+                    btn.innerText = 'Send Verification Code';
                 }
             } catch (error) {
-                // FALLBACK: If Timeout or 404, we force success (Simulation Mode)
-                console.warn("Offline Mode / Timeout - Redirecting...");
-                msg.className = 'text-green-600';
-                msg.innerText = "Simulation Mode: Profile Saved!";
-                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                msg.className = 'text-red-600';
+                msg.innerText = "Failed to send verification code. Please try again.";
+                btn.disabled = false;
+                btn.innerText = 'Send Verification Code';
             }
         }
+
+        async function handleOTPVerification(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const msg = document.getElementById('otp-msg');
+            const otp = document.getElementById('otp-input').value.trim();
+
+            if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+                msg.className = 'text-red-600';
+                msg.innerText = "Please enter a valid 6-digit code";
+                return;
+            }
+
+            // --- 1. VERIFY OTP ---
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            msg.innerText = "";
+
+            const verifyFormData = new FormData();
+            verifyFormData.append('action', 'verify_otp');
+            verifyFormData.append('email', registrationData.email);
+            verifyFormData.append('otp', otp);
+
+            try {
+                const response = await fetch('bloodknight.php', { method: 'POST', body: verifyFormData });
+                
+                if (!response.ok) throw new Error("Backend Offline");
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    verificationToken = result.data.verification_token;
+                    
+                    // --- 2. COMPLETE REGISTRATION ---
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+                    
+                    const registerFormData = new FormData();
+                    registerFormData.append('action', 'register_donor');
+                    registerFormData.append('full_name', registrationData.full_name);
+                    registerFormData.append('email', registrationData.email);
+                    registerFormData.append('password', registrationData.password);
+                    registerFormData.append('blood_type', registrationData.blood_type);
+                    registerFormData.append('phone', registrationData.phone);
+                    registerFormData.append('gender', registrationData.gender);
+                    registerFormData.append('verification_token', verificationToken);
+
+                    const registerResponse = await fetch('bloodknight.php', { method: 'POST', body: registerFormData });
+                    
+                    if (!registerResponse.ok) throw new Error("Backend Offline");
+                    
+                    const registerResult = await registerResponse.json();
+
+                    if (registerResult.status === 'success') {
+                        // Save to localStorage for profile page
+                        const userProfile = {
+                            full_name: registrationData.full_name,
+                            email: registrationData.email,
+                            phone: registrationData.phone,
+                            gender: registrationData.gender,
+                            blood_type: registrationData.blood_type,
+                            profile_pic: ""
+                        };
+                        localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
+
+                        msg.className = 'text-green-600';
+                        msg.innerText = "Account created! Redirecting...";
+                        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                    } else {
+                        msg.className = 'text-red-600';
+                        msg.innerText = registerResult.message;
+                        btn.disabled = false;
+                        btn.innerText = 'Verify & Create Account';
+                    }
+                } else {
+                    msg.className = 'text-red-600';
+                    msg.innerText = result.message;
+                    btn.disabled = false;
+                    btn.innerText = 'Verify & Create Account';
+                }
+            } catch (error) {
+                msg.className = 'text-red-600';
+                msg.innerText = "Verification failed. Please try again.";
+                btn.disabled = false;
+                btn.innerText = 'Verify & Create Account';
+            }
+        }
+
+        async function resendOTP() {
+            const msg = document.getElementById('otp-msg');
+            const resendBtn = document.querySelector('button[onclick="resendOTP()"]');
+            
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            msg.innerText = "";
+
+            const otpFormData = new FormData();
+            otpFormData.append('action', 'send_otp');
+            otpFormData.append('email', registrationData.email);
+            otpFormData.append('full_name', registrationData.full_name);
+
+            try {
+                const response = await fetch('bloodknight.php', { method: 'POST', body: otpFormData });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    msg.className = 'text-green-600';
+                    msg.innerText = "New verification code sent!";
+                    document.getElementById('otp-input').value = '';
+                    document.getElementById('otp-input').focus();
+                } else {
+                    msg.className = 'text-red-600';
+                    msg.innerText = result.message;
+                }
+            } catch (error) {
+                msg.className = 'text-red-600';
+                msg.innerText = "Failed to resend code. Please try again.";
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-redo mr-1"></i> Resend Code';
+            }
+        }
+
+        // Auto-format OTP input (numbers only, max 6 digits)
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpInput = document.getElementById('otp-input');
+            if (otpInput) {
+                otpInput.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                });
+            }
+        });
 
     </script>
 </body>
