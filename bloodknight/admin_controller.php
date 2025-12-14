@@ -33,8 +33,8 @@ function sendEmail($toEmail, $toName, $subject, $body) {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'hiewz256@gmail.com'; 
-        $mail->Password   = 'pwml dpzm hxuw gffr';    
+        $mail->Username   = 'bloodknight.about@gmail.com'; 
+        $mail->Password   = 'lvua aqif zzia epqc';    
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->setFrom('alert@bloodknight.com', 'BloodKnight Command');
