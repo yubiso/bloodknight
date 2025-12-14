@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BloodKnight</title>
-    <link rel="icon" type="image/png" href="assets/bloodknight-favicon.png">
+    <link rel="icon" type="image/png" href="assets/knight-shield.png">
+    <link rel="shortcut icon" type="image/png" href="assets/knight-shield.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     
@@ -64,7 +65,7 @@
             --text-muted: #a8b8c8; /* Muted grey-blue */
             --shadow-color: rgba(220, 53, 69, 0.25);
             --modal-bg: #2d4a5f;
-            --input-border: #4a5f7a; /* Lighter dark blue border */add
+            --input-border: #4a5f7a; /* Lighter dark blue border */
             --accent-blue: #60a5fa;
             --accent-green: #34d399;
         }
@@ -635,11 +636,25 @@
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
         /* Updated Modal Content Styles */
-        .modal-content { background: var(--modal-bg); border-radius: 20px; padding: 3rem; width: 90%; max-width: 500px; transform: translateY(20px); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; }
+        .modal-content { background: var(--modal-bg); border-radius: 20px; padding: 2rem; width: 90%; max-width: 450px; max-height: 95vh; overflow-y: auto; transform: translateY(20px); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header-center { margin-bottom: 1.5rem; }
+        .modal-title-design { font-size: 1.6rem; }
         
         /* Smaller size for donor signup modal */
-        #donor-signup-modal .modal-content { max-width: 450px; padding: 2rem; }
+        #donor-signup-modal .modal-content { max-width: 450px; padding: 1.5rem; max-height: 95vh; overflow-y: auto; }
+        #donor-signup-modal .modal-close { top: 1rem; right: 1rem; font-size: 1rem; }
+        #donor-signup-modal .modal-header-center { margin-bottom: 1rem; }
+        #donor-signup-modal .modal-title-design { font-size: 1.5rem; }
+        #donor-signup-modal .form-group { margin-bottom: 0.8rem; }
+        #donor-signup-modal .input-label-design { margin-bottom: 0.3rem; font-size: 0.85rem; }
+        #donor-signup-modal .input-field-design { padding: 10px 40px 10px 12px; font-size: 0.9rem; }
+        #donor-signup-modal .btn-design-red { padding: 10px; font-size: 0.9rem; margin-top: 0.5rem; }
+        #donor-signup-modal .modal-footer { margin-top: 1rem; font-size: 0.85rem; }
+        #donor-signup-modal .form-group[style*="display:flex"] { margin: 0.5rem 0 !important; }
+        #donor-signup-modal #signup-msg { margin-top: 0.5rem; font-size: 0.85rem; }
+        #donor-signup-modal .split-inputs { gap: 0.8rem; }
+        #donor-signup-modal .g-recaptcha { transform: scale(0.85); transform-origin: center; }
         
         .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; color: var(--text-main); background: transparent; cursor: pointer; font-weight: 700; }
         
@@ -649,15 +664,18 @@
         .hospital-theme .modal-title-design { color: #0f172a; } /* Dark Blue for Hospital */
         body.dark-mode .modal-title-design { color: var(--text-main); }
 
-        .form-group { margin-bottom: 1.2rem; }
-        .input-label-design { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-main); font-size: 0.95rem; }
+        .form-group { margin-bottom: 1rem; }
+        .input-label-design { display: block; margin-bottom: 0.4rem; font-weight: 500; color: var(--text-main); font-size: 0.9rem; }
         .password-wrapper { position: relative; width: 100%; }
-        .input-field-design { width: 100%; padding: 12px 45px 12px 15px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s; background: var(--bg-body); color: var(--text-main); }
+        .input-field-design { width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; outline: none; transition: 0.3s; background: var(--bg-body); color: var(--text-main); }
         .input-field-design:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1); }
-        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.6; transition: opacity 0.3s; z-index: 10; display: flex; align-items: center; justify-content: center; }
+        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.6; transition: opacity 0.3s; z-index: 10; display: flex; align-items: center; justify-content: center; outline: none; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
         .password-toggle:hover { opacity: 1; }
-        .password-toggle:focus { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
-        .password-toggle i { display: block; }
+        .password-toggle:focus { outline: none; }
+        .password-toggle:active { outline: none; transform: translateY(-50%); padding: 8px; }
+        .password-toggle i { display: block; transition: opacity 0.3s ease; }
+        .password-toggle i.fa-eye-slash { opacity: 0.6; }
+        .password-toggle i.fa-eye { opacity: 0.6; }
         
         /* Hide browser's default password reveal button */
         input[type="password"]::-webkit-credentials-auto-fill-button,
@@ -672,7 +690,7 @@
         /* Hospital specific input focus */
         .hospital-theme .input-field-design:focus { border-color: #0f172a; box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
 
-        .btn-design-red { background: #ff4757; color: white; width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); margin-top: 1rem; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-design-red { background: #ff4757; color: white; width: 100%; padding: 12px; border-radius: 50px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); margin-top: 0.8rem; border: none; cursor: pointer; transition: 0.3s; }
         .btn-design-red:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 71, 87, 0.3); }
 
         .btn-design-dark { background: #0f172a; color: white; width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2); margin-top: 1rem; border: none; cursor: pointer; transition: 0.3s; }
@@ -683,7 +701,8 @@
 
         .split-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         
-        .modal-footer { margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-main); font-weight: 400;}
+        .modal-footer { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-main); font-weight: 400;}
+        .modal-content .form-group[style*="display:flex"] { margin: 0.8rem 0; }
 
         /* CHATBOT */
         .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
@@ -758,7 +777,7 @@
     <!-- NAVIGATION -->
     <nav>
         <a href="#home" class="logo" id="home-logo-link">
-            <i class="fas fa-shield-heart"></i> BloodKnight
+            <img src="assets/knight-shield.png" alt="BloodKnight Logo"> BloodKnight
         </a>
         
         <ul class="nav-links">
@@ -766,6 +785,7 @@
             <li><a href="#about">About</a></li>
             <li><a href="#facts">Facts</a></li>
             <li><a href="#types">Type</a></li>
+            <li><a href="#contact">Contact Us</a></li>
         </ul>
         <div class="nav-buttons">
             <!-- Toggle Dark Mode Button (Moved Here) -->
@@ -1025,12 +1045,18 @@
     </section>
 
     <!-- FOOTER -->
-    <footer>
+    <footer id="contact">
         <div class="footer-content">
             <a href="#home" class="logo" id="footer-logo-link" style="cursor: pointer; text-decoration: none;">
-                <i class="fas fa-shield-heart"></i> BloodKnight
+                <img src="assets/knight-shield.png" alt="BloodKnight Logo"> BloodKnight
             </a>
-            <p style="color: var(--text-muted);">&copy; 2025 BloodKnight Initiative.</p>
+            <div style="text-align: center;">
+                <p style="color: var(--text-muted); margin-bottom: 0.5rem;">&copy; 2025 BloodKnight Initiative.</p>
+                <p style="color: var(--text-main); margin-bottom: 0.5rem;">
+                    Contact Us: 
+                    <a href="mailto:bloodknight.about@gmail.com" style="color: var(--primary); text-decoration: none;">bloodknight.about@gmail.com</a>
+                </p>
+            </div>
             <div style="display: flex; gap: 10px;">
                 <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
                 <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
@@ -1045,17 +1071,17 @@
             <div class="modal-header-center">
                 <h2 class="modal-title-design">WELCOME BACK</h2>
             </div>
-            <form id="donor-login-form">
+            <form id="donor-login-form" autocomplete="off">
                 <div class="form-group">
                     <label class="input-label-design">Email</label>
-                    <input type="email" name="email" required class="input-field-design">
+                    <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
                     <label class="input-label-design">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" required class="input-field-design">
+                        <input type="password" name="password" required class="input-field-design" autocomplete="off">
                         <button type="button" class="password-toggle" aria-label="Show password">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
@@ -1081,19 +1107,19 @@
                 <div class="modal-header-center">
                     <h2 class="modal-title-design">JOIN AS DONOR</h2>
                 </div>
-                <form id="donor-signup-form">
+                <form id="donor-signup-form" autocomplete="off">
                     <div class="form-group">
                         <label class="input-label-design">Full Name</label>
-                        <input type="text" name="full_name" required class="input-field-design">
+                        <input type="text" name="full_name" required class="input-field-design" autocomplete="off" spellcheck="false">
                     </div>
                     <div class="form-group">
                         <label class="input-label-design">Email</label>
-                        <input type="email" name="email" required class="input-field-design">
+                        <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
                     </div>
                     <div class="split-inputs">
                         <div class="form-group">
                             <label class="input-label-design">Gender</label>
-                            <select name="gender" class="input-field-design">
+                            <select name="gender" class="input-field-design" autocomplete="off">
                                 <option value="">Select</option>
                                 <option>Male</option>
                                 <option>Female</option>
@@ -1101,12 +1127,12 @@
                         </div>
                         <div class="form-group">
                             <label class="input-label-design">Phone</label>
-                            <input type="text" name="phone" class="input-field-design">
+                            <input type="text" name="phone" class="input-field-design" autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="input-label-design">Blood Type</label>
-                        <select name="blood_type" class="input-field-design">
+                        <select name="blood_type" class="input-field-design" autocomplete="off">
                             <option>A+</option>
                             <option>A-</option>
                             <option>B+</option>
@@ -1120,9 +1146,9 @@
                     <div class="form-group">
                         <label class="input-label-design">Password</label>
                         <div class="password-wrapper">
-                            <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number">
+                            <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number" autocomplete="new-password">
                             <button type="button" class="password-toggle" aria-label="Show password">
-                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>
@@ -1178,17 +1204,17 @@
             <div class="modal-header-center">
                 <h2 class="modal-title-design">Hospital Login</h2>
             </div>
-            <form id="hospital-login-form">
+            <form id="hospital-login-form" autocomplete="off">
                 <div class="form-group">
                     <label class="input-label-design">Email</label>
-                    <input type="email" name="email" required class="input-field-design">
+                    <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
                     <label class="input-label-design">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" required class="input-field-design">
+                        <input type="password" name="password" required class="input-field-design" autocomplete="off">
                         <button type="button" class="password-toggle" aria-label="Show password">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
@@ -1208,21 +1234,21 @@
             <div class="modal-header-center">
                 <h2 class="modal-title-design">HOSPITAL REGISTRY</h2>
             </div>
-            <form id="hospital-signup-form">
+            <form id="hospital-signup-form" autocomplete="off">
                 <div class="form-group">
                     <label class="input-label-design">HOSPITAL NAME</label>
-                    <input type="text" name="hospital_name" required class="input-field-design">
+                    <input type="text" name="hospital_name" required class="input-field-design" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
                     <label class="input-label-design">ADMIN EMAIL</label>
-                    <input type="email" name="admin_email" required class="input-field-design">
+                    <input type="email" name="admin_email" required class="input-field-design" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
                     <label class="input-label-design">PASSWORD</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number">
+                        <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number" autocomplete="new-password">
                         <button type="button" class="password-toggle" aria-label="Show password">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
@@ -1274,6 +1300,32 @@
         });
         
         document.addEventListener('DOMContentLoaded', function() {
+            // Clear all forms on page load to prevent browser from remembering data
+            const allForms = document.querySelectorAll('form');
+            allForms.forEach(form => {
+                form.reset();
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.value = '';
+                    if (input.type === 'password' || (input.type === 'text' && input.closest('.password-wrapper'))) {
+                        input.type = 'password';
+                        const passwordWrapper = input.closest('.password-wrapper');
+                        if (passwordWrapper) {
+                            const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                            if (toggleBtn) {
+                                const icon = toggleBtn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('fa-eye');
+                                    icon.classList.add('fa-eye-slash');
+                                }
+                            }
+                        }
+                    }
+                    if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    }
+                });
+            });
             
             // --- 0. LOGO CLICK HANDLERS ---
             const homeLogoLink = document.getElementById('home-logo-link');
@@ -1537,16 +1589,58 @@
                 if (modal) {
                     const form = modal.querySelector('form');
                     if (form) {
+                        // Reset the form (clears all fields)
+                        form.reset();
+                        
+                        // Clear all input values explicitly
                         const inputs = form.querySelectorAll('input, textarea, select');
                         inputs.forEach(input => {
+                            // Clear the value
                             input.value = '';
-                            // Remove any placeholder values that might be set
-                            if (input.type === 'password') {
-                                input.type = 'text';
+                            
+                            // Reset password fields to hidden state
+                            if (input.type === 'password' || (input.type === 'text' && input.closest('.password-wrapper'))) {
                                 input.type = 'password';
+                                // Reset the eye icon to closed (fa-eye-slash)
+                                const passwordWrapper = input.closest('.password-wrapper');
+                                if (passwordWrapper) {
+                                    const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                                    if (toggleBtn) {
+                                        const icon = toggleBtn.querySelector('i');
+                                        if (icon) {
+                                            icon.classList.remove('fa-eye');
+                                            icon.classList.add('fa-eye-slash');
+                                            toggleBtn.setAttribute('aria-label', 'Show password');
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Reset select fields to first option
+                            if (input.tagName === 'SELECT') {
+                                input.selectedIndex = 0;
                             }
                         });
                     }
+                    // Reset all password fields in the modal (including those outside forms)
+                    const allPasswordInputs = modal.querySelectorAll('input[type="password"], input[type="text"]');
+                    allPasswordInputs.forEach(input => {
+                        // Check if it's a password field by looking for password-wrapper
+                        const passwordWrapper = input.closest('.password-wrapper');
+                        if (passwordWrapper) {
+                            input.type = 'password';
+                            input.value = '';
+                            const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                            if (toggleBtn) {
+                                const icon = toggleBtn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('fa-eye');
+                                    icon.classList.add('fa-eye-slash');
+                                    toggleBtn.setAttribute('aria-label', 'Show password');
+                                }
+                            }
+                        }
+                    });
                     // Reset OTP step for donor signup modal
                     if (modalId === 'donor-signup-modal') {
                         const signupStep = document.getElementById('signup-form-step');
@@ -1642,15 +1736,18 @@
                 const icon = toggleBtn.querySelector('i');
                 
                 if (passwordInput && icon) {
+                    // Toggle password visibility and update icon
                     if (passwordInput.type === 'password') {
+                        // Show password - change to open eye
                         passwordInput.type = 'text';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                        toggleBtn.setAttribute('aria-label', 'Hide password');
-                    } else {
-                        passwordInput.type = 'password';
                         icon.classList.remove('fa-eye-slash');
                         icon.classList.add('fa-eye');
+                        toggleBtn.setAttribute('aria-label', 'Hide password');
+                    } else {
+                        // Hide password - change to closed eye
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
                         toggleBtn.setAttribute('aria-label', 'Show password');
                     }
                 }
