@@ -5,359 +5,1468 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BloodKnight | Defend the Pulse</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- VITALDROP STYLING --- */
+        /* --- THEME VARIABLES --- */
         :root {
-            --primary: #ff4757;
-            --secondary: #2f3542;
-            --text-dark: #2f3542;
-            --text-light: #747d8c;
-            --bg-light: #f8f9fa;
-            --white: #ffffff;
-            --gradient: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
-            --shadow-sm: 0 5px 15px rgba(0,0,0,0.05);
-            --shadow-lg: 0 15px 35px rgba(255, 71, 87, 0.25);
+            /* Light Mode (Default) - Charity-focused warm, compassionate tones */
+            --primary-dark: #a51a3a; /* Lighter dark red */
+            --primary: #dc3545; /* Warmer, more charitable red */
+            --primary-light: #ff4757;
+            --bg-body: #fefefe; /* Very soft off-white for charity feel */
+            --bg-section-alt: #fff8f9; /* Warmer, softer pink */
+            --bg-card: #ffffff;
+            --bg-banner: #ffeef0; /* Warmer, more compassionate pink banner */
+            --text-main: #1f1f24; /* Softer than pure black */
+            --text-muted: #6b7280; /* Professional grey */
+            --shadow-color: rgba(220, 53, 69, 0.15); /* Warmer shadow */
+            --modal-bg: #ffffff;
+            --input-border: #f0d4d8; /* Warmer, softer border */
+            --accent-blue: #3b82f6; /* Professional blue accent */
+            --accent-green: #10b981; /* Success green */
+            
             --transition: all 0.3s ease;
         }
 
+        /* DARK MODE OVERRIDES - Lighter blue theme, less scary */
+        body.dark-mode {
+            --primary-dark: #ff6b81; /* Lighter red for dark mode text */
+            --primary: #ff4757;
+            --primary-light: #ff8787;
+            --bg-body: #1a2332; /* Lighter dark blue background */
+            --bg-section-alt: #243447; /* Lighter dark blue section */
+            --bg-card: #2d4a5f; /* Lighter dark blue card background */
+            --bg-banner: #3d5a7f; /* Lighter dark blue banner */
+            --text-main: #e8f0f8; /* Soft light text */
+            --text-muted: #a8b8c8; /* Muted grey-blue */
+            --shadow-color: rgba(220, 53, 69, 0.25);
+            --modal-bg: #2d4a5f;
+            --input-border: #4a5f7a; /* Lighter dark blue border */add
+            --accent-blue: #60a5fa;
+            --accent-green: #34d399;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
-        body { color: var(--text-dark); background-color: var(--white); overflow-x: hidden; }
+        body { color: var(--text-main); background-color: var(--bg-body); overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         a { text-decoration: none; color: inherit; }
-        button { cursor: pointer; border: none; outline: none; }
-        .tactical-font { font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+        button { cursor: pointer; border: none; outline: none; transition: var(--transition); }
+        
+        /* Utility for full screen sections */
+        section { 
+            height: 100vh; 
+            min-height: 100vh;
+            max-height: 100vh;
+            padding: 80px 8%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Smooth section transitions */
+        section:not(.hero) {
+            background: var(--bg-body);
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Ensure hero section has no background color blocking the image */
+        section.hero {
+            background-color: transparent !important;
+        }
 
-        /* NAVIGATION */
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 8%; position: fixed; width: 100%; top: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .nav-links { display: flex; gap: 2.5rem; }
+        /* --- NAVIGATION --- */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; position: fixed; width: 100%; top: 0; background: rgba(250, 250, 250, 0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 20px rgba(139, 14, 42, 0.08); transition: background 0.3s, box-shadow 0.3s; }
+        body.dark-mode nav { background: rgba(26, 35, 50, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3); }
+        
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: var(--transition); }
+        .logo:hover { opacity: 0.8; }
+        .logo i { color: var(--primary); }
+        .logo img { height: 40px; width: auto; object-fit: contain; }
+        
+        .nav-links { display: flex; gap: 2rem; list-style: none; font-weight: 500; color: var(--text-muted); }
         .nav-links a:hover { color: var(--primary); }
+        
         .nav-buttons { display: flex; gap: 1rem; align-items: center; }
-        .btn { padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; transition: var(--transition); }
-        .btn-primary { background: var(--gradient); color: var(--white); box-shadow: var(--shadow-lg); }
-        .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
-        .btn-text { background: transparent; color: var(--text-light); font-weight: 600; }
+        .btn { padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; }
+        .btn-primary { 
+            background: linear-gradient(135deg, #dc3545 0%, #c41e3a 100%); /* Warmer red for charity */
+            color: white; 
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.5),
+                        0 5px 15px rgba(139, 14, 42, 0.3); 
+            background: linear-gradient(135deg, #ff4757 0%, #dc3545 100%); 
+        }
+        .btn-text { background: transparent; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;}
+        .btn-text:hover { color: var(--primary); }
 
-        /* HERO */
-        .hero { min-height: 100vh; display: flex; align-items: center; padding: 80px 8% 0; background: linear-gradient(to right, #fff 55%, #fff0f0 45%); position: relative; }
-        .hero-content { flex: 1; max-width: 600px; z-index: 2; }
-        .hero h1 { font-size: 4rem; line-height: 1.1; margin-bottom: 1.5rem; }
-        .hero h1 span { color: var(--primary); }
-        .hero-tag { display: inline-block; background: #ffeaa7; color: #d35400; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
-        .hero-visual { flex: 1; height: 600px; display: flex; justify-content: center; align-items: center; position: relative; }
-        .blob { width: 500px; height: 500px; background: var(--gradient); border-radius: 46% 54% 39% 61%; animation: morph 8s infinite; display: flex; justify-content: center; align-items: center; color: white; font-size: 10rem; }
-        @keyframes morph { 0%, 100% { border-radius: 46% 54% 39% 61%; } 50% { border-radius: 59% 41% 68% 32%; } }
+        .theme-toggle { background: transparent; color: var(--text-main); font-size: 1.2rem; padding: 0.5rem; display: flex; align-items: center; justify-content: center;}
+        .theme-toggle:hover { color: var(--primary); }
 
-        /* STATS */
-        .stats-bar { background: var(--secondary); color: white; padding: 4rem 8%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center; }
-        .stat h3 { font-size: 3rem; color: var(--primary); font-weight: 800; margin-bottom: 0.5rem; }
+        /* --- SECTION HEADERS --- */
+        .section-header { text-align: center; margin-bottom: 3rem; position: relative; z-index: 1; }
+        .section-tag { color: var(--primary); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 0.9rem; display: block; margin-bottom: 10px;}
+        .about-section .section-tag { font-size: 0.81rem; margin-bottom: 9px; }
+        .section-header h2 { font-size: 3rem; color: var(--primary-dark); font-weight: 800; }
+        .section-header p { color: var(--text-muted); margin-top: 10px; }
 
-        /* SECTIONS */
-        .section-header { text-align: center; margin-bottom: 3rem; }
-        .section-header h2 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-dark); }
+        /* --- FADE IN SLIDE UP ANIMATIONS --- */
+        .fade-slide-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .fade-slide-up.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
         
-        /* ABOUT */
-        .about-section { padding: 6rem 8%; background: var(--white); display: flex; align-items: center; gap: 4rem; }
-        .about-image img { width: 100%; border-radius: 20px; box-shadow: var(--shadow-lg); }
-        .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-        .value-item { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--secondary); }
-        .value-item i { color: var(--primary); background: rgba(255, 71, 87, 0.1); padding: 10px; border-radius: 50%; }
-
-        /* FUN FACTS */
-        .fun-facts { padding: 6rem 8%; background: var(--bg-light); }
-        .facts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 2rem; }
-        .fact-card { background: white; padding: 2rem; border-radius: 20px; border-left: 5px solid var(--primary); box-shadow: var(--shadow-sm); transition: var(--transition); }
-        .fact-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-        .fact-number { font-size: 2.5rem; font-weight: 800; color: rgba(255, 71, 87, 0.2); margin-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; }
-        .fact-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 700; }
-        .fact-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; }
-        .fact-card strong { color: var(--primary); }
-
-        /* BLOOD TYPES */
-        .blood-types { padding: 6rem 8%; background: var(--white); }
-        .blood-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
-        .blood-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: var(--shadow-sm); border: 2px solid #f1f2f6; text-align: center; transition: var(--transition); }
-        .blood-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
-        .blood-bag { width: 80px; height: 110px; background: var(--gradient); border-radius: 15px 15px 25px 25px; display: flex; justify-content: center; align-items: center; color: white; font-size: 2rem; font-weight: 800; margin: 0 auto 1.5rem; }
-
-        /* PROCESS */
-        .process { padding: 6rem 8%; background: var(--bg-light); }
-        .steps-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: center; }
-        .step-card { background: white; padding: 2.5rem 2rem; border-radius: 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
-        .step-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-        .step-number { position: absolute; top: -20px; right: -20px; font-size: 6rem; font-weight: 900; color: rgba(0,0,0,0.03); }
-        .icon-box { width: 80px; height: 80px; background: rgba(255, 71, 87, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1.5rem; color: var(--primary); font-size: 2rem; }
-
-        /* FOOTER */
-        footer { background: var(--secondary); color: white; padding: 4rem 8% 2rem; text-align: center; }
+        /* Blur effect for type section cards during animation */
+        .types-section .type-card-container.fade-slide-up {
+            filter: blur(10px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .types-section .type-card-container.fade-slide-up.animate {
+            filter: blur(0px);
+        }
         
-        /* MODALS & CHAT */
+        /* Stagger delays for cards */
+        .fade-slide-up.delay-1 { transition-delay: 0.1s; }
+        .fade-slide-up.delay-2 { transition-delay: 0.2s; }
+        .fade-slide-up.delay-3 { transition-delay: 0.3s; }
+        .fade-slide-up.delay-4 { transition-delay: 0.4s; }
+        .fade-slide-up.delay-5 { transition-delay: 0.5s; }
+        .fade-slide-up.delay-6 { transition-delay: 0.6s; }
+
+        /* ====== HERO SECTION ====== */
+        .hero { 
+            /* Background layers: overlay + blood bags image */
+            background-image: 
+                linear-gradient(rgba(254, 254, 254, 0.5), rgba(254, 254, 254, 0.45)),
+                url('assets/blood-bags-backdrop.png');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            background-attachment: fixed;
+            background-color: transparent;
+            perspective: 1000px;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            
+            /* GRID LAYOUT for Content Left / Visual Right */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 80px 8%;
+            position: relative; /* Essential for absolute positioning of children */
+        }
+        /* Swirl pattern overlay with blue-to-red conversion */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('assets/swirl-backdrop.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: 0.55;
+            z-index: 1;
+            pointer-events: none;
+            /* Convert blue to red: rotate hue from blue (240deg) to red (0deg) = -120deg or 240deg */
+            filter: hue-rotate(120deg) saturate(1.8) brightness(0.85) contrast(1.15);
+        }
+        body.dark-mode .hero {
+            background-image: 
+                linear-gradient(rgba(26, 35, 50, 0.85), rgba(26, 35, 50, 0.8)),
+                url('assets/blood-bags-backdrop.png');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            background-attachment: fixed;
+            background-color: transparent;
+        }
+        body.dark-mode .hero::before {
+            opacity: 0.4;
+            filter: hue-rotate(120deg) saturate(2) brightness(0.7) contrast(1.2);
+        }
+
+        /* Left Side Content */
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align text to the left */
+            justify-content: flex-start; /* Align to top to match blood bag */
+            position: relative;
+            z-index: 10;
+            text-align: left;
+            padding-top: 4rem; /* Match blood bag's padding-top */
+        }
+        
+        .hero-heading {
+            font-size: 4.7rem; /* 5% smaller: 4.95 * 0.95 */
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .hero-heading.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .hero-description {
+            font-size: 1.15rem; /* 5% smaller: 1.21 * 0.95 */
+            color: #4a5568; /* Darker, more visible gray for light mode */
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 90%;
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
+            font-weight: 400;
+        }
+        body.dark-mode .hero-description {
+            color: #e2e8f0; /* Lighter, more visible gray for dark mode */
+        }
+        .hero-description.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Right Side Visual */
+        .hero-interactive-container {
+            position: relative;
+            z-index: 10;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            width: 100%;
+            height: 100%;
+            padding-top: 4rem; /* Shift upwards more */
+        }
+
+        /* 3D Blood Bag Style */
+        .blood-bag-3d {
+            width: 366px; /* 5% smaller: 385 * 0.95 */
+            height: 496px; /* 5% smaller: 522.5 * 0.95 */
+            background: linear-gradient(135deg, #d61c3b, #8a0a23);
+            border-radius: 40px 40px 60px 60px;
+            box-shadow: 
+                inset -10px -10px 30px rgba(0,0,0,0.3),
+                inset 10px 10px 30px rgba(255,255,255,0.2),
+                0 20px 50px rgba(138, 10, 35, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+        .bag-label {
+            background: rgba(255,255,255,0.9);
+            padding: 23.75px 33.25px; /* 5% smaller: 25*0.95, 35*0.95 */
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .bag-label h2 { font-size: 4.75rem; font-weight: 900; color: #2f3542; line-height: 1;} /* 5% smaller: 5 * 0.95 */
+        .bag-label span { font-weight: 700; color: var(--primary); letter-spacing: 1px; font-size: 1.045rem;} /* 5% smaller: 1.1 * 0.95 */
+
+        /* Floating Bandages */
+        .floater { position: absolute; z-index: 5; opacity: 0.6; pointer-events: none; animation: float 6s ease-in-out infinite; color: var(--primary); }
+        .bandage-b { top: 42%; left: 35%; font-size: 2.5rem; transform: rotate(30deg); z-index: 2; }
+        .bandage-1 { top: 15%; left: 10%; font-size: 2rem; transform: rotate(-25deg); animation-delay: 0s; }
+        .bandage-2 { top: 25%; right: 15%; font-size: 1.8rem; transform: rotate(45deg); animation-delay: 1.5s; }
+        .bandage-3 { bottom: 20%; left: 8%; font-size: 2.2rem; transform: rotate(-15deg); animation-delay: 2.5s; }
+        .bandage-4 { top: 60%; right: 8%; font-size: 1.5rem; transform: rotate(60deg); animation-delay: 3.5s; }
+        .bandage-5 { bottom: 15%; right: 12%; font-size: 1.8rem; transform: rotate(-40deg); animation-delay: 1s; }
+        
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-20px) rotate(var(--r, 0deg)); } }
+
+        /* CTA Area */
+        .hero-cta { z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-bottom: 2rem; }
+        .hero-text-capsule {
+            background: var(--bg-card);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            font-weight: 600;
+            color: var(--text-main);
+            border: 1px solid var(--input-border);
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s;
+        }
+        .hero-text-capsule.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .hero-text-capsule span { color: var(--primary); }
+
+        /* ====== ABOUT SECTION ====== */
+        .about-section { 
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .counters-banner {
+            background: var(--bg-banner);
+            padding: 2.7rem;
+            border-radius: 27px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 1.8rem;
+            text-align: center;
+            margin-top: 3.5rem;
+            margin-bottom: 3rem;
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .counter-item h3 { font-size: 2.43rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.162rem; font-family: 'Rajdhani', sans-serif; }
+        .counter-item p { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.648rem; letter-spacing: 0.81px;}
+
+        .mission-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 3.6rem; 
+            width: 100%; 
+            max-width: 1200px;
+            margin-top: -1rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .mission-visual { 
+            flex: 1; 
+            height: 360px; 
+            background: var(--bg-section-alt); 
+            border-radius: 27px; 
+            position: relative; 
+            overflow: visible; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+        .mission-visual i { font-size: 7.2rem; color: var(--primary); opacity: 0.2; }
+        
+        /* Deck of Images Container */
+        .mission-deck {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .mission-card {
+            position: absolute;
+            width: 85%;
+            height: 85%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), z-index 0.5s step-end;
+            cursor: pointer;
+            background: var(--bg-card);
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            will-change: transform;
+            opacity: 1;
+            /* Slight gradient overlay */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+        }
+        body.dark-mode .mission-card {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 71, 87, 0.08) 100%);
+        }
+        
+        .mission-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* Stacked positioning - each card slightly offset like a deck */
+        .mission-card {
+            z-index: 1;
+        }
+        .mission-card:nth-child(1) { 
+            transform: translate(0, 0) rotate(0deg);
+            z-index: 6;
+        }
+        .mission-card:nth-child(2) { 
+            transform: translate(10.8px, 10.8px) rotate(2deg);
+            z-index: 5;
+        }
+        .mission-card:nth-child(3) { 
+            transform: translate(21.6px, 21.6px) rotate(-1deg);
+            z-index: 4;
+        }
+        .mission-card:nth-child(4) { 
+            transform: translate(32.4px, 32.4px) rotate(1.5deg);
+            z-index: 3;
+        }
+        .mission-card:nth-child(5) { 
+            transform: translate(43.2px, 43.2px) rotate(-0.5deg);
+            z-index: 2;
+        }
+        .mission-card:nth-child(6) { 
+            transform: translate(54px, 54px) rotate(1deg);
+            z-index: 1;
+        }
+        
+        /* Active card (top of deck) */
+        .mission-card.active {
+            transform: translate(0, 0) rotate(0deg) scale(1.02);
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+        }
+        
+        .mission-content { flex: 1; }
+        .mission-content h2 { font-size: 2.43rem; line-height: 1.1; color: var(--primary-dark); margin-bottom: 1.215rem; font-weight: 800;}
+        .mission-content .lead { font-size: 0.891rem; color: var(--text-muted); margin-bottom: 1.62rem; line-height: 1.7; }
+        
+        /* ====== FACTS SECTION ====== */
+        .facts-section { background: var(--bg-section-alt); }
+        .facts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; width: 100%; }
+        
+        .fact-card-container { width: 100%; height: 350px; perspective: 1000px; cursor: pointer; }
+        .fact-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
+        .fact-card-container.flipped .fact-card-inner { transform: rotateY(180deg); }
+
+        .fact-card-front, .fact-card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            padding: 2rem; border-radius: 25px; background: var(--bg-card);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            /* Slight gradient overlay */
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(220, 53, 69, 0.08) 100%);
+            /* Visible border for light mode */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+        }
+        body.dark-mode .fact-card-front {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(255, 71, 87, 0.12) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+        .fact-number { font-size: 4rem; font-weight: 900; color: var(--bg-banner); margin-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; }
+        /* Make number visible in dark mode */
+        body.dark-mode .fact-number { color: rgba(255, 71, 87, 0.2); }
+        
+        .fact-card-front h3 { font-size: 1.5rem; color: var(--primary-dark); font-weight: 800; }
+        .tap-link { color: var(--primary); font-weight: 600; margin-top: auto; font-size: 0.9rem; }
+        
+        .fact-card-back { 
+            background: linear-gradient(135deg, var(--primary-dark) 0%, rgba(220, 53, 69, 0.9) 100%); 
+            color: white; 
+            transform: rotateY(180deg); 
+        }
+        body.dark-mode .fact-card-back {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, rgba(255, 107, 129, 0.95) 100%);
+        }
+        .fact-card-back p { font-size: 1.1rem; line-height: 1.6; }
+        .fact-card-back strong { color: #ffbdc9; }
+
+        /* ====== TYPE SECTION ====== */
+        .types-section { 
+            background: var(--bg-body);
+            position: relative;
+            overflow: hidden;
+        }
+        .types-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('assets/droplets-backdrop.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .types-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(254, 254, 254, 0.2), rgba(254, 254, 254, 0.5));
+            z-index: 0;
+            pointer-events: none;
+        }
+        body.dark-mode .types-section::before {
+            opacity: 0.5;
+        }
+        body.dark-mode .types-section::after {
+            background: linear-gradient(to bottom, rgba(26, 35, 50, 0.3), rgba(26, 35, 50, 0.6));
+        }
+        .types-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 2rem; 
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Shadow effect for type section headings */
+        .types-section .section-header h2 {
+            text-shadow: 0 3px 10px rgba(165, 26, 58, 0.4), 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        body.dark-mode .types-section .section-header h2 {
+            text-shadow: 0 3px 10px rgba(255, 107, 129, 0.5), 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Uniform Card Design for all Types */
+        .type-card-container { width: 100%; height: 380px; perspective: 1000px; cursor: pointer; }
+        .type-card-inner { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .type-card-container.flipped .type-card-inner { transform: rotateY(180deg); }
+
+        .type-front, .type-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 30px; padding: 2rem; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+            /* Visible border matching fact section */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+            box-shadow: 0 10px 25px var(--shadow-color);
+            /* Semi-transparent gradient - not too transparent */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 71, 87, 0.15) 100%);
+            backdrop-filter: blur(10px);
+        }
+        body.dark-mode .type-front, body.dark-mode .type-back {
+            background: linear-gradient(135deg, rgba(45, 74, 95, 0.8) 0%, rgba(255, 71, 87, 0.2) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+
+        .illustration-circle {
+            width: 120px; height: 120px;
+            background: var(--bg-section-alt);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 2rem;
+            font-size: 3.5rem; font-weight: 900; color: var(--primary);
+            position: relative; overflow: hidden;
+        }
+        /* Aesthetic "fluid" in circle */
+        .illustration-circle::after {
+            content: ''; position: absolute; bottom: -10px; left: 0; right: 0;
+            height: 40%; background: var(--primary); opacity: 0.2;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .type-front h3 { font-size: 2rem; color: var(--primary-dark); font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 8px rgba(165, 26, 58, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);}
+        body.dark-mode .type-front h3 { text-shadow: 0 2px 8px rgba(255, 107, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);}
+        .type-front p { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
+
+        .type-back { 
+            /* Semi-transparent gradient for back - not too transparent */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 71, 87, 0.15) 100%); 
+            backdrop-filter: blur(10px);
+            color: var(--text-main); 
+            transform: rotateY(180deg); 
+            /* Visible border matching fact section */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+        }
+        body.dark-mode .type-back {
+            background: linear-gradient(135deg, rgba(45, 74, 95, 0.8) 0%, rgba(255, 71, 87, 0.2) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+        .compat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; text-align: left; }
+        .compat-col h4 { color: var(--primary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;}
+        .blood-badge { display: inline-block; background: var(--bg-section-alt); padding: 4px 8px; border-radius: 6px; margin: 2px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+
+        /* ====== FOOTER ====== */
+        footer { background: var(--bg-body); padding: 5rem 8% 2rem; text-align: center; border-top: 1px solid var(--input-border); margin-top: auto;}
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem; }
+        .social-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-section-alt); color: var(--primary); display: flex; justify-content: center; align-items: center; transition: var(--transition); }
+        .social-btn:hover { background: var(--primary); color: white; }
+
+        /* ====== MODALS ====== */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: white; border-radius: 20px; padding: 2.5rem; width: 90%; max-width: 500px; transform: translateY(20px); transition: 0.3s; }
+        
+        /* Updated Modal Content Styles */
+        .modal-content { background: var(--modal-bg); border-radius: 20px; padding: 3rem; width: 90%; max-width: 500px; transform: translateY(20px); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
-        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; }
+        
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; color: var(--text-main); background: transparent; cursor: pointer; font-weight: 700; }
+        
+        /* Specific Design Styles */
+        .modal-header-center { text-align: center; margin-bottom: 2rem; }
+        .modal-title-design { font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 1.8rem; color: var(--text-main); margin-bottom: 0; }
+        .hospital-theme .modal-title-design { color: #0f172a; } /* Dark Blue for Hospital */
+        body.dark-mode .modal-title-design { color: var(--text-main); }
+
         .form-group { margin-bottom: 1.2rem; }
-        .form-input { width: 100%; padding: 1rem; border: 2px solid #eee; border-radius: 10px; outline: none; }
-        .form-input:focus { border-color: var(--primary); }
+        .input-label-design { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-main); font-size: 0.95rem; }
+        .input-field-design { width: 100%; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s; background: var(--bg-body); color: var(--text-main); }
+        .input-field-design:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1); }
+
+        /* Hospital specific input focus */
+        .hospital-theme .input-field-design:focus { border-color: #0f172a; box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
+
+        .btn-design-red { background: #ff4757; color: white; width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); margin-top: 1rem; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-design-red:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 71, 87, 0.3); }
+
+        .btn-design-dark { background: #0f172a; color: white; width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2); margin-top: 1rem; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-design-dark:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(15, 23, 42, 0.3); }
+
+        .footer-link-red { color: #ff4757; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .footer-link-dark { color: #0f172a; font-weight: 700; text-decoration: none; cursor: pointer; }
+
+        .split-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        
+        .modal-footer { margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-main); font-weight: 400;}
 
         /* CHATBOT */
         .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
-        .chat-toggle-btn { width: 60px; height: 60px; border-radius: 50%; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; }
-        .chat-window { width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); display: none; flex-direction: column; margin-bottom: 15px; }
-        .chat-header { background: var(--gradient); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; }
-        .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f8f9fa; }
-        .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px; }
-        .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .chat-toggle-btn { width: auto; height: 80px; background: transparent; box-shadow: none; overflow: visible; padding: 0; border: none; cursor: pointer; transition: transform 0.2s ease; position: relative; }
+        .chat-toggle-btn:hover { transform: scale(1.05); }
+        .chat-toggle-btn img { width: auto; height: 100%; object-fit: contain; display: block; }
+        /* Notification dot */
+        .chat-notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 12px;
+            height: 12px;
+            background: #6b7280; /* Start grey */
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            z-index: 10;
+            transition: background-color 0.3s ease;
+        }
+        .chat-notification-dot.active {
+            display: block;
+            background: #10b981; /* Green when active */
+        }
+        .chat-notification-dot.idle {
+            background: #6b7280; /* Grey when idle */
+        }
+        body.dark-mode .chat-notification-dot {
+            border-color: var(--bg-body);
+        }
+        .chat-window { width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: none; display: none; flex-direction: column; margin-bottom: 15px; overflow: hidden; border: 1px solid #e5e7eb; }
+        body.dark-mode .chat-window { background: var(--bg-card); border-color: var(--input-border); }
+        .chat-header { background: linear-gradient(135deg, #dc3545 0%, #c41e3a 100%); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 20px 20px 0 0; position: relative; }
+        body.dark-mode .chat-header { background: linear-gradient(135deg, #ff4757 0%, #dc3545 100%); }
+        .chat-header h4 { display: flex; align-items: center; gap: 8px; margin: 0; }
+        .chat-header-online-dot {
+            width: 10px;
+            height: 10px;
+            background: #6b7280; /* Start grey */
+            border-radius: 50%;
+            border: 2px solid white;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .chat-header-online-dot.active {
+            background: #10b981; /* Green when active */
+        }
+        body.dark-mode .chat-header-online-dot {
+            border-color: var(--bg-card);
+        }
+        .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f8f9fa; display: flex; flex-direction: column; }
+        body.dark-mode .chat-body { background: var(--bg-section-alt); }
+        .bot-message-bubble { background: white; color: var(--text-main); }
+        body.dark-mode .bot-message-bubble { background: var(--bg-card); color: var(--text-main); }
+        .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px; background: white; }
+        body.dark-mode .chat-footer { background: var(--bg-card); border-top-color: var(--input-border); }
+        .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; background: var(--bg-body); color: var(--text-main); }
+        body.dark-mode .chat-footer input { background: var(--bg-section-alt); border-color: var(--input-border); color: var(--text-main); }
 
-        @media (max-width: 992px) { .hero { flex-direction: column; text-align: center; height: auto; padding-bottom: 4rem; } .hero-visual { width: 100%; height: 400px; margin-top: 2rem; } .about-section { flex-direction: column; } }
+        /* Responsive */
+        @media (max-width: 992px) { 
+            section { padding: 60px 5%; height: auto; min-height: auto; }
+            .hero { grid-template-columns: 1fr; } /* Stack on mobile */
+            .mission-container { flex-direction: column; }
+            .mission-visual { width: 100%; height: 300px; }
+            .nav-links { display: none; } /* Simplified nav for mobile */
+        }
     </style>
 </head>
 <body>
 
+    <!-- NAVIGATION -->
     <nav>
-        <div class="logo"><i class="fas fa-droplet"></i> Blood<span>Knight</span></div>
+        <a href="#home" class="logo" id="home-logo-link">
+            <i class="fas fa-shield-heart"></i> BloodKnight
+        </a>
+        
         <ul class="nav-links">
             <li><a href="#home">Home</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="#facts">Facts</a></li>
-            <li><a href="#types">Types</a></li>
+            <li><a href="#types">Type</a></li>
         </ul>
         <div class="nav-buttons">
-            <button id="hospital-modal-btn" class="btn-text">For Hospitals</button>
-            <button id="donor-modal-btn" class="btn btn-primary">Donor Login</button>
+            <!-- Toggle Dark Mode Button (Moved Here) -->
+            <button id="theme-toggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
+            <button id="hospital-modal-btn" class="btn-text"><i class="fas fa-hospital"></i> FOR HOSPITAL</button>
+            <button id="donor-modal-btn" class="btn btn-primary">Login</button>
         </div>
     </nav>
 
+    <!-- HERO SECTION -->
     <section class="hero" id="home">
+        <!-- Floating Icons - Scattered sparsely to avoid overlaps -->
+        <i class="fas fa-band-aid floater bandage-b"></i>
+        <i class="fas fa-band-aid floater bandage-1"></i>
+        <i class="fas fa-heart floater bandage-2"></i>
+        <i class="fas fa-plus floater bandage-3"></i>
+        <i class="fas fa-heart floater bandage-4"></i>
+        <i class="fas fa-band-aid floater bandage-5"></i>
+
+        <!-- LEFT COLUMN: Content -->
         <div class="hero-content">
-            <span class="hero-tag">Urgent Need: O- BLOOD</span>
-            <h1>Be the Reason<br>Someone <span>Smiles Today.</span></h1>
-            <p>BloodKnight connects civilian donors to emergency supply lines. One unit saves 3 lives.</p>
-            <button id="donor-signup-btn" class="btn btn-primary">Start Mission</button>
+            <h1 class="hero-heading">Defend the Pulse</h1>
+            <p class="hero-description">
+                Join thousands of compassionate heroes across Sabah, Malaysia who are making a real difference. 
+                Every donation is a gift of hope, connecting caring donors directly with those in need.
+            </p>
+            <!-- Call to Action -->
+            <div class="hero-cta">
+                <div class="hero-text-capsule">
+                    Designed for Heroes. <span>Every drop counts.</span>
         </div>
-        <div class="hero-visual">
-            <div class="blob"><i class="fas fa-heart-pulse"></i></div>
+                <button id="donor-signup-btn" class="btn btn-primary" style="padding: 1.25rem 3.66rem; font-size: 1.15rem; box-shadow: 0 10px 25px rgba(207, 27, 59, 0.3);">
+                    Donate Now
+                </button>
         </div>
-    </section>
+        </div>
 
-    <section class="stats-bar">
-        <div class="stat"><h3>45k+</h3><p>Donors Registered</p></div>
-        <div class="stat"><h3>120k+</h3><p>Lives Saved</p></div>
-        <div class="stat"><h3>80</h3><p>Partner Clinics</p></div>
-        <div class="stat"><h3>15min</h3><p>Average Time</p></div>
-    </section>
-
-    <section class="about-section" id="about">
-        <div class="about-image">
-            <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Team">
-        </div>
-        <div class="about-content">
-            <span class="hero-tag" style="background: #e1f5fe; color: #0288d1;">Who We Are</span>
-            <h2>Bridging the Gap Between Donors & Patients</h2>
-            <p>Founded in 2024, BloodKnight was built on a simple promise: no patient should ever wait for blood. We connect generous donors like you directly with local hospitals.</p>
-            <div class="values-grid">
-                <div class="value-item"><i class="fas fa-shield-alt"></i> 100% Safe Process</div>
-                <div class="value-item"><i class="fas fa-globe-americas"></i> Nationwide Network</div>
-                <div class="value-item"><i class="fas fa-user-nurse"></i> Expert Care</div>
-                <div class="value-item"><i class="fas fa-clock"></i> 24/7 Support</div>
+        <!-- RIGHT COLUMN: 3D Element -->
+        <div class="hero-interactive-container" id="heroTilt">
+            <div class="blood-bag-3d">
+                <div class="bag-label">
+                    <span>WHOLE BLOOD</span>
+                    <h2>O+</h2>
+                    <span>SABAH</span>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="fun-facts" id="facts">
+    <!-- ABOUT SECTION -->
+    <section class="about-section" id="about">
+        <!-- Counters -->
+        <div class="counters-banner" id="counter-section">
+            <div class="counter-item">
+                <h3 class="counter" data-target="45000">0</h3>
+                <p>Donors</p>
+        </div>
+            <div class="counter-item">
+                <h3 class="counter" data-target="120000">0</h3>
+                <p>Lives Saved</p>
+            </div>
+            <div class="counter-item">
+                <h3 class="counter" data-target="80">0</h3>
+                <p>Clinics</p>
+            </div>
+            <div class="counter-item">
+                <!-- Clean H3 tag to ensure it inherits the bold weight (700) defined in CSS -->
+                <h3 style="font-weight: 400;"><span class="counter" data-target="15">0</span>min</h3>
+                <p>Time to Give</p>
+            </div>
+        </div>
+
+        <div class="mission-container">
+            <div class="mission-visual" id="mission-deck-container">
+                <div class="mission-deck" id="mission-deck">
+                    <div class="mission-card active">
+                        <img src="assets/mission-images/mission-1.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-2.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-3.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-4.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-5.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-6.png" alt="Blood Donation">
+                    </div>
+                </div>
+            </div>
+            <div class="mission-content">
+                <span class="section-tag fade-slide-up">Our Mission</span>
+                <h2 class="fade-slide-up delay-1">Bridging the Gap</h2>
+                <p class="lead fade-slide-up delay-2">Founded in 2024, BloodKnight connects generous donors directly with local hospitals. No waiting, no wastage.</p>
+                <div class="fade-slide-up delay-3" style="display: flex; flex-direction: column; gap: 8.1px; color: var(--text-main); font-weight: 600; font-size: 0.81rem;">
+                    <div><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8.1px;"></i> 100% Safe Process</div>
+                    <div><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8.1px;"></i> Real-time Tracking</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FACTS SECTION -->
+    <section class="facts-section" id="facts">
         <div class="section-header">
-            <h2>Did You Know?</h2>
-            <p>Essential knowledge for every Knight.</p>
+            <span class="section-tag fade-slide-up">Did You Know?</span>
+            <h2 class="fade-slide-up delay-1">Knowledge is Power</h2>
+            <p class="fade-slide-up delay-2">Click cards to reveal.</p>
         </div>
         <div class="facts-grid">
-            <div class="fact-card">
+            <div class="fact-card-container fade-slide-up delay-1" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
                 <div class="fact-number">01</div>
-                <h3>Multiplier Effect</h3>
-                <p>One pint of blood can save up to <strong>3 distinct lives</strong> by separating it into red cells, plasma, and platelets.</p>
+                        <h3>Multiplier</h3>
+                        <span class="tap-link">Tap to learn</span>
             </div>
-            <div class="fact-card">
+                    <div class="fact-card-back"><p>One pint saves <strong>3 lives</strong> (Red cells, Plasma, Platelets).</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-2" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
                 <div class="fact-number">02</div>
                 <h3>Shelf Life</h3>
-                <p>Red blood cells only survive for <strong>42 days</strong>. Constant rotation and new recruits are vital for inventory.</p>
+                        <span class="tap-link">Tap to learn</span>
             </div>
-            <div class="fact-card">
+                    <div class="fact-card-back"><p>Red cells last only <strong>42 days</strong>. We need constant supply.</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-3" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
                 <div class="fact-number">03</div>
-                <h3>Rapid Resupply</h3>
-                <p>Your body replenishes the fluid volume lost during donation within just <strong>24 hours</strong>.</p>
+                        <h3>Recovery</h3>
+                        <span class="tap-link">Tap to learn</span>
             </div>
-            <div class="fact-card">
+                    <div class="fact-card-back"><p>Your fluid volume restores in <strong>24 hours</strong>.</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-4" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
                 <div class="fact-number">04</div>
-                <h3>The Golden Key</h3>
-                <p><strong>Type O-Negative</strong> is the universal donor. It is the most requested blood type for emergency trauma cases.</p>
+                        <h3>O-Negative</h3>
+                        <span class="tap-link">Tap to learn</span>
+                    </div>
+                    <div class="fact-card-back"><p>The <strong>Universal Donor</strong>. Vital for emergencies.</p></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="blood-types" id="types">
+    <!-- TYPE SECTION -->
+    <section class="types-section" id="types">
         <div class="section-header">
-            <h2>Know Your Type</h2>
-            <p>Every blood type is special. See who you can help.</p>
+            <span class="section-tag fade-slide-up">Compatibility</span>
+            <h2 class="fade-slide-up delay-1">Know Your Type</h2>
+            <p class="fade-slide-up delay-2">Click cards to reveal.</p>
         </div>
-        <div class="blood-grid">
-            <div class="blood-card">
-                <div class="blood-bag">O</div>
-                <h3>The Universal Donor</h3>
-                <p>O- can give to anyone. O+ can give to any positive type.</p>
+        <div class="types-grid">
+            <!-- All Cards now use the uniform "Illustration" design -->
+            
+            <!-- TYPE A -->
+            <div class="type-card-container fade-slide-up delay-1" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">A</div>
+                        <h3>Type A</h3>
+                        <p>Common & Vital</p>
             </div>
-            <div class="blood-card">
-                <div class="blood-bag">A</div>
-                <h3>The Common Healer</h3>
-                <p>One of the most common blood types, always in high demand.</p>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">A+</span> <span class="blood-badge">A-</span> <span class="blood-badge">AB+</span> <span class="blood-badge">AB-</span></div>
             </div>
-            <div class="blood-card">
-                <div class="blood-bag">B</div>
-                <h3>The Rare Gem</h3>
-                <p>Less common than O and A. Your donation is incredibly valuable.</p>
+                            <div class="compat-col">
+                                <h4>Receives</h4>
+                                <div><span class="blood-badge">A+</span> <span class="blood-badge">A-</span> <span class="blood-badge">O+</span> <span class="blood-badge">O-</span></div>
             </div>
-            <div class="blood-card">
-                <div class="blood-bag">AB</div>
-                <h3>The Universal Recipient</h3>
-                <p>AB+ can receive from anyone. Your plasma is universal!</p>
+            </div>
+        </div>
+                </div>
+            </div>
+
+            <!-- TYPE B -->
+            <div class="type-card-container fade-slide-up delay-2" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">B</div>
+                        <h3>Type B</h3>
+                        <p>Rare Strength</p>
+        </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">B+</span> <span class="blood-badge">B-</span> <span class="blood-badge">AB+</span> <span class="blood-badge">AB-</span></div>
+            </div>
+                            <div class="compat-col">
+                                <h4>Receives</h4>
+                                <div><span class="blood-badge">B+</span> <span class="blood-badge">B-</span> <span class="blood-badge">O+</span> <span class="blood-badge">O-</span></div>
+            </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TYPE AB -->
+            <div class="type-card-container fade-slide-up delay-3" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">AB</div>
+                        <h3>Type AB</h3>
+                        <p>Universal Recipient</p>
+                    </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col" style="grid-column: span 2; text-align:center;">
+                                <h4>Plasma Gives To</h4>
+                                <div><span class="blood-badge">EVERYONE</span></div>
+                                <h4 style="margin-top: 15px;">Receives From</h4>
+                                <div><span class="blood-badge">ALL TYPES</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TYPE O -->
+            <div class="type-card-container fade-slide-up delay-4" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">O</div>
+                        <h3>Type O</h3>
+                        <p>Universal Donor</p>
+                    </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col" style="grid-column: span 2; text-align:center;">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">ALL TYPES (O-)</span></div>
+                                <h4 style="margin-top: 15px;">Receives From</h4>
+                                <div><span class="blood-badge">O ONLY</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="process" id="process">
-        <div class="section-header">
-            <h2>How Does It Work?</h2>
-            <p>We've streamlined the process to make it comfortable and quick.</p>
-        </div>
-        <div class="steps-container">
-            <div class="step-card">
-                <div class="step-number">1</div>
-                <div class="icon-box"><i class="fas fa-calendar-check"></i></div>
-                <h3>Register</h3>
-                <p>Fill out the form below to book your appointment slot.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-number">2</div>
-                <div class="icon-box"><i class="fas fa-notes-medical"></i></div>
-                <h3>Screening</h3>
-                <p>A quick mini-physical and health history check.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-number">3</div>
-                <div class="icon-box"><i class="fas fa-hand-holding-medical"></i></div>
-                <h3>Donation</h3>
-                <p>Sit back and relax. The actual donation takes only 8-10 minutes.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-number">4</div>
-                <div class="icon-box"><i class="fas fa-cookie-bite"></i></div>
-                <h3>Refresh</h3>
-                <p>Enjoy a juice and a cookie on us. You've earned it!</p>
-            </div>
-        </div>
-    </section>
-
+    <!-- FOOTER -->
     <footer>
-        <div class="logo" style="justify-content:center; margin-bottom:1rem;">
-            <i class="fas fa-droplet"></i> Blood<span>Knight</span>
+        <div class="footer-content">
+            <a href="#home" class="logo" id="footer-logo-link" style="cursor: pointer; text-decoration: none;">
+                <i class="fas fa-shield-heart"></i> BloodKnight
+            </a>
+            <p style="color: var(--text-muted);">&copy; 2025 BloodKnight Initiative.</p>
+            <div style="display: flex; gap: 10px;">
+                <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
         </div>
-        <div class="copyright">
-            &copy; 2024 BloodKnight Initiative. All rights reserved.
         </div>
     </footer>
 
+    <!-- DONOR LOGIN MODAL (Standard) -->
     <div id="donor-login-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" id="close-donor-login"><i class="fas fa-times"></i></button>
-            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
-                <h2 style="font-family:'Rajdhani'; text-transform:uppercase;">User Login</h2>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">WELCOME BACK</h2>
             </div>
             <form id="donor-login-form">
-                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
-                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input"></div>
-                <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <input type="password" name="password" required class="input-field-design">
+                </div>
+                <button type="submit" class="btn-design-red">Sign In</button>
             </form>
-            <div style="text-align:center; margin-top:1rem;">
+            <div class="modal-footer">
                 <a href="forgot_password.html" style="color:var(--primary); font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.5rem;">Forgot Password?</a>
-                New? <button id="show-donor-signup" style="color:var(--primary); font-weight:700;">Sign Up</button>
+                <span>Not registered?</span> <a class="footer-link-red" id="show-donor-signup">Sign up</a>
             </div>
         </div>
     </div>
 
+    <!-- DONOR SIGNUP MODAL (New Design: Join The List) -->
     <div id="donor-signup-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" id="close-donor-signup"><i class="fas fa-times"></i></button>
-            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
-                <h2 style="font-family:'Rajdhani'; text-transform:uppercase;">Join The List</h2>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">JOIN AS DONOR</h2>
             </div>
             <form id="donor-signup-form">
-                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required class="form-input"></div>
-                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="form-group"><label>Gender</label><select name="gender" class="form-input"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
-                    <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-input"></div>
+                <div class="form-group">
+                    <label class="input-label-design">Full Name</label>
+                    <input type="text" name="full_name" required class="input-field-design">
                 </div>
-                <div class="form-group"><label>Blood Type</label><select name="blood_type" class="form-input"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
-                <div class="form-group"><label>Password</label><input type="password" name="password" required class="form-input" placeholder="Min 8 chars, 1 Upper, 1 Number"></div>
-                <button type="submit" class="btn btn-primary" style="width:100%">Create Account</button>
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design">
+                </div>
+                <div class="split-inputs">
+                    <div class="form-group">
+                        <label class="input-label-design">Gender</label>
+                        <select name="gender" class="input-field-design">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">Phone</label>
+                        <input type="text" name="phone" class="input-field-design">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Blood Type</label>
+                    <select name="blood_type" class="input-field-design">
+                        <option>A+</option>
+                        <option>A-</option>
+                        <option>B+</option>
+                        <option>B-</option>
+                        <option>AB+</option>
+                        <option>AB-</option>
+                        <option>O+</option>
+                        <option>O-</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number">
+                </div>
+                <button type="submit" class="btn-design-red">Create Account</button>
             </form>
-            <div style="text-align:center; margin-top:1rem;">Have account? <button id="show-donor-login" style="color:var(--primary); font-weight:700;">Sign In</button></div>
+            <div class="modal-footer">
+                <span>Have account?</span> <a class="footer-link-red" id="show-donor-login">Sign In</a>
+            </div>
         </div>
     </div>
 
+    <!-- HOSPITAL LOGIN MODAL (Standard) -->
     <div id="hospital-login-modal" class="modal-overlay">
-        <div class="modal-content" style="background:#f8fafc; border:2px solid #334155;">
+        <div class="modal-content">
             <button class="modal-close" id="close-hospital-login"><i class="fas fa-times"></i></button>
-            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
-                <h2 style="font-family:'Rajdhani'; text-transform:uppercase; color:#0f172a;">Admin Login</h2>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">Hospital Login</h2>
             </div>
             <form id="hospital-login-form">
-                <div class="form-group"><label>OFFICER EMAIL</label><input type="email" name="email" required class="form-input"></div>
-                <div class="form-group"><label>PASSCODE</label><input type="password" name="password" required class="form-input"></div>
-                <button type="submit" class="btn btn-primary" style="width:100%; background:#0f172a;">AUTHENTICATE</button>
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <input type="password" name="password" required class="input-field-design">
+                </div>
+                <button type="submit" class="btn-design-red">Sign In</button>
             </form>
-            <div style="text-align:center; margin-top:1rem;">
-                <a href="admin_forgot_password.html" style="color:#0f172a; font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.5rem;">Forgot Password?</a>
-                <button id="show-hospital-signup" style="color:#0f172a; font-weight:700;">Admin Register</button>
+            <div class="modal-footer">
+                <a href="admin_forgot_password.html" style="color:var(--primary); font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.5rem;">Forgot Password?</a>
+                <span>Not registered?</span> <a class="footer-link-red" id="show-hospital-signup">Sign up</a>
             </div>
         </div>
     </div>
 
+    <!-- HOSPITAL SIGNUP MODAL (New Design: Hospital Registry) -->
     <div id="hospital-signup-modal" class="modal-overlay">
-        <div class="modal-content" style="background:#f8fafc; border:2px solid #334155;">
+        <div class="modal-content">
             <button class="modal-close" id="close-hospital-signup"><i class="fas fa-times"></i></button>
-            <div class="modal-header" style="text-align:center; margin-bottom:1rem;">
-                <h2 style="font-family:'Rajdhani'; text-transform:uppercase; color:#0f172a;">INSTITUTION REGISTRY</h2>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">HOSPITAL REGISTRY</h2>
             </div>
             <form id="hospital-signup-form">
-                <div class="form-group"><label>INSTITUTION NAME</label><input type="text" name="hospital_name" required class="form-input"></div>
-                <div class="form-group"><label>ADMIN EMAIL</label><input type="email" name="admin_email" required class="form-input"></div>
-                <div class="form-group"><label>PASSWORD</label><input type="password" name="password" required class="form-input" placeholder="Min 8 chars, 1 Upper, 1 Number"></div>
-                <button type="submit" class="btn btn-primary" style="width:100%; background:#0f172a;">REGISTER FACILITY</button>
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL NAME</label>
+                    <input type="text" name="hospital_name" required class="input-field-design">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">ADMIN EMAIL</label>
+                    <input type="email" name="admin_email" required class="input-field-design">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">PASSWORD</label>
+                    <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number">
+                </div>
+                <button type="submit" class="btn-design-red">REGISTER ACCOUNT</button>
             </form>
-            <div style="text-align:center; margin-top:1rem;"><button id="show-hospital-login" style="color:#0f172a; font-weight:700;">RETURN TO LOGIN</button></div>
+            <div class="modal-footer">
+                <span>Have account?</span> <a class="footer-link-red" id="show-hospital-login">Sign In</a>
+            </div>
         </div>
     </div>
 
+    <!-- CHAT WIDGET -->
     <div class="chat-widget">
         <div class="chat-window" id="chatWindow">
-            <div class="chat-header"><h4>VitalBot</h4><button id="close-chat" style="background:none; color:white;"><i class="fas fa-times"></i></button></div>
-            <div class="chat-body"><div style="background: white; padding: 10px; border-radius: 10px; display: inline-block;">Hello! How can I help?</div></div>
-            <div class="chat-footer"><input type="text" placeholder="Type..."><button style="background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%;"><i class="fas fa-paper-plane"></i></button></div>
+            <div class="chat-header">
+                <h4>KnightBot <span class="chat-header-online-dot"></span></h4>
+                <button id="close-chat" style="background:none; color:white; border:none; cursor:pointer;"><i class="fas fa-times"></i></button>
         </div>
-        <button id="open-chat" class="chat-toggle-btn"><img src="aichatbot-preview.png" style="width:100%" onerror="this.src='https://ui-avatars.com/api/?name=BK&background=ff4757&color=fff'"></button>
+            <div class="chat-body">
+                <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
+                    <img src="assets/knight-icon.png" alt="KnightBot" style="width: 35px; height: 35px; border-radius: 50%; object-fit: contain; flex-shrink: 0;" onerror="this.style.display='none';">
+                    <div class="bot-message-bubble" style="padding: 10px 15px; border-radius: 10px; display: inline-block; width: fit-content; max-width: 80%; white-space: pre-line;">Hello! How can I help?</div>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <input type="text" id="chat-input" placeholder="Type..." onkeypress="if(event.key === 'Enter') handleChatSend()">
+                <button id="chat-send-btn" onclick="handleChatSend()" style="background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <button id="open-chat" class="chat-toggle-btn">
+            <span class="chat-notification-dot" id="chat-notification"></span>
+            <img src="assets/chatbot-icon.png" alt="KnightBot" onerror="this.src='https://ui-avatars.com/api/?name=BK&background=ff4757&color=fff'">
+        </button>
     </div>
 
     <script>
+        // Always scroll to home section on page load/refresh
+        window.addEventListener('load', function() {
+            const homeSection = document.getElementById('home');
+            if (homeSection) {
+                // Clear any hash from URL
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+                setTimeout(() => {
+                    homeSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Modal Logic
-            function toggleModal(id, show) { document.getElementById(id).classList.toggle('active', show); }
+            
+            // --- 0. LOGO CLICK HANDLERS ---
+            const homeLogoLink = document.getElementById('home-logo-link');
+            const footerLogoLink = document.getElementById('footer-logo-link');
+            
+            const scrollToHome = (e) => {
+                e.preventDefault();
+                document.getElementById('home').scrollIntoView({ behavior: 'smooth' });
+            };
+            
+            if (homeLogoLink) {
+                homeLogoLink.addEventListener('click', scrollToHome);
+            }
+            if (footerLogoLink) {
+                footerLogoLink.addEventListener('click', scrollToHome);
+            }
+            
+            // --- 0. HERO SECTION TEXT ANIMATION ---
+            const heroHeading = document.querySelector('.hero-heading');
+            const heroDescription = document.querySelector('.hero-description');
+            const heroTextCapsule = document.querySelector('.hero-text-capsule');
+            
+            const animateHeroContent = () => {
+                // Remove animate class first to reset
+                if (heroHeading) heroHeading.classList.remove('animate');
+                if (heroDescription) heroDescription.classList.remove('animate');
+                if (heroTextCapsule) heroTextCapsule.classList.remove('animate');
+                
+                // Force reflow
+                if (heroHeading) void heroHeading.offsetWidth;
+                
+                // Add animate class to trigger animation
+                setTimeout(() => {
+                    if (heroHeading) heroHeading.classList.add('animate');
+                    if (heroDescription) heroDescription.classList.add('animate');
+                    if (heroTextCapsule) heroTextCapsule.classList.add('animate');
+                }, 100);
+            };
+            
+            // Observer for when home section comes into view
+            const homeSection = document.getElementById('home');
+            const heroTextObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateHeroContent();
+                    } else {
+                        // Reset when leaving section
+                        if (heroHeading) heroHeading.classList.remove('animate');
+                        if (heroDescription) heroDescription.classList.remove('animate');
+                        if (heroTextCapsule) heroTextCapsule.classList.remove('animate');
+                    }
+                });
+            }, { threshold: 0.3 });
+            
+            if (homeSection) {
+                heroTextObserver.observe(homeSection);
+            }
+            
+            // Also trigger on hash change (when clicking home link)
+            window.addEventListener('hashchange', function() {
+                if (window.location.hash === '#home' || window.location.hash === '') {
+                    setTimeout(() => {
+                        animateHeroContent();
+                    }, 300);
+                }
+            });
+            
+            // Trigger on initial load if already at home section
+            if (window.location.hash === '#home' || window.location.hash === '') {
+                setTimeout(() => {
+                    animateHeroContent();
+                }, 500);
+            }
+            
+            // --- 1. DARK MODE TOGGLE WITH LOCALSTORAGE PERSISTENCE ---
+            const themeToggle = document.getElementById('theme-toggle');
+            const icon = themeToggle.querySelector('i');
+            
+            // Load saved theme preference on page load
+            const savedTheme = localStorage.getItem('bloodknight-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                
+                // Save preference to localStorage
+                localStorage.setItem('bloodknight-theme', isDarkMode ? 'dark' : 'light');
+                
+                if(isDarkMode) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+
+            // --- 2. 3D TILT EFFECT (HERO) ---
+            const tiltContainer = document.getElementById('heroTilt');
+            
+            if (homeSection && tiltContainer) {
+                homeSection.addEventListener('mousemove', (e) => {
+                    const { offsetWidth: width, offsetHeight: height } = homeSection;
+                    let { offsetX: x, offsetY: y } = e;
+                    if (e.target !== homeSection) { x += e.target.offsetLeft; y += e.target.offsetTop; }
+                    const xRotation = ((y / height) - 0.5) * -20; 
+                    const yRotation = ((x / width) - 0.5) * 20; 
+                    tiltContainer.style.transform = `rotateX(${xRotation}deg) rotateY(${yRotation}deg)`;
+                });
+                homeSection.addEventListener('mouseleave', () => {
+                    tiltContainer.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                });
+            }
+
+            // --- 3. REPEATABLE COUNTERS ---
+            const counters = document.querySelectorAll('.counter');
+            const speed = 200;
+
+            const animateCounter = (counter) => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText.replace('k', '') * (target > 1000 ? 1000 : 1);
+                
+                let inc = target / speed;
+                if(target > 10000) inc = target / 30; 
+                
+                // Determine timeout speed based on target magnitude
+                let timeout = 10;
+                // Only slow down specifically for the "15" counter, letting 80 run fast
+                if (target === 15) timeout = 100; 
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + inc);
+                    setTimeout(() => animateCounter(counter), timeout);
+                } else {
+                    counter.innerText = target >= 1000 ? (target / 1000) + 'k' : target;
+                }
+            };
+
+            const sectionObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Start animation
+                        counters.forEach(counter => animateCounter(counter));
+                    } else {
+                        // RESET counters when leaving section so they animate again next time
+                        counters.forEach(counter => counter.innerText = '0');
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sectionObserver.observe(document.getElementById('counter-section'));
+
+            // --- 3.6. FADE IN SLIDE UP ANIMATIONS FOR SECTIONS ---
+            const animateOnScroll = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    } else {
+                        // Remove animate class when leaving viewport so it can animate again
+                        entry.target.classList.remove('animate');
+                    }
+                });
+            };
+
+            const scrollAnimationObserver = new IntersectionObserver(animateOnScroll, {
+                threshold: 0.2,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observe all fade-slide-up elements in about, facts, and types sections
+            const aboutSection = document.getElementById('about');
+            const factsSection = document.getElementById('facts');
+            const typesSection = document.getElementById('types');
+
+            if (aboutSection) {
+                aboutSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            if (factsSection) {
+                factsSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            if (typesSection) {
+                typesSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            // --- 3.5. MISSION DECK SHUFFLE ANIMATION ---
+            const missionDeck = document.getElementById('mission-deck');
+            const missionCards = document.querySelectorAll('.mission-card');
+            let cardOrder = [0, 1, 2, 3, 4, 5]; // Track the order of cards in the deck
+            let isShuffling = false;
+            
+            if (missionDeck && missionCards.length > 0) {
+                // Initialize: position all cards based on current order
+                const updateCardPositions = () => {
+                    missionCards.forEach((card, index) => {
+                        const stackPosition = cardOrder.indexOf(index);
+                        const offset = stackPosition * 12;
+                        const rotation = stackPosition % 2 === 0 ? (stackPosition * 1.5) : -(stackPosition * 0.5);
+                        
+                        if (stackPosition === 0) {
+                            // Top card
+                            card.classList.add('active');
+                            card.style.zIndex = '10';
+                            card.style.transform = 'translate(0, 0) rotate(0deg) scale(1.02)';
+                        } else {
+                            // Cards behind
+                            card.classList.remove('active');
+                            card.style.zIndex = (missionCards.length - stackPosition).toString();
+                            card.style.transform = `translate(${offset}px, ${offset}px) rotate(${rotation}deg)`;
+                        }
+                        card.style.opacity = '1';
+                    });
+                };
+                
+                // Initialize positions
+                updateCardPositions();
+                
+                const shuffleDeck = () => {
+                    if (isShuffling) return;
+                    isShuffling = true;
+                    
+                    // Move the first card (top) to the end (back) of the array
+                    const topCard = cardOrder.shift(); // Remove first card
+                    cardOrder.push(topCard); // Add it to the end
+                    
+                    // Update all card positions - they all move
+                    updateCardPositions();
+                    
+                    // Reset flag after animation
+                    setTimeout(() => {
+                        isShuffling = false;
+                    }, 500);
+                };
+                
+                // Add click handler
+                const deckContainer = document.getElementById('mission-deck-container');
+                if (deckContainer) {
+                    deckContainer.addEventListener('click', shuffleDeck);
+                }
+            }
+
+            // --- 4. MODAL LOGIC (Switching & Toggling) ---
+            const clearFormFields = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    const form = modal.querySelector('form');
+                    if (form) {
+                        const inputs = form.querySelectorAll('input, textarea, select');
+                        inputs.forEach(input => {
+                            input.value = '';
+                            // Remove any placeholder values that might be set
+                            if (input.type === 'password') {
+                                input.type = 'text';
+                                input.type = 'password';
+                            }
+                        });
+                    }
+                }
+            };
+            
+            function toggleModal(id, show) { 
+                if(show) {
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); // Close all others
+                    document.getElementById(id).classList.add('active');
+                    // Clear all form fields when opening modal
+                    clearFormFields(id);
+                } else {
+                    document.getElementById(id).classList.remove('active');
+                    // Clear form fields when closing modal
+                    clearFormFields(id);
+                }
+            }
             
             document.getElementById('donor-modal-btn').onclick = () => toggleModal('donor-login-modal', true);
             document.getElementById('donor-signup-btn').onclick = () => toggleModal('donor-signup-modal', true);
             document.getElementById('hospital-modal-btn').onclick = () => toggleModal('hospital-login-modal', true);
             
-            document.querySelectorAll('.modal-close').forEach(btn => btn.onclick = function() { toggleModal(this.parentElement.parentElement.id, false); });
+            document.querySelectorAll('.modal-close').forEach(btn => btn.onclick = function() { 
+                toggleModal(this.closest('.modal-overlay').id, false); 
+            });
 
             document.getElementById('show-donor-signup').onclick = () => { toggleModal('donor-login-modal', false); toggleModal('donor-signup-modal', true); };
             document.getElementById('show-donor-login').onclick = () => { toggleModal('donor-signup-modal', false); toggleModal('donor-login-modal', true); };
@@ -383,7 +1492,7 @@
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 formData.append('action', action);
-                const btn = e.target.querySelector('button');
+                const btn = e.target.querySelector('button[type="submit"]');
                 const ogText = btn.innerText;
                 
                 // --- NEW: PASSWORD REQUIREMENTS CHECK ---
@@ -431,15 +1540,175 @@
                 }
             }
 
-
             if(document.getElementById('donor-login-form')) document.getElementById('donor-login-form').onsubmit = (e) => handleForm(e, 'login', 'dashboard.html', 'bloodknight.php');
             if(document.getElementById('donor-signup-form')) document.getElementById('donor-signup-form').onsubmit = (e) => handleForm(e, 'register_donor', 'dashboard.html', 'bloodknight.php');
             if(document.getElementById('hospital-login-form')) document.getElementById('hospital-login-form').onsubmit = (e) => handleForm(e, 'login', 'admin_dashboard.html', 'admin.php');
             if(document.getElementById('hospital-signup-form')) document.getElementById('hospital-signup-form').onsubmit = (e) => handleForm(e, 'register_hospital', 'admin_dashboard.html', 'admin.php');
 
-            // Chat
-            document.getElementById('open-chat').onclick = () => document.getElementById('chatWindow').style.display = 'flex';
-            document.getElementById('close-chat').onclick = () => document.getElementById('chatWindow').style.display = 'none';
+            // Chat Toggle Functionality
+            const chatWindow = document.getElementById('chatWindow');
+            const chatToggleBtn = document.getElementById('open-chat');
+            const chatNotification = document.getElementById('chat-notification');
+            const headerOnlineDot = document.querySelector('.chat-header-online-dot');
+            
+            const toggleChat = () => {
+                if (chatWindow.style.display === 'flex') {
+                    chatWindow.style.display = 'none';
+                    // Don't remove notification dot - keep it visible if there's a new message
+                } else {
+                    chatWindow.style.display = 'flex';
+                    // Reset inactivity timer when opening chat
+                    resetInactivityTimer();
+                }
+            };
+            
+            chatToggleBtn.onclick = toggleChat;
+            document.getElementById('close-chat').onclick = () => {
+                chatWindow.style.display = 'none';
+            };
+            
+            // Chatbot functionality
+            const chatBody = document.querySelector('.chat-body');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            
+            // Inactivity timer for online status
+            let inactivityTimer = null;
+            const INACTIVITY_TIMEOUT = 60000; // 1 minute
+            
+            const resetInactivityTimer = () => {
+                // Turn dots green when interacted with
+                const headerDot = document.querySelector('.chat-header-online-dot');
+                if (headerDot) {
+                    headerDot.classList.add('active');
+                }
+                // Only update notification dot if it's already active (visible)
+                if (chatNotification && chatNotification.classList.contains('active')) {
+                    chatNotification.classList.remove('idle');
+                }
+                
+                // Clear existing timer
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                
+                // Set new timer
+                inactivityTimer = setTimeout(() => {
+                    // Turn dots grey after inactivity
+                    if (headerDot) {
+                        headerDot.classList.remove('active');
+                    }
+                    // Only turn notification dot grey if it's active
+                    if (chatNotification && chatNotification.classList.contains('active')) {
+                        chatNotification.classList.add('idle');
+                    }
+                }, INACTIVITY_TIMEOUT);
+            };
+            
+            const addMessage = (text, isUser = false) => {
+                // Reset inactivity timer on any message
+                resetInactivityTimer();
+                const messageContainer = document.createElement('div');
+                messageContainer.style.cssText = `display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${isUser ? 'justify-content: flex-end;' : ''}`;
+                
+                if (isUser) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.style.cssText = `background: var(--primary); color: white; padding: 10px 15px; border-radius: 10px; text-align: left; display: inline-block; width: fit-content; max-width: 80%; word-wrap: break-word; white-space: pre-line; margin-left: auto;`;
+                    messageDiv.textContent = text;
+                    messageContainer.appendChild(messageDiv);
+                } else {
+                    // Bot message with icon (no online dot on individual messages)
+                    const iconImg = document.createElement('img');
+                    iconImg.src = 'assets/knight-icon.png';
+                    iconImg.alt = 'KnightBot';
+                    iconImg.style.cssText = `width: 35px; height: 35px; border-radius: 50%; object-fit: contain; flex-shrink: 0;`;
+                    iconImg.onerror = function() { this.style.display = 'none'; };
+                    
+                    const messageDiv = document.createElement('div');
+                    // Use CSS class instead of inline styles for theme responsiveness
+                    messageDiv.className = 'bot-message-bubble';
+                    messageDiv.style.cssText = `padding: 10px 15px; border-radius: 10px; display: inline-block; width: fit-content; max-width: 80%; word-wrap: break-word; white-space: pre-line;`;
+                    messageDiv.textContent = text;
+                    
+                    messageContainer.appendChild(iconImg);
+                    messageContainer.appendChild(messageDiv);
+                }
+                
+                chatBody.appendChild(messageContainer);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            };
+            
+            const getBotResponse = (userMessage) => {
+                const message = userMessage.toLowerCase().trim();
+                
+                // Simple response logic
+                if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+                    return "Hello! I'm KnightBot, your blood donation assistant. How can I help you today?";
+                } else if (message.includes('donate') || message.includes('donation') || message.includes('want to donate') || message.includes('how to donate')) {
+                    return "Great! To donate blood, follow these steps:\n\n1. Click the 'Login' button in the top right corner\n\n2. If you're new, click 'Sign up' to create an account\n\n3. Fill in your details (name, email, blood type, etc.)\n\n4. Once registered, you can schedule your donation\n\nIf you already have an account, just click 'Login' and enter your email and password. Need help with anything else?";
+                } else if (message.includes('login') || message.includes('sign in') || message.includes('signin') || message.includes('how to login') || message.includes('how do i login') || message.includes('how do i sign in')) {
+                    return "To login:\n\n1. Click the 'Login' button in the top right corner of the page\n\n2. Enter your email address\n\n3. Enter your password\n\n4. Click 'Sign In'\n\nIf you don't have an account yet, click 'Sign up' on the login modal to create one. Need more help?";
+                } else if (message.includes('signup') || message.includes('sign up') || message.includes('register') || message.includes('registration') || message.includes('create account') || message.includes('new account')) {
+                    return "To create an account:\n\n1. Click the 'Login' button in the top right corner\n\n2. Click 'Sign up' at the bottom of the login modal\n\n3. Fill in your details:\n   - Full Name\n   - Email\n   - Gender and Phone\n   - Blood Type\n   - Password (min 8 chars, 1 uppercase, 1 number)\n\n4. Click 'Create Account'\n\nAfter registration, you can login and start donating!";
+                } else if (message.includes('eligibility') || message.includes('eligible') || message.includes('qualify')) {
+                    return "To be eligible to donate blood, you should be in good health, at least 17 years old (or 16 with parental consent), and weigh at least 50 kg. Would you like more specific information?";
+                } else if (message.includes('blood type') || message.includes('type')) {
+                    return "All blood types are needed! O-negative is the universal donor and is especially valuable. You can check your blood type compatibility on our website. What's your blood type?";
+                } else if (message.includes('location') || message.includes('where') || message.includes('clinic')) {
+                    return "We have partner medical institutions within Sabah, Malaysia. You can find the nearest donation center by checking our website or contacting us. Would you like help finding a location near you?";
+                } else if (message.includes('thank') || message.includes('thanks')) {
+                    return "You're welcome! Is there anything else I can help you with?";
+                } else if (message.includes('help') || message.includes('support') || message.includes('dont understand') || message.includes("don't understand") || message.includes('confused') || message.includes('how')) {
+                    return "I'm here to help! Here's how to get started:\n\n• To DONATE:\n  Click 'Login' → 'Sign up' (if new) or 'Sign In' (if you have an account)\n\n• To LOGIN:\n  Click 'Login' button → Enter email & password → 'Sign In'\n\n• To SIGN UP:\n  Click 'Login' → 'Sign up' → Fill your details → 'Create Account'\n\nWhat would you like help with?";
+                } else {
+                    return "Thank you for your message! Our customer service team will reach out to you shortly to assist with your inquiry. In the meantime, if you need help with signing up or logging in to donate blood, I'm here to help!";
+                }
+            };
+            
+            window.handleChatSend = () => {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    chatInput.value = '';
+                    
+                    // Reset inactivity timer and turn dots green
+                    resetInactivityTimer();
+                    
+                    // Show notification dot (green when active) - keep it visible
+                    chatNotification.classList.add('active');
+                    chatNotification.classList.remove('idle');
+                    
+                    // Simulate bot thinking, then respond
+                    setTimeout(() => {
+                        const response = getBotResponse(message);
+                        addMessage(response, false);
+                        // Show notification dot and make it green
+                        chatNotification.classList.add('active');
+                        chatNotification.classList.remove('idle');
+                        // Reset inactivity timer after bot response
+                        resetInactivityTimer();
+                    }, 1000);
+                }
+            };
+            
+            // Reset timer on input focus or typing
+            if (chatInput) {
+                chatInput.addEventListener('focus', resetInactivityTimer);
+                chatInput.addEventListener('input', resetInactivityTimer);
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        resetInactivityTimer();
+                    }
+                });
+            }
+            
+            // Reset timer when chat window is opened
+            if (chatWindow) {
+                const observer = new MutationObserver(() => {
+                    if (chatWindow.style.display === 'flex') {
+                        resetInactivityTimer();
+                    }
+                });
+                observer.observe(chatWindow, { attributes: true, attributeFilter: ['style'] });
+            }
         });
     </script>
 </body>
