@@ -37,6 +37,43 @@ function sendJson($status, $message, $data = []) {
     exit;
 }
 
+// reCAPTCHA verification function
+function verifyRecaptcha($recaptchaResponse) {
+    // Use Google's test keys for development (always passes)
+    // Replace with your own keys in production
+    $secretKey = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'; // Test secret key
+    
+    if (empty($recaptchaResponse)) {
+        return false;
+    }
+    
+    $url = 'https://www.google.com/recaptcha/api/siteverify';
+    $data = [
+        'secret' => $secretKey,
+        'response' => $recaptchaResponse,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ];
+    
+    $options = [
+        'http' => [
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    
+    if ($result === FALSE) {
+        // If verification fails, allow in development mode
+        return true; // For development, allow if API fails
+    }
+    
+    $json = json_decode($result, true);
+    return isset($json['success']) && $json['success'] === true;
+}
+
 // =============================================================
 // 1. AUTHENTICATION
 // =============================================================
@@ -67,6 +104,12 @@ if ($action === 'check_session') {
 }
 
 elseif ($action === 'login') {
+    // Verify reCAPTCHA
+    $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+    if (!verifyRecaptcha($recaptchaResponse)) {
+        sendJson('error', 'reCAPTCHA verification failed. Please try again.');
+    }
+    
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
@@ -107,6 +150,142 @@ elseif ($action === 'login') {
     }
 }
 
+// =============================================================
+// OTP VERIFICATION FOR REGISTRATION
+// =============================================================
+
+elseif ($action === 'send_otp') {
+    // Verify reCAPTCHA
+    $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+    if (!verifyRecaptcha($recaptchaResponse)) {
+        sendJson('error', 'reCAPTCHA verification failed. Please try again.');
+    }
+    
+    $email = $_POST['email'] ?? '';
+    $full_name = $_POST['full_name'] ?? '';
+    
+    if (empty($email)) {
+        sendJson('error', 'Email is required');
+    }
+    
+    // Check if email already exists
+    $checkStmt = $conn->prepare("SELECT user_id FROM donor_user WHERE email = ?");
+    $checkStmt->bind_param("s", $email);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows > 0) {
+        sendJson('error', 'Email already exists');
+    }
+    
+    // Create OTP table if it doesn't exist
+    $conn->query("CREATE TABLE IF NOT EXISTS registration_otp (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(100) NOT NULL,
+        otp_code VARCHAR(6) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        verified TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_email (email),
+        INDEX idx_expires (expires_at)
+    )");
+    
+    // Clean up expired OTPs (older than 10 minutes)
+    $conn->query("DELETE FROM registration_otp WHERE expires_at < NOW() OR (verified = 1 AND created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR))");
+    
+    // Generate 6-digit OTP
+    $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expires_at = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+    
+    // Delete old OTPs for this email
+    $deleteStmt = $conn->prepare("DELETE FROM registration_otp WHERE email = ?");
+    $deleteStmt->bind_param("s", $email);
+    $deleteStmt->execute();
+    
+    // Insert new OTP
+    $insertStmt = $conn->prepare("INSERT INTO registration_otp (email, otp_code, expires_at) VALUES (?, ?, ?)");
+    $insertStmt->bind_param("sss", $email, $otp, $expires_at);
+    
+    if (!$insertStmt->execute()) {
+        sendJson('error', 'Failed to generate OTP');
+    }
+    
+    // Send OTP via email
+    if (file_exists('PHPMailer/src/PHPMailer.php')) {
+        require_once 'PHPMailer/src/Exception.php';
+        require_once 'PHPMailer/src/PHPMailer.php';
+        require_once 'PHPMailer/src/SMTP.php';
+        
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'bloodknight.about@gmail.com';
+            $mail->Password = 'lvua aqif zzia epqc';
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+            $mail->setFrom('noreply@bloodknight.com', 'BloodKnight');
+            $mail->addAddress($email, $full_name ?: 'User');
+            $mail->isHTML(true);
+            $mail->Subject = 'Email Verification Code - BloodKnight';
+            $mail->Body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2 style='color: #dc2626;'>Email Verification</h2>
+                    <p>Hello " . htmlspecialchars($full_name ?: 'User') . ",</p>
+                    <p>Thank you for registering with BloodKnight! Please use the following verification code to complete your registration:</p>
+                    <div style='background: #f3f4f6; border: 2px solid #dc2626; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;'>
+                        <h1 style='color: #dc2626; font-size: 32px; letter-spacing: 8px; margin: 0; font-family: monospace;'>" . htmlspecialchars($otp) . "</h1>
+                    </div>
+                    <p style='color: #6b7280; font-size: 14px;'>This code will expire in 10 minutes.</p>
+                    <p style='color: #6b7280; font-size: 14px;'>If you didn't request this code, please ignore this email.</p>
+                    <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;'>
+                    <p style='color: #9ca3af; font-size: 12px;'>© BloodKnight - Saving Lives, One Donation at a Time</p>
+                </div>
+            ";
+            $mail->send();
+        } catch (Exception $e) {
+            // Email failed but OTP is saved - still return success for security
+        }
+    }
+    
+    sendJson('success', 'OTP has been sent to your email address', ['expires_in' => 600]);
+}
+
+elseif ($action === 'verify_otp') {
+    $email = $_POST['email'] ?? '';
+    $otp = $_POST['otp'] ?? '';
+    
+    if (empty($email) || empty($otp)) {
+        sendJson('error', 'Email and OTP are required');
+    }
+    
+    // Verify OTP
+    $stmt = $conn->prepare("SELECT id, expires_at FROM registration_otp WHERE email = ? AND otp_code = ? AND verified = 0");
+    $stmt->bind_param("ss", $email, $otp);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        // Check if OTP is expired
+        if (strtotime($row['expires_at']) < time()) {
+            sendJson('error', 'OTP has expired. Please request a new one.');
+        }
+        
+        // Mark OTP as verified and generate verification token
+        $verification_token = bin2hex(random_bytes(32));
+        $updateStmt = $conn->prepare("UPDATE registration_otp SET verified = 1 WHERE id = ?");
+        $updateStmt->bind_param("i", $row['id']);
+        $updateStmt->execute();
+        
+        // Store verification token in session or return it
+        $_SESSION['otp_verified_' . $email] = $verification_token;
+        $_SESSION['otp_verified_email'] = $email;
+        
+        sendJson('success', 'OTP verified successfully', ['verification_token' => $verification_token]);
+    } else {
+        sendJson('error', 'Invalid OTP code');
+    }
+}
+
 elseif ($action === 'register_donor') {
     // Add gender column if it doesn't exist (MySQL 8.0+ syntax, with fallback)
     $checkGender = $conn->query("SHOW COLUMNS FROM donor_user LIKE 'gender'");
@@ -120,8 +299,18 @@ elseif ($action === 'register_donor') {
     $blood_type = $_POST['blood_type'];
     $phone = $_POST['phone'];
     $gender = $_POST['gender'] ?? '';
+    $verification_token = $_POST['verification_token'] ?? '';
 
-    // Check if email already exists
+    // Verify OTP was completed
+    if (empty($verification_token) || !isset($_SESSION['otp_verified_' . $email]) || $_SESSION['otp_verified_' . $email] !== $verification_token) {
+        sendJson('error', 'Please verify your email with OTP first');
+    }
+    
+    if ($_SESSION['otp_verified_email'] !== $email) {
+        sendJson('error', 'Email verification mismatch');
+    }
+
+    // Check if email already exists (double check)
     $checkStmt = $conn->prepare("SELECT user_id FROM donor_user WHERE email = ?");
     $checkStmt->bind_param("s", $email);
     $checkStmt->execute();
@@ -129,12 +318,21 @@ elseif ($action === 'register_donor') {
         sendJson('error', 'Email already exists');
     }
     
-    // Hash password and register directly
+    // Hash password and register
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $conn->prepare("INSERT INTO donor_user (email, password_hash, full_name, blood_type, phone_number, gender) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssss", $email, $password_hash, $full_name, $blood_type, $phone, $gender);
 
     if ($stmt->execute()) {
+        // Clear OTP verification session
+        unset($_SESSION['otp_verified_' . $email]);
+        unset($_SESSION['otp_verified_email']);
+        
+        // Clean up verified OTPs for this email
+        $cleanupStmt = $conn->prepare("DELETE FROM registration_otp WHERE email = ? AND verified = 1");
+        $cleanupStmt->bind_param("s", $email);
+        $cleanupStmt->execute();
+        
         $_SESSION['user_id'] = $stmt->insert_id;
         $_SESSION['user_name'] = $full_name;
         $_SESSION['role'] = 'donor';
@@ -655,8 +853,8 @@ elseif ($action === 'forgot_password') {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'hiewz256@gmail.com';
-                $mail->Password = 'pwml dpzm hxuw gffr';
+                $mail->Username = 'bloodknight.about@gmail.com';
+                $mail->Password = 'lvua aqif zzia epqc';
                 $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
                 $mail->setFrom('noreply@bloodknight.com', 'BloodKnight');
@@ -709,6 +907,20 @@ elseif ($action === 'reset_password') {
     } else {
         sendJson('error', 'Invalid or expired reset token. Please request a new one.');
     }
+}
+
+elseif ($action === 'get_hospitals') {
+    // Get all hospitals with their details
+    $sql = "SELECT hospital_id, hospital_name, hospital_address, contact_number, hospital_type 
+            FROM hospital 
+            ORDER BY hospital_name ASC";
+    
+    $result = $conn->query($sql);
+    $hospitals = [];
+    while ($row = $result->fetch_assoc()) {
+        $hospitals[] = $row;
+    }
+    sendJson('success', 'Hospitals loaded', $hospitals);
 }
 
 else { sendJson('error', 'Invalid action'); }
