@@ -495,13 +495,13 @@
                 const response = await fetch('admin_controller.php?action=check_session');
                 const result = await response.json();
                 if (result.status !== 'success') {
-                    window.location.href = 'admin_login.html';
+                    window.location.href = 'index.html';
                     return false;
                 }
                 return true;
             } catch (error) {
                 console.error("Auth check failed:", error);
-                window.location.href = 'admin_login.html';
+                window.location.href = 'index.html';
                 return false;
             }
         }
@@ -518,7 +518,7 @@
                     } else {
                         // If unauthorized, redirect to login
                         if (json.message && json.message.includes('Unauthorized') || json.message.includes('Please Login')) {
-                            window.location.href = 'admin_login.html';
+                            window.location.href = 'index.html';
                             return null;
                         }
                         showToast(json.message, true);
