@@ -132,7 +132,7 @@ elseif ($action === 'login') {
             $lastDonationRes = $lastDonationStmt->get_result()->fetch_assoc();
             $last_donation = $lastDonationRes['last_date'] ?? null;
 
-            // Send full data back so login.html can save to localStorage
+            // Send full data back so index.html can save to localStorage
             sendJson('success', 'Login successful', [
                 'user_id' => $row['user_id'],
                 'full_name' => $row['full_name'],
