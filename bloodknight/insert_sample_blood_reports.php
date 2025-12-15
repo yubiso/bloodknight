@@ -13,7 +13,7 @@ $result = $stmt->get_result();
 
 if ($result->num_rows == 0) {
     echo "<p style='color: red;'>✗ User with email '$email' not found. Please register this account first.</p>";
-    echo "<br><a href='donorsignup.html'>Register Account</a>";
+    echo "<br><a href='index.html'>Register Account</a>";
     exit;
 }
 
