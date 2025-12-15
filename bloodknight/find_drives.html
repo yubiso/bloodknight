@@ -346,14 +346,14 @@
                     localStorage.removeItem('bk_user_profile');
                     localStorage.removeItem('bk_last_donation');
                     localStorage.removeItem('bk_active_appt');
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                     return false;
                 }
                 return true;
             } catch (error) {
                 const savedProfile = localStorage.getItem('bk_user_profile');
                 if (!savedProfile) {
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                     return false;
                 }
                 return true;
