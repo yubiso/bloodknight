@@ -314,7 +314,7 @@
                     localStorage.removeItem('bk_user_profile');
                     localStorage.removeItem('bk_last_donation');
                     localStorage.removeItem('bk_active_appt');
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                     return false;
                 }
                 return true;
@@ -323,7 +323,7 @@
                 // On error, check localStorage as fallback
                 const savedProfile = localStorage.getItem('bk_user_profile');
                 if (!savedProfile) {
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                     return false;
                 }
                 return true;
@@ -367,7 +367,7 @@
                     } else {
                         // If "Not logged in" error, redirect to login
                         if (result.message === 'Not logged in') {
-                            window.location.href = 'login.html';
+                            window.location.href = 'index.html';
                             return;
                         }
                         throw new Error(result.message);
