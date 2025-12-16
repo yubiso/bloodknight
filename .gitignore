@@ -1,0 +1,39 @@
+# Database credentials
+db_connect.php
+
+# User uploads
+uploads/
+uploads/*
+
+# Environment/config files
+.env
+config.local.php
+
+# IDE files
+.idea/
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Node modules (if any)
+node_modules/
+
+# Composer (if using)
+vendor/
+
+# Test files (optional - remove if you want to keep them)
+test_*.php
+*_test.php
+
