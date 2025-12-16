@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Dashboard - BloodKnight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+        .hidden { display: none; }
+        
+        #mission-map { 
+            height: 450px; 
+            width: 100%; 
+            border-radius: 12px; 
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .leaflet-control-geocoder {
+            border-radius: 8px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        }
+        
+        .leaflet-control-geocoder-form input {
+            border-radius: 6px !important;
+            border: 1px solid #cbd5e1 !important;
+            padding: 8px 12px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        .location-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        
+        .location-info .coords {
+            color: #dc2626;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" onclick="showSection('overview')" title="Go to Overview">
+            <i class="fas fa-shield-alt text-3xl text-red-600"></i>
+            <div>
+                <h1 class="text-xl font-bold tactical-font uppercase tracking-wider text-slate-900">Blood<span class="text-red-600">Knight</span></h1>
+                <p class="text-xs text-slate-500 uppercase font-bold tracking-wide">Command Center</p>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="showSection('overview')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-chart-pie w-5 group-hover:text-red-600"></i> Overview
+            </button>
+            <button onclick="showSection('reports')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-chart-line w-5 group-hover:text-red-600"></i> Mission Reports
+            </button>
+            <button onclick="showSection('drives')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-calendar-plus w-5 group-hover:text-red-600"></i> Create Mission
+            </button>
+            <button onclick="showSection('appointments')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-calendar-check w-5 group-hover:text-red-600"></i> Appointments
+            </button>
+            <button onclick="showSection('donation')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-notes-medical w-5 group-hover:text-red-600"></i> Process Donation
+            </button>
+            <button onclick="showSection('alerts')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-broadcast-tower w-5 group-hover:text-red-600"></i> Gmail Alerts
+            </button>
+            <button onclick="showSection('blood-reports')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-slate-600 hover:text-red-700 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-file-medical w-5 group-hover:text-red-600"></i> Blood Reports
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="logout()" class="w-full bg-slate-900 text-white hover:bg-slate-800 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-slate-200 transition-all">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
+        
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast" class="fixed top-5 right-5 bg-white border border-slate-200 text-slate-800 px-6 py-4 rounded-xl shadow-2xl transform translate-x-full transition-transform duration-300 z-50 font-bold flex items-center gap-3">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i> 
+            <span id="toast-msg">Success</span>
+        </div>
+
+        <!-- 1. OVERVIEW SECTION -->
+        <section id="overview" class="space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Sector Status</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Donors</div>
+                        <i class="fas fa-users text-blue-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-donors">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Pending Appts</div>
+                        <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-pending">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Confirmed Appts</div>
+                        <i class="fas fa-calendar-check text-green-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-confirmed">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Total Donations</div>
+                        <i class="fas fa-briefcase-medical text-purple-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900" id="stat-donations-total">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-slate-500 text-xs uppercase font-bold tracking-wider">Volume Secured (L)</div>
+                        <i class="fas fa-tint text-red-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-red-600" id="stat-volume">--</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                <div>
+                    <h3 class="text-xl font-bold tactical-font uppercase text-slate-900 mb-4 border-l-2 border-green-600 pl-3">Upcoming Roster (Confirmed)</h3>
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                <tr>
+                                    <th class="p-4">Donor ID</th>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Date / Time</th>
+                                    <th class="p-4 text-right">Drive</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-confirmed-body" class="text-sm">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading roster...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold tactical-font uppercase text-slate-900 mb-4 border-l-2 border-purple-600 pl-3">Recent Donations (Completed)</h3>
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                <tr>
+                                    <th class="p-4">Donor ID</th>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Date</th>
+                                    <th class="p-4 text-right">Volume (ml)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-history-body" class="text-sm">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ANALYTICS REPORTS -->
+        <section id="reports" class="hidden space-y-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 border-l-4 border-red-600 pl-4">Report</h2>
+                <button onclick="loadAnalytics()" class="text-sm font-bold text-red-600 hover:text-red-800 px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sync mr-2"></i> Refresh Data
+                </button>
+            </div>
+            
+            <div class="mb-8">
+                <h3 class="text-xl font-bold tactical-font uppercase text-slate-700 mb-4 border-l-2 border-slate-300 pl-3">Donation & Appointment Metrics</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donor Blood Type Distribution</h3>
+                        <div class="h-64 relative"><canvas id="bloodTypeChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Donation Volume (Last 6 Months)</h3>
+                        <div class="h-64 relative"><canvas id="trendsChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-bold tactical-font uppercase text-slate-700 mb-4 border-l-2 border-red-500 pl-3">Blood Reports Analytics</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 mb-4">Blood Reports Generated (Last 6 Months)</h3>
+                        <div class="h-64 relative"><canvas id="bloodReportTrendsChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. CREATE MISSION -->
+        <section id="drives" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Initiate New Mission</h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form onsubmit="createDrive(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">
+                            <i class="fas fa-map-marker-alt text-red-600 mr-2"></i>Pin Mission Location on Map (Sabah, Malaysia)
+                        </label>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-3">
+                            <p class="text-sm text-slate-600">
+                                <i class="fas fa-info-circle text-blue-500 mr-1"></i> 
+                                <strong>Instructions:</strong> Click anywhere on the map to pin your mission location, or use the search box on the map to find a specific place. Only one pin allowed.
+                            </p>
+                        </div>
+                        <div id="mission-map"></div>
+                        <div id="location-info" class="location-info hidden">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="font-bold text-slate-700 mb-1">
+                                        <i class="fas fa-map-pin text-red-600 mr-2"></i>Selected Location
+                                    </div>
+                                    <div id="location-display" class="text-slate-600 text-sm mb-2"></div>
+                                    <div class="coords" id="coords-display"></div>
+                                </div>
+                                <button type="button" onclick="clearMapSelection()" class="text-xs font-bold text-red-600 hover:text-red-800 px-3 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                                    <i class="fas fa-times mr-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Mission Location Name</label>
+                        <input type="text" name="location" id="location-input" required 
+                               placeholder="Select from map or type location name" 
+                               class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 transition-all">
+                        <p class="text-xs text-slate-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>Auto-filled from map selection, or type manually
+                        </p>
+                    </div>
+
+                    <input type="hidden" name="latitude" id="latitude-input">
+                    <input type="hidden" name="longitude" id="longitude-input">
+                    <input type="hidden" name="full_address" id="full-address-input">
+                    <input type="hidden" name="city" id="city-input">
+                    <input type="hidden" name="postal_code" id="postal-code-input">
+                    <input type="hidden" name="country" id="country-input">
+
+                    <div class="grid grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Date</label>
+                            <input type="date" name="date" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Start</label>
+                            <input type="time" name="start_time" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">End</label>
+                            <input type="time" name="end_time" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-slate-200">
+                        <i class="fas fa-rocket mr-2"></i>Deploy Mission
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 4. APPOINTMENTS -->
+        <section id="appointments" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Appointments</h2>
+            
+            <div class="flex gap-2 mb-6">
+                <button onclick="filterAppointments('all')" id="filter-all" class="filter-btn active px-6 py-2 rounded-lg font-semibold text-sm transition-all bg-red-600 text-white shadow-md hover:bg-red-700">
+                    All
+                </button>
+                <button onclick="filterAppointments('pending')" id="filter-pending" class="filter-btn px-6 py-2 rounded-lg font-semibold text-sm transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    Pending
+                </button>
+                <button onclick="filterAppointments('confirmed')" id="filter-confirmed" class="filter-btn px-6 py-2 rounded-lg font-semibold text-sm transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    Confirmed
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-5">Operative</th>
+                            <th class="p-5">Blood Type</th>
+                            <th class="p-5">Mission Point</th>
+                            <th class="p-5">Date / Time</th>
+                            <th class="p-5">Status</th>
+                            <th class="p-5">Source</th>
+                            <th class="p-5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointments-table-body" class="text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. PROCESS DONATION -->
+        <section id="donation" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">Process Donation</h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form onsubmit="processDonation(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">1. Select Active Appointment (Today)</label>
+                        <select name="drive_id" id="donation-drive-select" onchange="loadDriveParticipants(this.value)" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                            <option value="">-- Loading Active Appointments... --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">2. Select Donor</label>
+                        <select name="user_id" id="donation-donor-select" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500" disabled>
+                            <option value="">-- Select Appointment First --</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Volume (ml)</label>
+                            <input type="number" name="volume" id="vol-input" value="450" max="500" required 
+                                   oninput="validateVolume(this)"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none transition-colors focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                            <p id="vol-msg" class="text-xs text-red-600 font-bold mt-1 hidden">
+                                <i class="fas fa-exclamation-circle mr-1"></i>Max amount reached
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">
+                                Notes <span id="notes-counter" class="float-right text-xs font-normal text-slate-400">0/30</span>
+                            </label>
+                            <input type="text" name="notes" id="notes-input" maxlength="30" placeholder="Standard procedure" 
+                                   oninput="validateNotes(this)"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none transition-colors focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                            <p id="notes-msg" class="text-xs text-red-600 font-bold mt-1 hidden">Max characters reached</p>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg">
+                        <i class="fas fa-check-circle mr-2"></i> Confirm & Notify Donor
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 6. BLOOD REPORTS -->
+        <section id="blood-reports" class="hidden space-y-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 border-l-4 border-red-600 pl-4">Blood Reports</h2>
+                <button onclick="loadBloodReports()" class="text-sm font-bold text-red-600 hover:text-red-800 px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sync mr-2"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl border border-slate-200 mb-6">
+                <div class="flex flex-wrap items-center gap-4">
+                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wide">Filter by Date Range:</label>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-600 font-medium">From:</label>
+                        <input type="date" id="blood-report-date-from" onchange="filterBloodReportsByDate()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-600 font-medium">To:</label>
+                        <input type="date" id="blood-report-date-to" onchange="filterBloodReportsByDate()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <button onclick="clearDateFilter()" class="text-xs font-medium text-red-600 hover:text-red-800 px-3 py-2 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                        <i class="fas fa-times mr-1"></i> Clear
+                    </button>
+                    <span id="blood-reports-count" class="text-sm text-slate-500 font-medium ml-auto"></span>
+                </div>
+            </div>
+            
+            <div id="blood-reports-container" class="space-y-4">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading blood reports...
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. GMAIL ALERTS -->
+        <section id="alerts" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 mb-6 border-l-4 border-red-600 pl-4">
+                <i class="fab fa-google text-red-600 mr-2"></i> Gmail Alert Broadcast
+            </h2>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-lg mb-6 text-sm flex items-start gap-3">
+                    <i class="fas fa-info-circle mt-1"></i>
+                    <div>
+                        <strong>Tactical Advisory:</strong> Use this to summon donors for critical supply shortages. 
+                        <br>For testing without real donors, enable "Test Mode".
+                    </div>
+                </div>
+                <form onsubmit="sendGmailAlert(event)" class="space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Target Blood Type</label>
+                            <select name="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                                <option value="O-">O Negative (Universal)</option>
+                                <option value="O+">O Positive</option>
+                                <option value="A+">A Positive</option>
+                                <option value="B+">B Positive</option>
+                                <option value="AB+">AB Positive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Urgency</label>
+                            <select name="urgency" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                                <option value="High">High Priority</option>
+                                <option value="Critical">CRITICAL (Immediate)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <label class="flex items-center gap-3 cursor-pointer mb-2">
+                            <input type="checkbox" id="test-mode-toggle" onchange="toggleTestMode()" class="w-5 h-5 text-red-600 rounded">
+                            <span class="font-bold text-slate-700">Enable Test Mode</span>
+                        </label>
+                        <div id="test-email-container" class="hidden mt-2">
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Send Test To (Your Email)</label>
+                            <input type="email" name="test_email" placeholder="admin@bloodknight.com" class="w-full bg-white border border-slate-300 rounded-lg p-3 outline-none text-red-600 font-bold focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                            <p class="text-xs text-slate-400 mt-1">This will ignore the database and send 1 email to you.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Message Body</label>
+                        <textarea name="message" required rows="4" placeholder="URGENT: Low supply at HQ. Immediate response required..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i> Send via Gmail
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // ========== GLOBAL VARIABLES ==========
+        let missionMap = null;
+        let missionMarker = null;
+        let geocoder = null;
+        let geocodingTimeout = null;
+        let allAppointmentsData = [];
+        let currentFilter = 'all';
+        let allBloodReportsData = [];
+        let bloodChartInstance = null;
+        let trendsChartInstance = null;
+        let bloodReportTrendsChartInstance = null;
+
+        // ========== NAVIGATION ==========
+        function showSection(id) {
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            
+            if(id === 'overview') loadStats();
+            if(id === 'appointments') loadAllAppointments();
+            if(id === 'reports') setTimeout(() => loadAnalytics(), 100);
+            if(id === 'donation') loadTodaysDrives();
+            if(id === 'blood-reports') loadBloodReports();
+            if(id === 'drives') {
+                setTimeout(() => {
+                    initMissionMap();
+                    if(missionMap) missionMap.invalidateSize();
+                }, 100);
+            }
+        }
+
+        // ========== UTILITY FUNCTIONS ==========
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.className = `fixed top-5 right-5 bg-white border-l-4 ${isError ? 'border-red-600' : 'border-green-600'} text-slate-800 px-6 py-4 rounded-xl shadow-2xl transform transition-transform duration-300 z-50 font-bold flex items-center gap-3 translate-x-0`;
+            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+        }
+
+        function toggleTestMode() {
+            const isChecked = document.getElementById('test-mode-toggle').checked;
+            const container = document.getElementById('test-email-container');
+            const input = container.querySelector('input');
+            if(isChecked) {
+                container.classList.remove('hidden');
+                input.required = true;
+            } else {
+                container.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                const fd = new FormData();
+                fd.append('action', 'logout');
+                api(fd).then(() => window.location.href = 'index.html');
+            }
+        }
+
+        // ========== API & AUTHENTICATION ==========
+        async function checkAuth() {
+            try {
+                const response = await fetch('admin_controller.php?action=check_session');
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        async function api(formData) {
+            try {
+                const res = await fetch('admin_controller.php', { method: 'POST', body: formData });
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error(`Server returned ${res.status}:`, errorText);
+                    
+                    if (res.status === 500) {
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            showToast(errorJson.message || 'Server error occurred. Please try again.', true);
+                        } catch {
+                            showToast('Server error occurred. Please refresh the page.', true);
+                        }
+                    } else {
+                        showToast(`Server error (${res.status}). Please try again.`, true);
+                    }
+                    return null;
+                }
+                
+                const text = await res.text();
+                
+                if (!text || text.trim() === '') {
+                    console.error("Empty response from server");
+                    showToast("Empty response from server", true);
+                    return null;
+                }
+                
+                try {
+                    const json = JSON.parse(text);
+                    
+                    if(json.status === 'success') {
+                        return json.data || true;
+                    } else {
+                        if (json.message && (json.message.includes('Unauthorized') || json.message.includes('Please Login'))) {
+                            window.location.href = 'index.html';
+                            return null;
+                        }
+                        showToast(json.message || 'An error occurred', true);
+                        return null;
+                    }
+                } catch (parseError) {
+                    console.error("JSON Parse Error:", parseError);
+                    console.error("Response text:", text.substring(0, 500));
+                    showToast("Server returned invalid data. Please check console for details.", true);
+                    return null;
+                }
+            } catch(networkError) {
+                console.error("Network Error:", networkError);
+                showToast("Connection error. Please check your internet connection.", true);
+                return null;
+            }
+        }
+
+        // ========== OVERVIEW STATS ==========
+        async function loadStats() {
+            const fd = new FormData();
+            fd.append('action', 'get_stats');
+            const data = await api(fd);
+            
+            if(data) {
+                document.getElementById('stat-donors').innerText = data.donors || 0;
+                document.getElementById('stat-pending').innerText = data.pending_appt || 0;
+                document.getElementById('stat-volume').innerText = data.volume_l || '0.0';
+                document.getElementById('stat-confirmed').innerText = data.confirmed_appt || 0;
+                document.getElementById('stat-donations-total').innerText = data.total_donations || 0;
+            } else {
+                document.getElementById('stat-donors').innerText = '0';
+                document.getElementById('stat-pending').innerText = '0';
+                document.getElementById('stat-volume').innerText = '0.0';
+                document.getElementById('stat-confirmed').innerText = '0';
+                document.getElementById('stat-donations-total').innerText = '0';
+            }
+            
+            renderOverviewConfirmed(data?.confirmed_roster || []);
+            renderOverviewHistory(data?.donation_history || []);
+        }
+
+        function renderOverviewConfirmed(roster) {
+            const tbody = document.getElementById('overview-confirmed-body');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (!roster || !Array.isArray(roster) || roster.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No upcoming confirmed appointments.</td></tr>`;
+                return;
+            }
+            
+            roster.forEach(row => {
+                const userId = row.user_id || 'N/A';
+                const fullName = row.full_name || 'Unknown';
+                const driveDate = row.drive_date || 'Date TBD';
+                const selectedTime = row.selected_time || 'Time TBD';
+                const locationName = row.location_name || 'Location TBD';
+                
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 text-xs font-mono text-slate-500">${userId}</td>
+                        <td class="p-4 font-medium">${fullName}</td>
+                        <td class="p-4 text-sm text-slate-600">${driveDate} @ ${selectedTime}</td>
+                        <td class="p-4 text-right text-sm font-semibold text-green-700">${locationName}</td>
+                    </tr>`;
+            });
+        }
+
+        function renderOverviewHistory(history) {
+            const tbody = document.getElementById('overview-history-body');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (!history || !Array.isArray(history) || history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No recent donation records.</td></tr>`;
+                return;
+            }
+            
+            history.forEach(row => {
+                const userId = row.user_id || 'N/A';
+                const fullName = row.full_name || 'Unknown';
+                
+                let donationDate = 'Date not available';
+                if (row.donation_date) {
+                    try {
+                        donationDate = new Date(row.donation_date).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    } catch (e) {
+                        donationDate = row.donation_date;
+                    }
+                }
+                
+                const volume = row.volume_ml || 0;
+                
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 text-xs font-mono text-slate-500">${userId}</td>
+                        <td class="p-4 font-medium">${fullName}</td>
+                        <td class="p-4 text-sm text-slate-600">${donationDate}</td>
+                        <td class="p-4 text-right text-sm font-semibold text-purple-700">${volume} ml</td>
+                    </tr>`;
+            });
+        }
+
+        // ========== ANALYTICS ==========
+        async function loadAnalytics() {
+            console.log('Loading analytics...');
+            
+            const canvases = ['bloodTypeChart', 'trendsChart', 'bloodReportTrendsChart'];
+            
+            for (const canvasId of canvases) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error(`Canvas element ${canvasId} not found`);
+                    setTimeout(() => loadAnalytics(), 200);
+                    return;
+                }
+            }
+            
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_analytics');
+                const data = await api(fd);
+                console.log('Analytics data received:', data);
+                
+                if(!data) {
+                    console.warn('No data received, using empty defaults');
+                    data = {
+                        blood_types: [],
+                        trends: [],
+                        blood_report_trends: []
+                    };
+                }
+                
+                const ensureData = (arr, defaultValue) => {
+                    if (Array.isArray(arr) && arr.length > 0) return arr;
+                    return defaultValue || [];
+                };
+            
+                const bloodTypes = ensureData(data.blood_types);
+                const ctx1 = document.getElementById('bloodTypeChart').getContext('2d');
+                if(bloodChartInstance) bloodChartInstance.destroy();
+                bloodChartInstance = new Chart(ctx1, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: bloodTypes.length > 0 ? bloodTypes.map(i => i.type) : ['No Data'], 
+                        datasets: [{ 
+                            data: bloodTypes.length > 0 ? bloodTypes.map(i => parseInt(i.count) || 0) : [1], 
+                            backgroundColor: ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#475569', '#64748b', '#94a3b8', '#cbd5e1'], 
+                            borderWidth: 0 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { position: 'right' },
+                            tooltip: { enabled: true }
+                        } 
+                    } 
+                });
+            
+                const trends = ensureData(data.trends);
+                const ctx2 = document.getElementById('trendsChart').getContext('2d');
+                if(trendsChartInstance) trendsChartInstance.destroy();
+                trendsChartInstance = new Chart(ctx2, { 
+                    type: 'line', 
+                    data: { 
+                        labels: trends.length > 0 ? trends.map(i => i.month) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                        datasets: [{ 
+                            label: 'Volume (ml)', 
+                            data: trends.length > 0 ? trends.map(i => parseInt(i.volume) || 0) : [0, 0, 0, 0, 0, 0], 
+                            borderColor: '#dc2626', 
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+                            fill: true, 
+                            tension: 0.4 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    } 
+                });
+            
+                const bloodReportTrends = ensureData(data.blood_report_trends);
+                const ctx4 = document.getElementById('bloodReportTrendsChart').getContext('2d');
+                if(bloodReportTrendsChartInstance) bloodReportTrendsChartInstance.destroy();
+                bloodReportTrendsChartInstance = new Chart(ctx4, { 
+                    type: 'bar', 
+                    data: { 
+                        labels: bloodReportTrends.length > 0 ? bloodReportTrends.map(i => i.month) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                        datasets: [{ 
+                            label: 'Reports Generated', 
+                            data: bloodReportTrends.length > 0 ? bloodReportTrends.map(i => parseInt(i.count) || 0) : [0, 0, 0, 0, 0, 0], 
+                            backgroundColor: '#dc2626', 
+                            borderRadius: 6 
+                        }] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        },
+                        plugins: {
+                            tooltip: { enabled: true }
+                        }
+                    } 
+                });
+                
+                console.log('All charts initialized successfully');
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showToast('Error loading analytics data', true);
+            }
+        }
+
+        // ========== MISSION CREATION ==========
+        async function createDrive(e) {
+            e.preventDefault();
+            
+            const lat = document.getElementById('latitude-input').value;
+            const lng = document.getElementById('longitude-input').value;
+            
+            if (!lat || !lng || lat === '' || lng === '') {
+                if (!confirm('No map location selected. The drive will be created without coordinates and won\'t appear on the donor map. Continue anyway?')) {
+                    return;
+                }
+            }
+            
+            const fd = new FormData(e.target);
+            fd.append('action', 'create_drive');
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const ogText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Mission...';
+            }
+            
+            const result = await api(fd);
+            
+            if (result) {
+                showToast('Mission created successfully');
+                e.target.querySelector('input[name="date"]').value = '';
+                e.target.querySelector('input[name="start_time"]').value = '';
+                e.target.querySelector('input[name="end_time"]').value = '';
+            }
+            
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = ogText;
+            }
+        }
+
+        // ========== APPOINTMENTS MANAGEMENT ==========
+        async function loadAllAppointments() {
+            try {
+                const pendingFd = new FormData();
+                pendingFd.append('action', 'get_appointments');
+                const pendingResult = await api(pendingFd);
+                const pendingData = (pendingResult && Array.isArray(pendingResult)) ? pendingResult : [];
+
+                const confirmedFd = new FormData();
+                confirmedFd.append('action', 'get_active_roster');
+                const confirmedResult = await api(confirmedFd);
+                const confirmedData = (confirmedResult && Array.isArray(confirmedResult)) ? confirmedResult : [];
+
+                allAppointmentsData = [
+                    ...pendingData.map(row => ({ ...row, status: 'pending', appt_id: row.appt_id })),
+                    ...confirmedData.map(row => ({ ...row, status: 'confirmed', appt_id: row.appt_id }))
+                ];
+
+                allAppointmentsData.sort((a, b) => {
+                    if (a.status !== b.status) {
+                        return a.status === 'pending' ? -1 : 1;
+                    }
+                    const dateA = new Date(a.drive_date || a.selected_time);
+                    const dateB = new Date(b.drive_date || b.selected_time);
+                    return dateA - dateB;
+                });
+
+                currentFilter = 'all';
+                filterAppointments('all');
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                allAppointmentsData = [];
+                filterAppointments('all');
+            }
+        }
+
+        function filterAppointments(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-red-600', 'text-white', 'shadow-md', 'hover:bg-red-700');
+                btn.classList.add('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+            });
+            
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-red-600', 'text-white', 'shadow-md', 'hover:bg-red-700');
+                activeBtn.classList.remove('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+            }
+
+            renderAppointments();
+        }
+
+        function renderAppointments() {
+            const tbody = document.getElementById('appointments-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            let filteredData = allAppointmentsData;
+            if (currentFilter === 'pending') {
+                filteredData = allAppointmentsData.filter(row => row.status === 'pending');
+            } else if (currentFilter === 'confirmed') {
+                filteredData = allAppointmentsData.filter(row => row.status === 'confirmed');
+            }
+
+            if (filteredData.length === 0) {
+                const emptyMsg = currentFilter === 'all' ? 'No appointments found.' : 
+                                currentFilter === 'pending' ? 'No pending appointments.' : 
+                                'No confirmed appointments.';
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">${emptyMsg}</td></tr>`;
+                return;
+            }
+
+            filteredData.forEach(row => {
+                const statusBadge = row.status === 'pending' 
+                    ? '<span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase">Pending</span>'
+                    : '<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold uppercase">Confirmed</span>';
+
+                const sourceClass = row.source === 'Walk-in' ? 'text-blue-600 font-bold' : 'text-slate-600';
+                const sourceText = row.source || 'Online';
+                
+                const dateTime = row.drive_date 
+                    ? `${row.drive_date} @ ${row.selected_time || row.time || ''}`
+                    : row.selected_time || '';
+
+                const actionButtons = row.status === 'pending' 
+                    ? `
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="confirmAppt(${row.appt_id}, this)" class="bg-slate-900 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
+                                Approve
+                            </button>
+                            <button onclick="rejectAppt(${row.appt_id}, this)" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded uppercase transition-colors">
+                                Reject
+                            </button>
+                        </div>
+                    `
+                    : '<span class="text-slate-400 text-xs">-</span>';
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 appointment-row" data-status="${row.status}" id="appt-row-${row.appt_id}">
+                        <td class="p-5 font-bold">${row.full_name}</td>
+                        <td class="p-5 text-red-600 font-mono font-bold">${row.blood_type}</td>
+                        <td class="p-5 text-slate-600">${row.location_name}</td>
+                        <td class="p-5 text-slate-600">${dateTime}</td>
+                        <td class="p-5">${statusBadge}</td>
+                        <td class="p-5 ${sourceClass}">${sourceText}</td>
+                        <td class="p-5 text-right">${actionButtons}</td>
+                    </tr>`;
+            });
+        }
+
+        async function confirmAppt(id, btn) {
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Notifying...';
+            btn.disabled = true;
+            const fd = new FormData();
+            fd.append('action', 'confirm_appt');
+            fd.append('appt_id', id);
+            
+            const result = await api(fd);
+            if(result) showToast('Appointment confirmed');
+
+            loadAllAppointments();
+            loadStats();
+        }
+
+        async function rejectAppt(id, btn) {
+            if (!confirm('Are you sure you want to reject this appointment? The donor will be notified.')) {
+                return;
+            }
+            
+            const ogText = btn.innerHTML;
+            const row = btn.closest('tr');
+            const buttons = row.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.disabled = true;
+                if (b === btn) {
+                    b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+                }
+            });
+            
+            const fd = new FormData();
+            fd.append('action', 'reject_appt');
+            fd.append('appt_id', id);
+            
+            const result = await api(fd);
+            if(result) {
+                showToast('Appointment rejected');
+            }
+
+            loadAllAppointments();
+            loadStats();
+        }
+
+        // ========== DONATION PROCESSING ==========
+        async function processDonation(e) {
+            e.preventDefault();
+            
+            if (!confirm('Are you sure you want to process this donation and notify the donor?')) {
+                return;
+            }
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing & Emailing...';
+            btn.disabled = true;
+            const fd = new FormData(e.target);
+            fd.append('action', 'process_donation');
+            
+            if(await api(fd)) {
+                showToast('Donation processed successfully');
+                e.target.reset();
+                loadTodaysDrives();
+                loadStats();
+                resetValidationStates();
+            }
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
+
+        async function loadTodaysDrives() {
+            const select = document.getElementById('donation-drive-select');
+            if(!select) return;
+            select.innerHTML = '<option value="">Loading...</option>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_todays_drives');
+            const data = await api(fd);
+            
+            select.innerHTML = '<option value="">-- Select Today\'s Appointment --</option>';
+            if(data && data.length) {
+                data.forEach(d => {
+                    select.innerHTML += `<option value="${d.drive_id}">${d.location_name} (${d.start_time.substring(0,5)} - ${d.end_time.substring(0,5)})</option>`;
+                });
+            } else {
+                select.innerHTML = '<option value="">No Active Appointments Found Today</option>';
+            }
+            
+            const donorSelect = document.getElementById('donation-donor-select');
+            if(donorSelect) {
+                donorSelect.innerHTML = '<option value="">-- Select Appointment First --</option>';
+                donorSelect.disabled = true;
+            }
+        }
+
+        async function loadDriveParticipants(driveId) {
+            const select = document.getElementById('donation-donor-select');
+            if(!select) return;
+            
+            if(!driveId) {
+                select.innerHTML = '<option value="">-- Select Appointment First --</option>';
+                select.disabled = true;
+                return;
+            }
+
+            select.innerHTML = '<option value="">Loading Donors...</option>';
+            select.disabled = false;
+
+            const fd = new FormData();
+            fd.append('action', 'get_drive_participants');
+            fd.append('drive_id', driveId);
+            const data = await api(fd);
+            
+            select.innerHTML = '<option value="">-- Select Donor --</option>';
+            if(data && data.length) {
+                data.forEach(u => {
+                    select.innerHTML += `<option value="${u.user_id}">${u.full_name} (${u.blood_type})</option>`;
+                });
+            } else {
+                select.innerHTML = '<option value="">No bookings for this appointment</option>';
+            }
+        }
+
+        function validateVolume(input) {
+            const msg = document.getElementById('vol-msg');
+            if(!msg) return;
+            let val = parseInt(input.value);
+            
+            if (val > 500) {
+                input.value = 500;
+                val = 500;
+            }
+
+            if (val >= 500) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                input.classList.remove('border-slate-200', 'bg-slate-50');
+                msg.classList.remove('hidden');
+                msg.innerText = 'Max amount reached';
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                input.classList.add('border-slate-200', 'bg-slate-50');
+                msg.classList.add('hidden');
+            }
+        }
+
+        function validateNotes(input) {
+            const len = input.value.length;
+            const max = 30;
+            const counter = document.getElementById('notes-counter');
+            if(counter) counter.innerText = `${len}/${max}`;
+            
+            const msg = document.getElementById('notes-msg');
+            if(!msg) return;
+            
+            if (len >= max) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                msg.classList.remove('hidden');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                msg.classList.add('hidden');
+            }
+        }
+
+        function resetValidationStates() {
+            const volInput = document.getElementById('vol-input');
+            const volMsg = document.getElementById('vol-msg');
+            if(volInput) {
+                volInput.classList.remove('border-red-500', 'bg-red-50');
+                volInput.classList.add('border-slate-200', 'bg-slate-50');
+            }
+            if(volMsg) volMsg.classList.add('hidden');
+
+            const notesInput = document.getElementById('notes-input');
+            const notesMsg = document.getElementById('notes-msg');
+            if(notesInput) {
+                notesInput.classList.remove('border-red-500', 'bg-red-50');
+            }
+            if(notesMsg) notesMsg.classList.add('hidden');
+            const notesCounter = document.getElementById('notes-counter');
+            if(notesCounter) notesCounter.innerText = '0/30';
+        }
+
+        // ========== BLOOD REPORTS ==========
+        async function loadBloodReports() {
+            const container = document.getElementById('blood-reports-container');
+            const countSpan = document.getElementById('blood-reports-count');
+            
+            container.innerHTML = '<div class="bg-white p-6 rounded-xl border border-slate-200 text-slate-400 text-center text-sm"><i class="fas fa-spinner fa-spin mr-2"></i> Loading blood reports...</div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_all_blood_reports');
+            const data = await api(fd);
+            
+            if (data && data.length > 0) {
+                allBloodReportsData = data;
+                filterBloodReportsByDate();
+            } else {
+                container.innerHTML = `
+                    <div class="bg-white p-12 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-file-medical text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500 text-lg font-medium">No blood reports available</p>
+                        <p class="text-slate-400 text-sm mt-2">Blood reports will appear here when created.</p>
+                    </div>
+                `;
+                countSpan.textContent = '';
+            }
+        }
+
+        function filterBloodReportsByDate() {
+            const container = document.getElementById('blood-reports-container');
+            const dateFrom = document.getElementById('blood-report-date-from');
+            const dateTo = document.getElementById('blood-report-date-to');
+            const countSpan = document.getElementById('blood-reports-count');
+            
+            const fromDate = dateFrom.value;
+            const toDate = dateTo.value;
+            
+            let filteredData = allBloodReportsData;
+            
+            if (fromDate || toDate) {
+                filteredData = allBloodReportsData.filter(report => {
+                    const reportDate = new Date(report.report_date);
+                    const from = fromDate ? new Date(fromDate) : null;
+                    const to = toDate ? new Date(toDate) : null;
+                    
+                    if (from && !to) {
+                        return reportDate >= from;
+                    } else if (!from && to) {
+                        return reportDate <= to;
+                    } else if (from && to) {
+                        to.setHours(23, 59, 59, 999);
+                        return reportDate >= from && reportDate <= to;
+                    }
+                    return true;
+                });
+            }
+            
+            countSpan.textContent = `${filteredData.length} report${filteredData.length !== 1 ? 's' : ''}`;
+            
+            if (filteredData.length > 0) {
+                container.innerHTML = filteredData.map(report => `
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">${report.full_name}</h3>
+                                <p class="text-sm text-slate-500">
+                                    <i class="fas fa-envelope mr-2"></i>${report.email}
+                                    <span class="ml-4"><i class="fas fa-tint mr-2"></i>${report.blood_type}</span>
+                                    <span class="ml-4"><i class="fas fa-calendar mr-2"></i>${report.report_date}</span>
+                                </p>
+                                ${report.hospital_name !== 'N/A' ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-hospital mr-2"></i>${report.hospital_name} - ${report.location_name}</p>` : ''}
+                            </div>
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-700">Report #${report.report_id}</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            ${report.hemoglobin ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Hemoglobin</p><p class="text-lg font-bold text-slate-900">${report.hemoglobin} g/dL</p></div>` : ''}
+                            ${report.hematocrit ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Hematocrit</p><p class="text-lg font-bold text-slate-900">${report.hematocrit}%</p></div>` : ''}
+                            ${report.platelet_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Platelets</p><p class="text-lg font-bold text-slate-900">${(report.platelet_count / 1000).toFixed(0)}K</p></div>` : ''}
+                            ${report.blood_pressure ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Blood Pressure</p><p class="text-lg font-bold text-slate-900">${report.blood_pressure}</p></div>` : ''}
+                            ${report.white_blood_cell_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">WBC Count</p><p class="text-lg font-bold text-slate-900">${report.white_blood_cell_count} ×10³/µL</p></div>` : ''}
+                            ${report.red_blood_cell_count ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">RBC Count</p><p class="text-lg font-bold text-slate-900">${report.red_blood_cell_count} ×10⁶/µL</p></div>` : ''}
+                            ${report.temperature ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Temperature</p><p class="text-lg font-bold text-slate-900">${report.temperature}°F</p></div>` : ''}
+                            ${report.volume_ml ? `<div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs text-slate-500 uppercase mb-1">Blood Volume</p><p class="text-lg font-bold text-slate-900">${report.volume_ml} ml</p></div>` : ''}
+                        </div>
+                        ${report.notes ? `<div class="mt-4 pt-4 border-t border-slate-100"><p class="text-sm text-slate-600"><strong>Notes:</strong> ${report.notes}</p></div>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                const hasFilter = fromDate || toDate;
+                const message = hasFilter 
+                    ? `No blood reports found for the selected date range.`
+                    : `No blood reports available.`;
+                const subMessage = hasFilter 
+                    ? 'Try selecting a different date range or clear the filter to view all reports.'
+                    : 'Blood reports will appear here when created.';
+                container.innerHTML = `
+                    <div class="bg-white p-12 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-file-medical text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500 text-lg font-medium">${message}</p>
+                        <p class="text-slate-400 text-sm mt-2">${subMessage}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function clearDateFilter() {
+            document.getElementById('blood-report-date-from').value = '';
+            document.getElementById('blood-report-date-to').value = '';
+            filterBloodReportsByDate();
+        }
+
+        // ========== GMAIL ALERTS ==========
+        async function sendGmailAlert(e) {
+            e.preventDefault();
+            if(!confirm("Are you sure you want to broadcast this alert?")) return;
+            const btn = e.target.querySelector('button[type="submit"]');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending via SMTP...';
+            btn.disabled = true;
+            const fd = new FormData(e.target);
+            fd.append('action', 'send_gmail_alert');
+            await api(fd);
+            showToast('Alert broadcasted successfully');
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+            e.target.reset();
+            document.getElementById('test-email-container').classList.add('hidden');
+        }
+
+        // ========== MAP FUNCTIONALITY ==========
+        function initMissionMap() {
+            if (!document.getElementById('mission-map') || missionMap) return;
+            
+            missionMap = L.map('mission-map').setView([5.9804, 116.0735], 9);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(missionMap);
+            
+            geocoder = L.Control.Geocoder.nominatim({
+                geocodingQueryParams: {
+                    'accept-language': 'en',
+                    countrycodes: 'my'
+                }
+            });
+            
+            const geocoderControl = L.Control.geocoder({
+                geocoder: geocoder,
+                defaultMarkGeocode: false,
+                placeholder: 'Search for a location in Sabah...',
+                errorMessage: 'Location not found'
+            })
+            .on('markgeocode', function(e) {
+                const latlng = e.geocode.center;
+                placeMarkerAndGetAddress(latlng);
+                missionMap.setView(latlng, 15);
+            })
+            .addTo(missionMap);
+            
+            missionMap.on('click', function(e) {
+                placeMarkerAndGetAddress(e.latlng);
+            });
+            
+            console.log('Mission map initialized');
+        }
+
+        function placeMarkerAndGetAddress(latlng) {
+            if (geocodingTimeout) clearTimeout(geocodingTimeout);
+            
+            if (missionMarker) {
+                missionMap.removeLayer(missionMarker);
+            }
+            
+            const redIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+            
+            missionMarker = L.marker(latlng, {
+                icon: redIcon,
+                draggable: true
+            }).addTo(missionMap);
+            
+            missionMarker.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                placeMarkerAndGetAddress(newLatLng);
+            });
+            
+            document.getElementById('location-info').classList.remove('hidden');
+            document.getElementById('location-display').innerHTML = '<i class="fas fa-spinner fa-spin text-slate-400"></i> Fetching address...';
+            document.getElementById('coords-display').textContent = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+            
+            document.getElementById('latitude-input').value = latlng.lat;
+            document.getElementById('longitude-input').value = latlng.lng;
+            
+            geocodingTimeout = setTimeout(() => {
+                reverseGeocode(latlng);
+            }, 1000);
+        }
+
+        async function reverseGeocode(latlng) {
+            try {
+                const url = `geocode_proxy.php?action=reverse&lat=${latlng.lat}&lon=${latlng.lng}`;
+                console.log('Reverse geocoding via proxy...');
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`Geocoding failed with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Geocoding data:', data);
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                if (data && data.display_name) {
+                    const address = data.address || {};
+                    
+                    let locationName = '';
+                    if (address.building) locationName = address.building;
+                    else if (address.amenity) locationName = address.amenity;
+                    else if (address.tourism) locationName = address.tourism;
+                    else if (address.shop) locationName = address.shop;
+                    else if (address.road) locationName = address.road;
+                    else if (address.suburb) locationName = address.suburb;
+                    else if (address.neighbourhood) locationName = address.neighbourhood;
+                    else if (address.village) locationName = address.village;
+                    else if (address.town) locationName = address.town;
+                    else if (address.city) locationName = address.city;
+                    else if (address.county) locationName = address.county;
+                    else if (address.state) locationName = address.state;
+                    
+                    if (!locationName && data.display_name) {
+                        const parts = data.display_name.split(',');
+                        locationName = parts[0].trim() || 'Selected Location';
+                    }
+                    
+                    if (!locationName) locationName = 'Selected Location';
+                    
+                    const city = address.city || address.town || address.village || address.state || 'Sabah';
+                    const postalCode = address.postcode || '';
+                    const country = address.country || 'Malaysia';
+                    const fullAddress = data.display_name;
+                    
+                    document.getElementById('location-input').value = locationName;
+                    document.getElementById('full-address-input').value = fullAddress;
+                    document.getElementById('city-input').value = city;
+                    document.getElementById('postal-code-input').value = postalCode;
+                    document.getElementById('country-input').value = country;
+                    
+                    let displayHtml = `<strong class="text-base">${locationName}</strong><br>`;
+                    if (address.road) displayHtml += `<span class="text-xs text-slate-500">Road: ${address.road}</span><br>`;
+                    if (address.suburb || address.neighbourhood) displayHtml += `<span class="text-xs text-slate-500">Area: ${address.suburb || address.neighbourhood}</span><br>`;
+                    if (address.city || address.town) displayHtml += `<span class="text-xs text-slate-500">City: ${address.city || address.town}</span><br>`;
+                    if (address.postcode) displayHtml += `<span class="text-xs text-slate-500">Postcode: ${address.postcode}</span><br>`;
+                    displayHtml += `<span class="text-xs text-slate-400 mt-1 block">${fullAddress}</span>`;
+                    
+                    document.getElementById('location-display').innerHTML = displayHtml;
+                    
+                    if (missionMarker) {
+                        let popupContent = `<div style="min-width: 200px;">`;
+                        popupContent += `<strong style="font-size: 14px;">${locationName}</strong><br>`;
+                        if (address.road) popupContent += `<small>Road: ${address.road}</small><br>`;
+                        if (address.suburb) popupContent += `<small>Area: ${address.suburb}</small><br>`;
+                        if (address.city) popupContent += `<small>City: ${address.city}</small><br>`;
+                        popupContent += `<small style="color: #64748b;">Full: ${fullAddress}</small>`;
+                        popupContent += `</div>`;
+                        missionMarker.bindPopup(popupContent).openPopup();
+                    }
+                    
+                    console.log('Location set to:', locationName);
+                } else {
+                    throw new Error('No address found in response');
+                }
+            } catch (error) {
+                console.error('Reverse geocoding error:', error);
+                document.getElementById('location-display').innerHTML = `<span class="text-red-600"><i class="fas fa-exclamation-triangle mr-1"></i>Unable to fetch address. Error: ${error.message}</span>`;
+                
+                const basicName = `Sabah Location (${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)})`;
+                document.getElementById('location-input').value = basicName;
+                document.getElementById('full-address-input').value = `Coordinates: ${latlng.lat}, ${latlng.lng}`;
+                document.getElementById('city-input').value = 'Sabah';
+                document.getElementById('country-input').value = 'Malaysia';
+                
+                if (missionMarker) {
+                    missionMarker.bindPopup(`<strong>Location Pinned</strong><br><small>Coordinates: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}</small><br><small class="text-red-600">Could not fetch address</small>`).openPopup();
+                }
+            }
+        }
+
+        function clearMapSelection() {
+            if (missionMarker) {
+                missionMap.removeLayer(missionMarker);
+                missionMarker = null;
+            }
+            
+            document.getElementById('location-input').value = '';
+            document.getElementById('latitude-input').value = '';
+            document.getElementById('longitude-input').value = '';
+            document.getElementById('full-address-input').value = '';
+            document.getElementById('city-input').value = '';
+            document.getElementById('postal-code-input').value = '';
+            document.getElementById('country-input').value = '';
+            
+            document.getElementById('location-info').classList.add('hidden');
+            missionMap.setView([5.9804, 116.0735], 9);
+        }
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadStats();
+            }
+        });
+    </script>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+</body>
+</html>

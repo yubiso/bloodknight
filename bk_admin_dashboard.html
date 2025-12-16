@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodKnight | Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="assets/knight-shield.png">
+    <link rel="shortcut icon" type="image/png" href="assets/knight-shield.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@400;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tactical-font { font-family: 'Rajdhani', sans-serif; }
+        .hidden { display: none; }
+        
+        /* Dark Mode Styles - Matching index.html color palette */
+        body.dark-mode {
+            background-color: #1a2332;
+            color: #e8f0f8;
+        }
+        body.dark-mode .sidebar {
+            background: #243447;
+            border-color: #4a5f7a;
+        }
+        body.dark-mode .main-content {
+            background: #1a2332;
+        }
+        body.dark-mode .card {
+            background: #2d4a5f;
+            border-color: #4a5f7a;
+        }
+        body.dark-mode .card-header {
+            background: #243447;
+            border-color: #4a5f7a;
+        }
+        body.dark-mode .input-field {
+            background: #243447;
+            border-color: #4a5f7a;
+            color: #e8f0f8;
+        }
+        body.dark-mode .input-field:focus {
+            border-color: #ff4757;
+            background: #1a2332;
+        }
+        body.dark-mode .btn-primary {
+            background: linear-gradient(135deg, #ff4757 0%, #dc3545 100%);
+        }
+        body.dark-mode .btn-primary:hover {
+            background: linear-gradient(135deg, #ff6b81 0%, #ff4757 100%);
+        }
+        body.dark-mode .btn-secondary {
+            background: #4a5f7a;
+            color: #e8f0f8;
+        }
+        body.dark-mode .btn-secondary:hover {
+            background: #5a6f8a;
+        }
+        body.dark-mode .table-header {
+            background: #243447;
+            border-color: #4a5f7a;
+        }
+        body.dark-mode .table-row {
+            border-color: #4a5f7a;
+        }
+        body.dark-mode .table-row:hover {
+            background: #243447;
+        }
+        body.dark-mode .theme-toggle {
+            color: #e8f0f8;
+        }
+        body.dark-mode .theme-toggle:hover {
+            color: #ff4757;
+        }
+        
+        /* Override Tailwind dark mode colors to match index.html palette */
+        body.dark .dark\:bg-slate-900 {
+            background-color: #1a2332 !important;
+        }
+        body.dark .dark\:bg-slate-800 {
+            background-color: #2d4a5f !important;
+        }
+        body.dark .dark\:bg-slate-700 {
+            background-color: #243447 !important;
+        }
+        body.dark .dark\:bg-slate-600 {
+            background-color: #4a5f7a !important;
+        }
+        body.dark .dark\:text-slate-200,
+        body.dark .dark\:text-slate-300,
+        body.dark .dark\:text-white {
+            color: #e8f0f8 !important;
+        }
+        body.dark .dark\:text-slate-400 {
+            color: #a8b8c8 !important;
+        }
+        body.dark .dark\:border-slate-700,
+        body.dark .dark\:border-slate-600 {
+            border-color: #4a5f7a !important;
+        }
+        body.dark .dark\:hover\:bg-slate-700:hover {
+            background-color: #243447 !important;
+        }
+        body.dark .dark\:hover\:bg-slate-600:hover {
+            background-color: #4a5f7a !important;
+        }
+        body.dark .dark\:shadow-slate-900 {
+            --tw-shadow-color: #1a2332 !important;
+            box-shadow: 0 10px 15px -3px rgba(26, 35, 50, 0.1), 0 4px 6px -2px rgba(26, 35, 50, 0.05) !important;
+        }
+        body.dark .dark\:hover\:bg-red-900\/20:hover {
+            background-color: rgba(255, 71, 87, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden transition-colors duration-300">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10 transition-colors duration-300" style="display: flex; flex-direction: column; height: 100vh;">
+        <div class="pl-4 pr-6 py-6 border-b border-slate-100 flex items-center gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors" onclick="showSection('overview')" title="Go to Overview">
+            <img src="assets/knight-shield.png" alt="BloodKnight Logo" style="height: 40px; width: auto; object-fit: contain;">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #a51a3a; display: flex; align-items: center; gap: 10px; margin: 0; font-family: 'Poppins', sans-serif;">
+                    BloodKnight
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wide">Admin Control</p>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2 pb-8">
+            <button onclick="showSection('overview')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-chart-pie w-5 group-hover:text-red-600"></i> Overview
+            </button>
+            <button onclick="showSection('hospital-requests')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-hospital w-5 group-hover:text-red-600"></i> Hospital Requests
+            </button>
+            <button onclick="showSection('user-management')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 font-medium transition-colors flex items-center gap-3 group">
+                <i class="fas fa-users-cog w-5 group-hover:text-red-600"></i> User Management
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100 dark:border-slate-700" style="margin-top: auto; margin-bottom: 2rem;">
+            <button onclick="logout()" class="w-full bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 dark:hover:bg-slate-700 py-3 rounded-xl text-sm font-bold uppercase tracking-wider shadow-lg shadow-slate-200 dark:shadow-slate-900 transition-all">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900 p-8 relative transition-colors duration-300">
+        
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" class="theme-toggle fixed top-5 right-5 z-50 bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-all" title="Toggle Dark Mode">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="fas fa-sun hidden dark:block"></i>
+        </button>
+
+        <!-- TOAST -->
+        <div id="toast" class="fixed top-5 right-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-6 py-4 rounded-xl shadow-2xl z-50 font-bold flex items-center gap-3" style="transform: translateX(100%); opacity: 0; transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i> <span id="toast-msg">Success</span>
+        </div>
+
+        <!-- 1. OVERVIEW SECTION -->
+        <section id="overview" class="space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 dark:text-white mb-6 border-l-4 border-red-600 pl-4">System Overview</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="card bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">Total Donors</div>
+                        <i class="fas fa-users text-blue-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="stat-donors">--</div>
+                </div>
+                <div class="card bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">Hospitals</div>
+                        <i class="fas fa-hospital text-green-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="stat-hospitals">--</div>
+                </div>
+                <div class="card bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">Pending Requests</div>
+                        <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="stat-pending">--</div>
+                </div>
+                <div class="card bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">Total Donations</div>
+                        <i class="fas fa-briefcase-medical text-purple-600 text-sm"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white" id="stat-donations">--</div>
+                </div>
+            </div>
+            
+            <!-- Recent Pending Requests -->
+            <div class="card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm mt-6">
+                <div class="card-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 p-4">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Recent Pending Requests</h3>
+                </div>
+                <div id="recent-requests-container" class="p-6">
+                    <div class="text-center text-slate-400 py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading requests...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HOSPITAL REQUESTS SECTION -->
+        <section id="hospital-requests" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 dark:text-white mb-6 border-l-4 border-red-600 pl-4">Hospital Registration Requests</h2>
+            
+            <div class="card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                <div class="card-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 p-4">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pending Requests</h3>
+                </div>
+                <div id="hospital-requests-container" class="p-6">
+                    <div class="text-center text-slate-400 py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading requests...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. USER MANAGEMENT SECTION -->
+        <section id="user-management" class="hidden space-y-6">
+            <h2 class="text-3xl font-bold tactical-font uppercase text-slate-900 dark:text-white mb-6 border-l-4 border-red-600 pl-4">User Management</h2>
+            
+            <div class="flex gap-4 mb-4">
+                <button onclick="showUserTab('donors')" id="tab-donors" class="px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-red-600 text-white transition-all">
+                    <i class="fas fa-users mr-2"></i> Donors
+                </button>
+                <button onclick="showUserTab('hospitals')" id="tab-hospitals" class="px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all">
+                    <i class="fas fa-hospital mr-2"></i> Hospitals
+                </button>
+            </div>
+
+            <!-- Donors Tab -->
+            <div id="donors-tab" class="space-y-4">
+                <div class="card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                    <div class="card-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 p-4">
+                        <div class="flex justify-between items-center gap-4 flex-wrap">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Donor Management</h3>
+                            <div class="flex gap-2 items-center">
+                                <select id="donor-status-filter" class="input-field px-3 py-2 rounded-lg text-sm" onchange="filterDonors()">
+                                    <option value="all">All Status</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Deactivated">Deactivated</option>
+                                </select>
+                                <input type="text" id="donor-search" placeholder="Search donors..." class="input-field px-4 py-2 rounded-lg text-sm" onkeyup="filterDonors()">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="donors-container" class="p-6">
+                        <div class="text-center text-slate-400 py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p>Loading donors...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hospitals Tab -->
+            <div id="hospitals-tab" class="hidden space-y-4">
+                <div class="card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                    <div class="card-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 p-4">
+                        <div class="flex justify-between items-center gap-4 flex-wrap">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Hospital Management</h3>
+                            <div class="flex gap-2 items-center">
+                                <select id="hospital-status-filter" class="input-field px-3 py-2 rounded-lg text-sm" onchange="filterHospitals()">
+                                    <option value="all">All Status</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Deactivated">Deactivated</option>
+                                </select>
+                                <input type="text" id="hospital-search" placeholder="Search hospitals..." class="input-field px-4 py-2 rounded-lg text-sm" onkeyup="filterHospitals()">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hospitals-container" class="p-6">
+                        <div class="text-center text-slate-400 py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p>Loading hospitals...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Approval Modal -->
+    <div id="approval-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-200 dark:border-slate-700">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Approve Hospital Registration</h3>
+            <p class="text-slate-600 dark:text-slate-300 mb-4">A password will be generated and sent to the hospital's email address.</p>
+            <div class="flex gap-3">
+                <button onclick="confirmApprove()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-full text-sm transition-all">
+                    Approve
+                </button>
+                <button onclick="closeApprovalModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejection-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-200 dark:border-slate-700">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Reject Hospital Registration</h3>
+            <textarea id="rejection-reason" placeholder="Enter rejection reason..." class="input-field w-full p-3 rounded-lg mb-4 min-h-[100px]" required></textarea>
+            <div class="flex gap-3">
+                <button onclick="confirmReject()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2 px-4 rounded-full text-sm transition-all">
+                    Reject
+                </button>
+                <button onclick="closeRejectionModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRequestId = null;
+        let allDonors = [];
+        let allHospitals = [];
+        let allHospitalRequests = [];
+        let currentDonorPage = 1;
+        let currentHospitalPage = 1;
+        let currentRequestPage = 1;
+        const itemsPerPage = 5;
+        const requestsPerPage = 2;
+        
+        // Helper function to generate pagination HTML
+        function generatePaginationHTML(currentPage, totalPages, changePageFunction) {
+            if (totalPages <= 1) return '';
+            
+            let paginationHTML = '<div class="flex justify-center items-center gap-1 mt-4 flex-wrap">';
+            
+            // Previous button
+            paginationHTML += `<button onclick="${changePageFunction}(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 rounded-lg font-bold text-sm transition-all ${currentPage === 1 ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-700 text-white'}">
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+            
+            // Page numbers
+            if (totalPages <= 7) {
+                // Show all pages if 7 or fewer
+                for (let i = 1; i <= totalPages; i++) {
+                    const isActive = i === currentPage;
+                    paginationHTML += `<button onclick="${changePageFunction}(${i})" class="px-3 py-1 rounded-lg font-bold text-sm transition-all ${isActive ? 'bg-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}">${i}</button>`;
+                }
+            } else {
+                const pages = new Set();
+                
+                // Always show first 3 pages
+                for (let i = 1; i <= 3; i++) {
+                    pages.add(i);
+                }
+                
+                // Always show last 3 pages
+                for (let i = totalPages - 2; i <= totalPages; i++) {
+                    pages.add(i);
+                }
+                
+                // Show current page if not already included
+                if (currentPage > 3 && currentPage < totalPages - 2) {
+                    pages.add(currentPage);
+                    // Also show neighbors of current page
+                    if (currentPage > 1) pages.add(currentPage - 1);
+                    if (currentPage < totalPages) pages.add(currentPage + 1);
+                }
+                
+                // Convert to sorted array
+                const sortedPages = Array.from(pages).sort((a, b) => a - b);
+                
+                // Build pagination HTML
+                let prevPage = 0;
+                for (const page of sortedPages) {
+                    // Add ellipsis if there's a gap
+                    if (page - prevPage > 1) {
+                        paginationHTML += '<span class="px-2 text-slate-500 dark:text-slate-400">...</span>';
+                    }
+                    
+                    const isActive = page === currentPage;
+                    paginationHTML += `<button onclick="${changePageFunction}(${page})" class="px-3 py-1 rounded-lg font-bold text-sm transition-all ${isActive ? 'bg-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}">${page}</button>`;
+                    prevPage = page;
+                }
+            }
+            
+            // Next button
+            paginationHTML += `<button onclick="${changePageFunction}(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-1 rounded-lg font-bold text-sm transition-all ${currentPage === totalPages ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-700 text-white'}">
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+            
+            paginationHTML += '</div>';
+            return paginationHTML;
+        }
+        
+        // Initialize toast as hidden on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.classList.add('translate-x-full');
+            }
+        });
+
+        // Theme Toggle - Synced with index.html
+        const themeToggle = document.getElementById('theme-toggle');
+        const icon = themeToggle.querySelector('i');
+        
+        // Load saved theme preference on page load (shared with index.html)
+        const savedTheme = localStorage.getItem('bloodknight-theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode', 'dark');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            document.body.classList.remove('dark-mode', 'dark');
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            document.body.classList.toggle('dark');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Update icon
+            if (isDarkMode) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+            
+            // Save to localStorage (shared with index.html)
+            localStorage.setItem('bloodknight-theme', isDarkMode ? 'dark' : 'light');
+        });
+
+        // Section Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            if (sectionId === 'hospital-requests') {
+                loadHospitalRequests();
+            } else if (sectionId === 'user-management') {
+                showUserTab('donors');
+            } else if (sectionId === 'overview') {
+                loadOverview();
+            }
+        }
+
+        // User Tab Navigation
+        function showUserTab(tab) {
+            document.getElementById('donors-tab').classList.toggle('hidden', tab !== 'donors');
+            document.getElementById('hospitals-tab').classList.toggle('hidden', tab !== 'hospitals');
+            
+            // Reset pagination when switching tabs
+            if (tab === 'donors') {
+                currentDonorPage = 1;
+            } else if (tab === 'hospitals') {
+                currentHospitalPage = 1;
+            }
+            
+            const donorsBtn = document.getElementById('tab-donors');
+            const hospitalsBtn = document.getElementById('tab-hospitals');
+            
+            if (tab === 'donors') {
+                donorsBtn.className = 'px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-red-600 text-white transition-all';
+                hospitalsBtn.className = 'px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all';
+                loadDonors();
+            } else {
+                hospitalsBtn.className = 'px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-red-600 text-white transition-all';
+                donorsBtn.className = 'px-6 py-3 rounded-xl font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all';
+                loadHospitals();
+            }
+        }
+
+        // API Helper
+        async function api(formData) {
+            try {
+                const response = await fetch('bk_admin_controller.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                return await response.json();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                return { status: 'error', message: error.message };
+            }
+        }
+
+        // Toast Notification - Fades in and slides in from right, shows for 3s, then fades out and slides out to right
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-msg');
+            const icon = toast.querySelector('i');
+            
+            if (!toast || !msg) return;
+            
+            msg.textContent = message;
+            icon.className = type === 'success' ? 'fas fa-check-circle text-green-600 text-xl' : 'fas fa-exclamation-circle text-red-600 text-xl';
+            
+            // Reset to hidden position (off-screen to the right and transparent)
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+            
+            // Force reflow to ensure the initial state is applied
+            void toast.offsetWidth;
+            
+            // Fade in and slide in from right - use requestAnimationFrame for smooth animation
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.style.transform = 'translateX(0)';
+                    toast.style.opacity = '1';
+                });
+            });
+            
+            // Fade out and slide out to right after 3 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+
+        // Load Overview Stats
+        async function loadOverview() {
+            const fd = new FormData();
+            fd.append('action', 'get_overview_stats');
+            const data = await api(fd);
+            
+            if (data.status === 'success') {
+                document.getElementById('stat-donors').textContent = data.data.total_donors || 0;
+                document.getElementById('stat-hospitals').textContent = data.data.total_hospitals || 0;
+                document.getElementById('stat-pending').textContent = data.data.pending_requests || 0;
+                document.getElementById('stat-donations').textContent = data.data.total_donations || 0;
+            }
+            
+            // Load recent pending requests
+            await loadRecentRequests();
+        }
+        
+        // Load Recent Pending Requests (Top 5)
+        async function loadRecentRequests() {
+            const container = document.getElementById('recent-requests-container');
+            container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fas fa-spinner fa-spin text-xl mb-2"></i><p class="text-sm">Loading...</p></div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_hospital_requests');
+            const data = await api(fd);
+            
+            if (data.status === 'success' && data.data.length > 0) {
+                const recentRequests = data.data.slice(0, 5); // Get first 5
+                if (recentRequests.length > 0) {
+                    container.innerHTML = recentRequests.map(req => `
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-3 hover:shadow-sm transition-shadow">
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-900 dark:text-white text-sm">${req.hospital_name}</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>${req.hospital_location}
+                                    </p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        <i class="fas fa-envelope mr-1"></i>${req.hospital_email}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Pending</span>
+                                    <button onclick="quickApproveRequest(${req.request_id})" class="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Approve">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </button>
+                                    <button onclick="quickRejectRequest(${req.request_id})" class="w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Reject">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fas fa-inbox text-2xl mb-2"></i><p class="text-sm">No pending requests</p></div>';
+                }
+            } else {
+                container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fas fa-inbox text-2xl mb-2"></i><p class="text-sm">No pending requests</p></div>';
+            }
+        }
+
+        // Load Hospital Requests
+        async function loadHospitalRequests() {
+            const container = document.getElementById('hospital-requests-container');
+            container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Loading requests...</p></div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_hospital_requests');
+            const data = await api(fd);
+            
+            if (data.status === 'success' && data.data.length > 0) {
+                allHospitalRequests = data.data;
+                renderHospitalRequests(allHospitalRequests);
+            } else {
+                container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-inbox text-4xl mb-2"></i><p>No pending requests</p></div>';
+            }
+        }
+
+        function renderHospitalRequests(requests) {
+            const container = document.getElementById('hospital-requests-container');
+            if (requests.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-inbox text-4xl mb-2"></i><p>No pending requests</p></div>';
+                return;
+            }
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(requests.length / requestsPerPage);
+            const startIndex = (currentRequestPage - 1) * requestsPerPage;
+            const endIndex = startIndex + requestsPerPage;
+            const paginatedRequests = requests.slice(startIndex, endIndex);
+            
+            container.innerHTML = `
+                ${paginatedRequests.map(req => `
+                    <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-bold text-slate-900 dark:text-white text-lg">${req.hospital_name}</h4>
+                                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Pending</span>
+                                </div>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>${req.hospital_location}
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <i class="fas fa-envelope mr-2"></i>${req.hospital_email}
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <i class="fas fa-phone mr-2"></i>${req.hospital_phone || 'N/A'}
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <i class="fas fa-hospital mr-2"></i>Type: <span class="font-bold ${req.hospital_type === 'Government' ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}">${req.hospital_type || 'N/A'}</span>
+                                </p>
+                                ${req.admin_name ? `<p class="text-sm text-slate-500 dark:text-slate-400 mt-1"><i class="fas fa-user mr-2"></i>Admin: ${req.admin_name}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col gap-2 ml-4">
+                                <button onclick="openApprovalModal(${req.request_id})" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-full text-sm transition-all whitespace-nowrap">
+                                    Approve
+                                </button>
+                                <button onclick="openRejectionModal(${req.request_id})" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-full text-sm transition-all whitespace-nowrap">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+                ${generatePaginationHTML(currentRequestPage, totalPages, 'changeRequestPage')}
+            `;
+        }
+
+        function changeRequestPage(page) {
+            const totalPages = Math.ceil(allHospitalRequests.length / requestsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentRequestPage = page;
+                renderHospitalRequests(allHospitalRequests);
+            }
+        }
+
+        // Approval Modal
+        function openApprovalModal(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('approval-modal').classList.remove('hidden');
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approval-modal').classList.add('hidden');
+            currentRequestId = null;
+        }
+
+        async function confirmApprove() {
+            if (!currentRequestId) return;
+            
+            if (!confirm('Are you sure you want to approve this hospital registration request?')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'approve_hospital_request');
+            fd.append('request_id', currentRequestId);
+            
+            const data = await api(fd);
+            if (data.status === 'success') {
+                // Check if request was already processed
+                if (data.data && data.data.already_processed) {
+                    showToast('Request processed');
+                } else {
+                    showToast('Hospital approved! Password sent via email.');
+                }
+                closeApprovalModal();
+                currentRequestPage = 1; // Reset to first page
+                loadHospitalRequests();
+                loadRecentRequests(); // Refresh overview recent requests
+                loadOverview();
+            } else {
+                showToast(data.message || 'Approval failed', 'error');
+            }
+        }
+
+        // Quick Approve from Overview - Opens approval modal
+        function quickApproveRequest(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('approval-modal').classList.remove('hidden');
+        }
+
+        // Quick Reject from Overview - Opens rejection modal
+        function quickRejectRequest(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('rejection-reason').value = '';
+            document.getElementById('rejection-modal').classList.remove('hidden');
+        }
+
+        // Rejection Modal
+        function openRejectionModal(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('rejection-reason').value = '';
+            document.getElementById('rejection-modal').classList.remove('hidden');
+        }
+
+        function closeRejectionModal() {
+            document.getElementById('rejection-modal').classList.add('hidden');
+            currentRequestId = null;
+        }
+
+        async function confirmReject() {
+            if (!currentRequestId) return;
+            
+            const reason = document.getElementById('rejection-reason').value.trim();
+            if (!reason) {
+                showToast('Please provide a rejection reason', 'error');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to reject this hospital registration request?')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'reject_hospital_request');
+            fd.append('request_id', currentRequestId);
+            fd.append('rejection_reason', reason);
+            
+            const data = await api(fd);
+            if (data.status === 'success') {
+                // Check if request was already processed
+                if (data.data && data.data.already_processed) {
+                    showToast('Request processed');
+                } else {
+                    showToast('Hospital request rejected. Email sent.');
+                }
+                closeRejectionModal();
+                currentRequestPage = 1; // Reset to first page
+                loadHospitalRequests();
+                loadRecentRequests(); // Refresh overview recent requests
+                loadOverview();
+            } else {
+                showToast(data.message || 'Rejection failed', 'error');
+            }
+        }
+
+        // Load Donors
+        async function loadDonors() {
+            const container = document.getElementById('donors-container');
+            container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Loading donors...</p></div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_all_donors');
+            const data = await api(fd);
+            
+            if (data.status === 'success') {
+                allDonors = data.data;
+                renderDonors(allDonors);
+            }
+        }
+
+        function renderDonors(donors) {
+            const container = document.getElementById('donors-container');
+            if (donors.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-users text-4xl mb-2"></i><p>No donors found</p></div>';
+                return;
+            }
+            
+            // Apply status filter (use display_status if available, fallback to status)
+            const statusFilter = document.getElementById('donor-status-filter')?.value || 'all';
+            let filteredDonors = donors;
+            if (statusFilter !== 'all') {
+                filteredDonors = donors.filter(d => (d.display_status || d.status) === statusFilter);
+            }
+            
+            // Apply search filter
+            const search = document.getElementById('donor-search')?.value.toLowerCase() || '';
+            if (search) {
+                filteredDonors = filteredDonors.filter(d => 
+                    d.full_name.toLowerCase().includes(search) ||
+                    d.email.toLowerCase().includes(search) ||
+                    (d.blood_type && d.blood_type.toLowerCase().includes(search))
+                );
+            }
+            
+            // Show message if no results after filtering
+            if (filteredDonors.length === 0) {
+                const statusFilter = document.getElementById('donor-status-filter')?.value || 'all';
+                const search = document.getElementById('donor-search')?.value || '';
+                let message = 'No donors found';
+                if (statusFilter !== 'all' || search) {
+                    message = `No ${statusFilter !== 'all' ? statusFilter.toLowerCase() : ''} donors found${search ? ` matching "${search}"` : ''}`;
+                }
+                container.innerHTML = `<div class="text-center text-slate-400 py-8"><i class="fas fa-users text-4xl mb-2"></i><p>${message}</p></div>`;
+                return;
+            }
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(filteredDonors.length / itemsPerPage);
+            const startIndex = (currentDonorPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedDonors = filteredDonors.slice(startIndex, endIndex);
+            
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="table-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">
+                            <tr>
+                                <th class="p-2 text-left">Name</th>
+                                <th class="p-2 text-left">Email</th>
+                                <th class="p-2 text-left">Blood Type</th>
+                                <th class="p-2 text-left" style="min-width: 120px;">Status</th>
+                                <th class="p-2 text-right" style="min-width: 150px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paginatedDonors.map(donor => `
+                                <tr class="table-row border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                    <td class="p-2 font-medium text-slate-900 dark:text-white">${donor.full_name}</td>
+                                    <td class="p-2 text-slate-600 dark:text-slate-300">${donor.email}</td>
+                                    <td class="p-2"><span class="px-2 py-1 rounded-full text-xs font-bold ${donor.blood_type ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}">${donor.blood_type || 'N/A'}</span></td>
+                                    <td class="p-2" style="min-width: 120px;">
+                                        ${(() => {
+                                            const displayStatus = donor.display_status || donor.status;
+                                            const statusColors = {
+                                                'Active': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+                                                'Inactive': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+                                                'Deactivated': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                            };
+                                            const colorClass = statusColors[displayStatus] || 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400';
+                                            return `<span class="px-2 py-1 rounded-full text-xs font-bold ${colorClass}">${displayStatus}</span>`;
+                                        })()}
+                                    </td>
+                                    <td class="p-2 text-right" style="min-width: 150px;">
+                                        ${(() => {
+                                            const displayStatus = donor.display_status || donor.status;
+                                            if (displayStatus === 'Active' && donor.can_deactivate == 0) {
+                                                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Active < 1yr</span>';
+                                            } else if (displayStatus === 'Active' && donor.can_deactivate == 1) {
+                                                return `<button onclick="toggleDonorStatus(${donor.user_id}, 'Active', 'Deactivate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 text-white">
+                                                    <i class="fas fa-ban mr-1"></i>Deactivate
+                                                </button>`;
+                                            } else if (displayStatus === 'Inactive') {
+                                                return `<button onclick="toggleDonorStatus(${donor.user_id}, 'Active', 'Deactivate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-orange-600 hover:bg-orange-700 text-white">
+                                                    <i class="fas fa-ban mr-1"></i>Deactivate
+                                                </button>`;
+                                            } else if (displayStatus === 'Deactivated') {
+                                                return `<button onclick="toggleDonorStatus(${donor.user_id}, 'Inactive', 'Activate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-green-600 hover:bg-green-700 text-white">
+                                                    <i class="fas fa-check mr-1"></i>Activate
+                                                </button>`;
+                                            }
+                                            return '';
+                                        })()}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ${generatePaginationHTML(currentDonorPage, totalPages, 'changeDonorPage')}
+            `;
+        }
+
+        function changeDonorPage(page) {
+            const statusFilter = document.getElementById('donor-status-filter')?.value || 'all';
+            let filteredDonors = allDonors;
+            if (statusFilter !== 'all') {
+                filteredDonors = allDonors.filter(d => (d.display_status || d.status) === statusFilter);
+            }
+            const search = document.getElementById('donor-search')?.value.toLowerCase() || '';
+            if (search) {
+                filteredDonors = filteredDonors.filter(d => 
+                    d.full_name.toLowerCase().includes(search) ||
+                    d.email.toLowerCase().includes(search) ||
+                    (d.blood_type && d.blood_type.toLowerCase().includes(search))
+                );
+            }
+            const totalPages = Math.ceil(filteredDonors.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentDonorPage = page;
+                renderDonors(allDonors);
+            }
+        }
+
+        function filterDonors() {
+            currentDonorPage = 1; // Reset to first page when filtering
+            renderDonors(allDonors);
+        }
+
+        async function toggleDonorStatus(userId, currentStatus, action) {
+            // action: 'Deactivate' or 'Activate'
+            // currentStatus: database status ('Active' or 'Inactive')
+            const newStatus = action === 'Deactivate' ? 'Inactive' : 'Active';
+            if (!confirm(`Are you sure you want to ${action.toLowerCase()} this donor?`)) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'toggle_donor_status');
+            fd.append('user_id', userId);
+            fd.append('status', newStatus);
+            
+            const data = await api(fd);
+            if (data.status === 'success') {
+                showToast(`Donor ${action.toLowerCase()}d successfully`);
+                loadDonors();
+            } else {
+                showToast(data.message || 'Operation failed', 'error');
+            }
+        }
+
+        // Load Hospitals
+        async function loadHospitals() {
+            const container = document.getElementById('hospitals-container');
+            container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Loading hospitals...</p></div>';
+            
+            const fd = new FormData();
+            fd.append('action', 'get_all_hospitals');
+            const data = await api(fd);
+            
+            if (data.status === 'success') {
+                allHospitals = data.data;
+                renderHospitals(allHospitals);
+            }
+        }
+
+        function renderHospitals(hospitals) {
+            const container = document.getElementById('hospitals-container');
+            if (hospitals.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-400 py-8"><i class="fas fa-hospital text-4xl mb-2"></i><p>No hospitals found</p></div>';
+                return;
+            }
+            
+            // Apply status filter (use display_status if available, fallback to status)
+            const statusFilter = document.getElementById('hospital-status-filter')?.value || 'all';
+            let filteredHospitals = hospitals;
+            if (statusFilter !== 'all') {
+                filteredHospitals = hospitals.filter(h => {
+                    const displayStatus = h.display_status || h.status;
+                    return displayStatus === statusFilter;
+                });
+            }
+            
+            // Apply search filter
+            const search = document.getElementById('hospital-search')?.value.toLowerCase() || '';
+            if (search) {
+                filteredHospitals = filteredHospitals.filter(h => 
+                    h.hospital_name.toLowerCase().includes(search) ||
+                    h.hospital_address.toLowerCase().includes(search) ||
+                    h.admin_email.toLowerCase().includes(search)
+                );
+            }
+            
+            // Show message if no results after filtering
+            if (filteredHospitals.length === 0) {
+                const statusFilter = document.getElementById('hospital-status-filter')?.value || 'all';
+                const search = document.getElementById('hospital-search')?.value || '';
+                let message = 'No hospitals found';
+                if (statusFilter !== 'all' || search) {
+                    message = `No ${statusFilter !== 'all' ? statusFilter.toLowerCase() : ''} hospitals found${search ? ` matching "${search}"` : ''}`;
+                }
+                container.innerHTML = `<div class="text-center text-slate-400 py-8"><i class="fas fa-hospital text-4xl mb-2"></i><p>${message}</p></div>`;
+                return;
+            }
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(filteredHospitals.length / itemsPerPage);
+            const startIndex = (currentHospitalPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedHospitals = filteredHospitals.slice(startIndex, endIndex);
+            
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="table-header bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">
+                            <tr>
+                                <th class="p-2 text-left">Hospital Name</th>
+                                <th class="p-2 text-left">Location</th>
+                                <th class="p-2 text-left">Admin Email</th>
+                                <th class="p-2 text-left" style="min-width: 120px;">Status</th>
+                                <th class="p-2 text-right" style="min-width: 150px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paginatedHospitals.map(hospital => `
+                                <tr class="table-row border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                    <td class="p-2 font-medium text-slate-900 dark:text-white">${hospital.hospital_name}</td>
+                                    <td class="p-2 text-slate-600 dark:text-slate-300">${hospital.hospital_address}</td>
+                                    <td class="p-2 text-slate-600 dark:text-slate-300">${hospital.admin_email}</td>
+                                    <td class="p-2" style="min-width: 120px;">
+                                        ${(() => {
+                                            const displayStatus = hospital.display_status || hospital.status;
+                                            const statusColors = {
+                                                'Active': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+                                                'Inactive': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+                                                'Deactivated': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+                                                'Pending': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                                                'Rejected': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                            };
+                                            const colorClass = statusColors[displayStatus] || 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400';
+                                            return `<span class="px-2 py-1 rounded-full text-xs font-bold ${colorClass}">${displayStatus}</span>`;
+                                        })()}
+                                    </td>
+                                    <td class="p-2 text-right" style="min-width: 150px;">
+                                        ${(() => {
+                                            const displayStatus = hospital.display_status || hospital.status;
+                                            if (displayStatus === 'Active' && hospital.can_deactivate == 0) {
+                                                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Active < 1yr</span>';
+                                            } else if (displayStatus === 'Active' && hospital.can_deactivate == 1) {
+                                                return `<button onclick="toggleHospitalStatus(${hospital.hospital_id}, 'Active', 'Deactivate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 text-white">
+                                                    <i class="fas fa-ban mr-1"></i>Deactivate
+                                                </button>`;
+                                            } else if (displayStatus === 'Inactive') {
+                                                return `<button onclick="toggleHospitalStatus(${hospital.hospital_id}, 'Active', 'Deactivate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-orange-600 hover:bg-orange-700 text-white">
+                                                    <i class="fas fa-ban mr-1"></i>Deactivate
+                                                </button>`;
+                                            } else if (displayStatus === 'Deactivated') {
+                                                return `<button onclick="toggleHospitalStatus(${hospital.hospital_id}, 'Inactive', 'Activate')" class="px-3 py-1 rounded-lg font-bold text-xs transition-all bg-green-600 hover:bg-green-700 text-white">
+                                                    <i class="fas fa-check mr-1"></i>Activate
+                                                </button>`;
+                                            } else if (displayStatus === 'Pending' || displayStatus === 'Rejected') {
+                                                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">N/A</span>';
+                                            }
+                                            return '';
+                                        })()}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ${generatePaginationHTML(currentHospitalPage, totalPages, 'changeHospitalPage')}
+            `;
+        }
+
+        function changeHospitalPage(page) {
+            const statusFilter = document.getElementById('hospital-status-filter')?.value || 'all';
+            let filteredHospitals = allHospitals;
+            if (statusFilter !== 'all') {
+                filteredHospitals = allHospitals.filter(h => {
+                    const displayStatus = h.display_status || h.status;
+                    return displayStatus === statusFilter;
+                });
+            }
+            const search = document.getElementById('hospital-search')?.value.toLowerCase() || '';
+            if (search) {
+                filteredHospitals = filteredHospitals.filter(h => 
+                    h.hospital_name.toLowerCase().includes(search) ||
+                    h.hospital_address.toLowerCase().includes(search) ||
+                    h.admin_email.toLowerCase().includes(search)
+                );
+            }
+            const totalPages = Math.ceil(filteredHospitals.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentHospitalPage = page;
+                renderHospitals(allHospitals);
+            }
+        }
+
+        function filterHospitals() {
+            currentHospitalPage = 1; // Reset to first page when filtering
+            renderHospitals(allHospitals);
+        }
+
+        async function toggleHospitalStatus(hospitalId, currentStatus, action) {
+            // action: 'Deactivate' or 'Activate'
+            // currentStatus: database status ('Active' or 'Inactive')
+            const newStatus = action === 'Deactivate' ? 'Inactive' : 'Active';
+            if (!confirm(`Are you sure you want to ${action.toLowerCase()} this hospital?`)) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'toggle_hospital_status');
+            fd.append('hospital_id', hospitalId);
+            fd.append('status', newStatus);
+            
+            const data = await api(fd);
+            if (data.status === 'success') {
+                showToast(`Hospital ${action.toLowerCase()}d successfully`);
+                loadHospitals();
+            } else {
+                showToast(data.message || 'Operation failed', 'error');
+            }
+        }
+
+        // Check Auth & Logout
+        async function checkAuth() {
+            const fd = new FormData();
+            fd.append('action', 'check_session');
+            const data = await api(fd);
+            
+            if (data.status !== 'success') {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                const fd = new FormData();
+                fd.append('action', 'logout');
+                api(fd).then(() => window.location.href = 'index.html');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadOverview();
+            }
+        });
+    </script>
+</body>
+</html>
