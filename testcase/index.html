@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodKnight</title>
+    <link rel="icon" type="image/png" href="assets/knight-shield.png">
+    <link rel="shortcut icon" type="image/png" href="assets/knight-shield.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        // Store reCAPTCHA responses by form ID
+        window.recaptchaResponses = {};
+        
+        // Callback function for reCAPTCHA - called when user completes verification
+        window.recaptchaCallback = function(response) {
+            // Find which form this reCAPTCHA belongs to
+            const recaptchaDivs = document.querySelectorAll('.g-recaptcha');
+            recaptchaDivs.forEach(div => {
+                const form = div.closest('form');
+                if (form && form.id) {
+                    window.recaptchaResponses[form.id] = response;
+                }
+            });
+            // Also store as default
+            window.recaptchaResponses['default'] = response;
+        };
+    </script>
+    
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            /* Light Mode (Default) - Charity-focused warm, compassionate tones */
+            --primary-dark: #a51a3a; /* Lighter dark red */
+            --primary: #dc3545; /* Warmer, more charitable red */
+            --primary-light: #ff4757;
+            --bg-body: #fefefe; /* Very soft off-white for charity feel */
+            --bg-section-alt: #fff8f9; /* Warmer, softer pink */
+            --bg-card: #ffffff;
+            --bg-banner: #ffeef0; /* Warmer, more compassionate pink banner */
+            --text-main: #1f1f24; /* Softer than pure black */
+            --text-muted: #6b7280; /* Professional grey */
+            --shadow-color: rgba(220, 53, 69, 0.15); /* Warmer shadow */
+            --modal-bg: #ffffff;
+            --input-border: #f0d4d8; /* Warmer, softer border */
+            --accent-blue: #3b82f6; /* Professional blue accent */
+            --accent-green: #10b981; /* Success green */
+            
+            --transition: all 0.3s ease;
+        }
+
+        /* DARK MODE OVERRIDES - Lighter blue theme, less scary */
+        body.dark-mode {
+            --primary-dark: #ff6b81; /* Lighter red for dark mode text */
+            --primary: #ff4757;
+            --primary-light: #ff8787;
+            --bg-body: #1a2332; /* Lighter dark blue background */
+            --bg-section-alt: #243447; /* Lighter dark blue section */
+            --bg-card: #2d4a5f; /* Lighter dark blue card background */
+            --bg-banner: #3d5a7f; /* Lighter dark blue banner */
+            --text-main: #e8f0f8; /* Soft light text */
+            --text-muted: #a8b8c8; /* Muted grey-blue */
+            --shadow-color: rgba(220, 53, 69, 0.25);
+            --modal-bg: #2d4a5f;
+            --input-border: #4a5f7a; /* Lighter dark blue border */
+            --accent-blue: #60a5fa;
+            --accent-green: #34d399;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        body { color: var(--text-main); background-color: var(--bg-body); overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; outline: none; transition: var(--transition); }
+        
+        /* Utility for full screen sections */
+        section { 
+            height: 100vh; 
+            min-height: 100vh;
+            max-height: 100vh;
+            padding: 80px 8%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Smooth section transitions */
+        section:not(.hero) {
+            background: var(--bg-body);
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Ensure hero section has no background color blocking the image */
+        section.hero {
+            background-color: transparent !important;
+        }
+
+        /* --- NAVIGATION --- */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; position: fixed; width: 100%; top: 0; background: rgba(250, 250, 250, 0.95); backdrop-filter: blur(10px); z-index: 1000; box-shadow: 0 2px 20px rgba(139, 14, 42, 0.08); transition: background 0.3s, box-shadow 0.3s; }
+        body.dark-mode nav { background: rgba(26, 35, 50, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3); }
+        
+        /* IC Format Hint - Lighter in dark mode */
+        body.dark-mode .ic-format-hint {
+            color: #a8b8c8 !important; /* Use muted grey-blue from dark mode palette for better visibility */
+        }
+        
+        /* Success message - Even lighter green in dark mode for better visibility */
+        body.dark-mode #qna-msg[style*="color: green"],
+        body.dark-mode #qna-msg[style*="color:green"],
+        body.dark-mode #qna-msg[style*="var(--accent-green)"],
+        body.dark-mode #otp-msg[style*="color: green"],
+        body.dark-mode #otp-msg[style*="color:green"],
+        body.dark-mode #otp-msg[style*="var(--accent-green)"] {
+            color: #6ee7b7 !important; /* Even lighter green for dark mode */
+        }
+        
+        /* Loading button - simple spinner only, no text or effects */
+        .btn-design-red[disabled],
+        .btn-design-red.loading {
+            position: relative;
+        }
+        
+        .btn-design-red[disabled] .fa-spinner,
+        .btn-design-red.loading .fa-spinner {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        .btn-design-red[disabled],
+        .btn-design-red.loading {
+            opacity: 0.8 !important;
+            cursor: not-allowed !important;
+        }
+        
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Also target elements with accent-green variable in dark mode */
+        body.dark-mode #qna-msg,
+        body.dark-mode #otp-msg {
+            --accent-green: #6ee7b7; /* Override accent-green to be even lighter */
+        }
+        
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: var(--transition); }
+        .logo:hover { opacity: 0.8; }
+        .logo i { color: var(--primary); }
+        .logo img { height: 40px; width: auto; object-fit: contain; }
+        
+        .nav-links { display: flex; gap: 2rem; list-style: none; font-weight: 500; color: var(--text-muted); }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .nav-buttons { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; }
+        .btn-primary { 
+            background: linear-gradient(135deg, #dc3545 0%, #c41e3a 100%); /* Warmer red for charity */
+            color: white; 
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.5),
+                        0 5px 15px rgba(139, 14, 42, 0.3); 
+            background: linear-gradient(135deg, #ff4757 0%, #dc3545 100%); 
+        }
+        .btn-text { background: transparent; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;}
+        .btn-text:hover { color: var(--primary); }
+
+        .theme-toggle { background: transparent; color: var(--text-main); font-size: 1.2rem; padding: 0.5rem; display: flex; align-items: center; justify-content: center;}
+        .theme-toggle:hover { color: var(--primary); }
+
+        /* --- SECTION HEADERS --- */
+        .section-header { text-align: center; margin-bottom: 3rem; position: relative; z-index: 1; }
+        .section-tag { color: var(--primary); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 0.9rem; display: block; margin-bottom: 10px;}
+        .about-section .section-tag { font-size: 0.81rem; margin-bottom: 9px; }
+        .section-header h2 { font-size: 3rem; color: var(--primary-dark); font-weight: 800; }
+        .section-header p { color: var(--text-muted); margin-top: 10px; }
+
+        /* --- FADE IN SLIDE UP ANIMATIONS --- */
+        .fade-slide-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .fade-slide-up.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Blur effect for type section cards during animation */
+        .types-section .type-card-container.fade-slide-up {
+            filter: blur(10px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .types-section .type-card-container.fade-slide-up.animate {
+            filter: blur(0px);
+        }
+        
+        /* Stagger delays for cards */
+        .fade-slide-up.delay-1 { transition-delay: 0.1s; }
+        .fade-slide-up.delay-2 { transition-delay: 0.2s; }
+        .fade-slide-up.delay-3 { transition-delay: 0.3s; }
+        .fade-slide-up.delay-4 { transition-delay: 0.4s; }
+        .fade-slide-up.delay-5 { transition-delay: 0.5s; }
+        .fade-slide-up.delay-6 { transition-delay: 0.6s; }
+
+        /* ====== HERO SECTION ====== */
+        .hero { 
+            /* Background layers: overlay + blood bags image */
+            background-image: 
+                linear-gradient(rgba(254, 254, 254, 0.5), rgba(254, 254, 254, 0.45)),
+                url('assets/blood-bags-backdrop.png');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            background-attachment: fixed;
+            background-color: transparent;
+            perspective: 1000px;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            
+            /* GRID LAYOUT for Content Left / Visual Right */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 80px 8%;
+            position: relative; /* Essential for absolute positioning of children */
+        }
+        /* Swirl pattern overlay with blue-to-red conversion */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('assets/swirl-backdrop.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: 0.55;
+            z-index: 1;
+            pointer-events: none;
+            /* Convert blue to red: rotate hue from blue (240deg) to red (0deg) = -120deg or 240deg */
+            filter: hue-rotate(120deg) saturate(1.8) brightness(0.85) contrast(1.15);
+        }
+        body.dark-mode .hero {
+            background-image: 
+                linear-gradient(rgba(26, 35, 50, 0.85), rgba(26, 35, 50, 0.8)),
+                url('assets/blood-bags-backdrop.png');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            background-attachment: fixed;
+            background-color: transparent;
+        }
+        body.dark-mode .hero::before {
+            opacity: 0.4;
+            filter: hue-rotate(120deg) saturate(2) brightness(0.7) contrast(1.2);
+        }
+
+        /* Left Side Content */
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align text to the left */
+            justify-content: flex-start; /* Align to top to match blood bag */
+            position: relative;
+            z-index: 10;
+            text-align: left;
+            padding-top: 4rem; /* Match blood bag's padding-top */
+        }
+        
+        .hero-heading {
+            font-size: 4.7rem; /* 5% smaller: 4.95 * 0.95 */
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .hero-heading.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .hero-description {
+            font-size: 1.15rem; /* 5% smaller: 1.21 * 0.95 */
+            color: #4a5568; /* Darker, more visible gray for light mode */
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 90%;
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
+            font-weight: 400;
+        }
+        body.dark-mode .hero-description {
+            color: #e2e8f0; /* Lighter, more visible gray for dark mode */
+        }
+        .hero-description.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Right Side Visual */
+        .hero-interactive-container {
+            position: relative;
+            z-index: 10;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            width: 100%;
+            height: 100%;
+            padding-top: 4rem; /* Shift upwards more */
+        }
+
+        /* 3D Blood Bag Style */
+        .blood-bag-3d {
+            width: 366px; /* 5% smaller: 385 * 0.95 */
+            height: 496px; /* 5% smaller: 522.5 * 0.95 */
+            background: linear-gradient(135deg, #d61c3b, #8a0a23);
+            border-radius: 40px 40px 60px 60px;
+            box-shadow: 
+                inset -10px -10px 30px rgba(0,0,0,0.3),
+                inset 10px 10px 30px rgba(255,255,255,0.2),
+                0 20px 50px rgba(138, 10, 35, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+        .bag-label {
+            background: rgba(255,255,255,0.9);
+            padding: 23.75px 33.25px; /* 5% smaller: 25*0.95, 35*0.95 */
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .bag-label h2 { font-size: 4.75rem; font-weight: 900; color: #2f3542; line-height: 1;} /* 5% smaller: 5 * 0.95 */
+        .bag-label span { font-weight: 700; color: var(--primary); letter-spacing: 1px; font-size: 1.045rem;} /* 5% smaller: 1.1 * 0.95 */
+
+        /* Floating Bandages */
+        .floater { position: absolute; z-index: 5; opacity: 0.6; pointer-events: none; animation: float 6s ease-in-out infinite; color: var(--primary); }
+        .bandage-b { top: 42%; left: 35%; font-size: 2.5rem; transform: rotate(30deg); z-index: 2; }
+        .bandage-1 { top: 15%; left: 10%; font-size: 2rem; transform: rotate(-25deg); animation-delay: 0s; }
+        .bandage-2 { top: 25%; right: 15%; font-size: 1.8rem; transform: rotate(45deg); animation-delay: 1.5s; }
+        .bandage-3 { bottom: 20%; left: 8%; font-size: 2.2rem; transform: rotate(-15deg); animation-delay: 2.5s; }
+        .bandage-4 { top: 60%; right: 8%; font-size: 1.5rem; transform: rotate(60deg); animation-delay: 3.5s; }
+        .bandage-5 { bottom: 15%; right: 12%; font-size: 1.8rem; transform: rotate(-40deg); animation-delay: 1s; }
+        
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-20px) rotate(var(--r, 0deg)); } }
+
+        /* CTA Area */
+        .hero-cta { z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-bottom: 2rem; }
+        .hero-text-capsule {
+            background: var(--bg-card);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            font-weight: 600;
+            color: var(--text-main);
+            border: 1px solid var(--input-border);
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s;
+        }
+        .hero-text-capsule.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .hero-text-capsule span { color: var(--primary); }
+
+        /* ====== ABOUT SECTION ====== */
+        .about-section { 
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .counters-banner {
+            background: var(--bg-banner);
+            padding: 2.7rem;
+            border-radius: 27px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 1.8rem;
+            text-align: center;
+            margin-top: 3.5rem;
+            margin-bottom: 3rem;
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .counter-item h3 { font-size: 2.43rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.162rem; font-family: 'Rajdhani', sans-serif; }
+        .counter-item p { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.648rem; letter-spacing: 0.81px;}
+
+        .mission-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 3.6rem; 
+            width: 100%; 
+            max-width: 1200px;
+            margin-top: -1rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .mission-visual { 
+            flex: 1; 
+            height: 360px; 
+            background: var(--bg-section-alt); 
+            border-radius: 27px; 
+            position: relative; 
+            overflow: visible; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+        .mission-visual i { font-size: 7.2rem; color: var(--primary); opacity: 0.2; }
+        
+        /* Deck of Images Container */
+        .mission-deck {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .mission-card {
+            position: absolute;
+            width: 85%;
+            height: 85%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), z-index 0.5s step-end;
+            cursor: pointer;
+            background: var(--bg-card);
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            will-change: transform;
+            opacity: 1;
+            /* Slight gradient overlay */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+        }
+        body.dark-mode .mission-card {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 71, 87, 0.08) 100%);
+        }
+        
+        .mission-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* Stacked positioning - each card slightly offset like a deck */
+        .mission-card {
+            z-index: 1;
+        }
+        .mission-card:nth-child(1) { 
+            transform: translate(0, 0) rotate(0deg);
+            z-index: 6;
+        }
+        .mission-card:nth-child(2) { 
+            transform: translate(10.8px, 10.8px) rotate(2deg);
+            z-index: 5;
+        }
+        .mission-card:nth-child(3) { 
+            transform: translate(21.6px, 21.6px) rotate(-1deg);
+            z-index: 4;
+        }
+        .mission-card:nth-child(4) { 
+            transform: translate(32.4px, 32.4px) rotate(1.5deg);
+            z-index: 3;
+        }
+        .mission-card:nth-child(5) { 
+            transform: translate(43.2px, 43.2px) rotate(-0.5deg);
+            z-index: 2;
+        }
+        .mission-card:nth-child(6) { 
+            transform: translate(54px, 54px) rotate(1deg);
+            z-index: 1;
+        }
+        
+        /* Active card (top of deck) */
+        .mission-card.active {
+            transform: translate(0, 0) rotate(0deg) scale(1.02);
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+        }
+        
+        .mission-content { flex: 1; }
+        .mission-content h2 { font-size: 2.43rem; line-height: 1.1; color: var(--primary-dark); margin-bottom: 1.215rem; font-weight: 800;}
+        .mission-content .lead { font-size: 0.891rem; color: var(--text-muted); margin-bottom: 1.62rem; line-height: 1.7; }
+        
+        /* ====== FACTS SECTION ====== */
+        .facts-section { background: var(--bg-section-alt); }
+        .facts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; width: 100%; }
+        
+        .fact-card-container { width: 100%; height: 350px; perspective: 1000px; cursor: pointer; }
+        .fact-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
+        .fact-card-container.flipped .fact-card-inner { transform: rotateY(180deg); }
+
+        .fact-card-front, .fact-card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            padding: 2rem; border-radius: 25px; background: var(--bg-card);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            /* Slight gradient overlay */
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(220, 53, 69, 0.08) 100%);
+            /* Visible border for light mode */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+        }
+        body.dark-mode .fact-card-front {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(255, 71, 87, 0.12) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+        .fact-number { font-size: 4rem; font-weight: 900; color: var(--bg-banner); margin-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; }
+        /* Make number visible in dark mode */
+        body.dark-mode .fact-number { color: rgba(255, 71, 87, 0.2); }
+        
+        .fact-card-front h3 { font-size: 1.5rem; color: var(--primary-dark); font-weight: 800; }
+        .tap-link { color: var(--primary); font-weight: 600; margin-top: auto; font-size: 0.9rem; }
+        
+        .fact-card-back { 
+            background: linear-gradient(135deg, var(--primary-dark) 0%, rgba(220, 53, 69, 0.9) 100%); 
+            color: white; 
+            transform: rotateY(180deg); 
+        }
+        body.dark-mode .fact-card-back {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, rgba(255, 107, 129, 0.95) 100%);
+        }
+        .fact-card-back p { font-size: 1.1rem; line-height: 1.6; }
+        .fact-card-back strong { color: #ffbdc9; }
+
+        /* ====== TYPE SECTION ====== */
+        .types-section { 
+            background: var(--bg-body);
+            position: relative;
+            overflow: hidden;
+        }
+        .types-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('assets/droplets-backdrop.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .types-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(254, 254, 254, 0.2), rgba(254, 254, 254, 0.5));
+            z-index: 0;
+            pointer-events: none;
+        }
+        body.dark-mode .types-section::before {
+            opacity: 0.5;
+        }
+        body.dark-mode .types-section::after {
+            background: linear-gradient(to bottom, rgba(26, 35, 50, 0.3), rgba(26, 35, 50, 0.6));
+        }
+        .types-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 2rem; 
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Shadow effect for type section headings */
+        .types-section .section-header h2 {
+            text-shadow: 0 3px 10px rgba(165, 26, 58, 0.4), 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        body.dark-mode .types-section .section-header h2 {
+            text-shadow: 0 3px 10px rgba(255, 107, 129, 0.5), 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Uniform Card Design for all Types */
+        .type-card-container { width: 100%; height: 380px; perspective: 1000px; cursor: pointer; }
+        .type-card-inner { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .type-card-container.flipped .type-card-inner { transform: rotateY(180deg); }
+
+        .type-front, .type-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 30px; padding: 2rem; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+            /* Visible border matching fact section */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+            box-shadow: 0 10px 25px var(--shadow-color);
+            /* Semi-transparent gradient - not too transparent */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 71, 87, 0.15) 100%);
+            backdrop-filter: blur(10px);
+        }
+        body.dark-mode .type-front, body.dark-mode .type-back {
+            background: linear-gradient(135deg, rgba(45, 74, 95, 0.8) 0%, rgba(255, 71, 87, 0.2) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+
+        .illustration-circle {
+            width: 120px; height: 120px;
+            background: var(--bg-section-alt);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 2rem;
+            font-size: 3.5rem; font-weight: 900; color: var(--primary);
+            position: relative; overflow: hidden;
+        }
+        /* Aesthetic "fluid" in circle */
+        .illustration-circle::after {
+            content: ''; position: absolute; bottom: -10px; left: 0; right: 0;
+            height: 40%; background: var(--primary); opacity: 0.2;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .type-front h3 { font-size: 2rem; color: var(--primary-dark); font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 8px rgba(165, 26, 58, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);}
+        body.dark-mode .type-front h3 { text-shadow: 0 2px 8px rgba(255, 107, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);}
+        .type-front p { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
+
+        .type-back { 
+            /* Semi-transparent gradient for back - not too transparent */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 71, 87, 0.15) 100%); 
+            backdrop-filter: blur(10px);
+            color: var(--text-main); 
+            transform: rotateY(180deg); 
+            /* Visible border matching fact section */
+            border: 2px solid rgba(220, 53, 69, 0.25);
+        }
+        body.dark-mode .type-back {
+            background: linear-gradient(135deg, rgba(45, 74, 95, 0.8) 0%, rgba(255, 71, 87, 0.2) 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+        .compat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; text-align: left; }
+        .compat-col h4 { color: var(--primary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;}
+        .blood-badge { display: inline-block; background: var(--bg-section-alt); padding: 4px 8px; border-radius: 6px; margin: 2px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+
+        /* ====== FOOTER ====== */
+        footer { background: var(--bg-body); padding: 5rem 8% 2rem; text-align: center; border-top: 1px solid var(--input-border); margin-top: auto;}
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem; }
+        .social-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-section-alt); color: var(--primary); display: flex; justify-content: center; align-items: center; transition: var(--transition); }
+        .social-btn:hover { background: var(--primary); color: white; }
+
+        /* ====== MODALS ====== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        /* Updated Modal Content Styles */
+        .modal-content { background: var(--modal-bg); border-radius: 20px; padding: 2rem; width: 90%; max-width: 450px; max-height: 95vh; overflow-y: auto; transform: translateY(20px); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header-center { margin-bottom: 1.5rem; }
+        .modal-title-design { font-size: 1.6rem; }
+        
+        /* Smaller size for donor signup modal */
+        /* Smaller size for donor signup modal */
+        #donor-signup-modal .modal-content { max-width: 380px; padding: 1.2rem; max-height: 95vh; overflow-y: auto; }
+        #donor-signup-modal .modal-close { top: 0.8rem; right: 0.8rem; font-size: 0.9rem; }
+        #donor-signup-modal .modal-header-center { margin-bottom: 0.7rem; }
+        #donor-signup-modal .modal-title-design { font-size: 1.2rem; }
+        #donor-signup-modal .form-group { margin-bottom: 0.5rem; }
+        #donor-signup-modal .input-label-design { margin-bottom: 0.25rem; font-size: 0.75rem; }
+        #donor-signup-modal .input-field-design { padding: 7px 10px; font-size: 0.8rem; }
+        #donor-signup-modal .btn-design-red { padding: 8px; font-size: 0.85rem; margin-top: 0.3rem; }
+        #donor-signup-modal .modal-footer { margin-top: 0.6rem; font-size: 0.8rem; }
+        #donor-signup-modal .modal-header-center p { font-size: 0.7rem; margin-top: 0.2rem; }
+        #donor-signup-modal .g-recaptcha { transform: scale(0.7); transform-origin: center; margin: 0.5rem 0; }
+        #donor-signup-modal .form-group[style*="display:flex"] { margin: 0.4rem 0 !important; }
+        #donor-signup-modal #signup-msg { font-size: 0.75rem; margin-top: 0.5rem; }
+        #donor-signup-modal .split-inputs { gap: 0.5rem; }
+        #donor-signup-modal .password-wrapper { margin-top: 0.25rem; }
+        #donor-signup-modal .password-wrapper .input-field-design { padding-right: 38px; }
+        #donor-signup-modal .password-toggle { width: 32px; height: 32px; font-size: 0.85rem; }
+        #hospital-signup-modal .g-recaptcha { transform: scale(0.85); transform-origin: center; }
+        
+        /* Smaller size for hospital signup modal */
+        #hospital-signup-modal .modal-content { max-width: 420px; padding: 1.2rem; max-height: 95vh; overflow-y: auto; }
+        #hospital-signup-modal .modal-close { top: 0.8rem; right: 0.8rem; font-size: 0.9rem; }
+        #hospital-signup-modal .modal-header-center { margin-bottom: 0.8rem; }
+        #hospital-signup-modal .modal-title-design { font-size: 1.2rem; }
+        #hospital-signup-modal .form-group { margin-bottom: 0.5rem; }
+        #hospital-signup-modal .input-label-design { margin-bottom: 0.25rem; font-size: 0.75rem; }
+        #hospital-signup-modal .input-field-design { padding: 7px 10px; font-size: 0.8rem; }
+        #hospital-signup-modal .btn-design-red { padding: 8px; font-size: 0.85rem; margin-top: 0.3rem; }
+        #hospital-signup-modal .modal-footer { margin-top: 0.6rem; font-size: 0.8rem; }
+        #hospital-signup-modal .modal-header-center p { font-size: 0.7rem; margin-top: 0.2rem; }
+        #hospital-signup-modal .g-recaptcha { transform: scale(0.75); transform-origin: center; margin: 0.5rem 0; }
+        #hospital-signup-modal .form-group[style*="display:flex"] { margin: 0.4rem 0 !important; }
+        
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.2rem; color: var(--text-main); background: transparent; cursor: pointer; font-weight: 700; }
+        
+        /* Specific Design Styles */
+        .modal-header-center { text-align: center; margin-bottom: 2rem; }
+        .modal-title-design { font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 1.8rem; color: var(--text-main); margin-bottom: 0; }
+        .hospital-theme .modal-title-design { color: #0f172a; } /* Dark Blue for Hospital */
+        body.dark-mode .modal-title-design { color: var(--text-main); }
+
+        .form-group { margin-bottom: 1rem; }
+        .input-label-design { display: block; margin-bottom: 0.4rem; font-weight: 500; color: var(--text-main); font-size: 0.9rem; }
+        .password-wrapper { position: relative; width: 100%; }
+        .input-field-design { width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; outline: none; transition: 0.3s; background: var(--bg-body); color: var(--text-main); }
+        .input-field-design:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1); }
+        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.6; transition: opacity 0.3s; z-index: 10; display: flex; align-items: center; justify-content: center; outline: none; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+        .password-toggle:hover { opacity: 1; }
+        .password-toggle:focus { outline: none; }
+        .password-toggle:active { outline: none; transform: translateY(-50%); padding: 8px; }
+        .password-toggle i { display: block; transition: opacity 0.3s ease; }
+        .password-toggle i.fa-eye-slash { opacity: 0.6; }
+        .password-toggle i.fa-eye { opacity: 0.6; }
+        
+        /* Hide browser's default password reveal button */
+        input[type="password"]::-webkit-credentials-auto-fill-button,
+        input[type="password"]::-webkit-strong-password-auto-fill-button {
+            display: none !important;
+        }
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none !important;
+        }
+
+        /* Hospital specific input focus */
+        .hospital-theme .input-field-design:focus { border-color: #0f172a; box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
+
+        .btn-design-red { background: #ff4757; color: white; width: 100%; padding: 12px; border-radius: 50px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); margin-top: 0.8rem; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-design-red:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 71, 87, 0.3); }
+
+        .btn-design-dark { background: #0f172a; color: white; width: 100%; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2); margin-top: 1rem; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-design-dark:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(15, 23, 42, 0.3); }
+
+        .footer-link-red { color: #ff4757; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .footer-link-dark { color: #0f172a; font-weight: 700; text-decoration: none; cursor: pointer; }
+
+        .split-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        
+        .modal-footer { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-main); font-weight: 400;}
+        .modal-content .form-group[style*="display:flex"] { margin: 0.8rem 0; }
+
+        /* CHATBOT */
+        .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+        .chat-toggle-btn { width: auto; height: 80px; background: transparent; box-shadow: none; overflow: visible; padding: 0; border: none; cursor: pointer; transition: transform 0.2s ease; position: relative; }
+        .chat-toggle-btn:hover { transform: scale(1.05); }
+        .chat-toggle-btn img { width: auto; height: 100%; object-fit: contain; display: block; }
+        /* Notification dot */
+        .chat-notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 12px;
+            height: 12px;
+            background: #6b7280; /* Start grey */
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            z-index: 10;
+            transition: background-color 0.3s ease;
+        }
+        .chat-notification-dot.active {
+            display: block;
+            background: #10b981; /* Green when active */
+        }
+        .chat-notification-dot.idle {
+            background: #6b7280; /* Grey when idle */
+        }
+        body.dark-mode .chat-notification-dot {
+            border-color: var(--bg-body);
+        }
+        .chat-window { width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: none; display: none; flex-direction: column; margin-bottom: 15px; overflow: hidden; border: 1px solid #e5e7eb; }
+        body.dark-mode .chat-window { background: var(--bg-card); border-color: var(--input-border); }
+        .chat-header { background: linear-gradient(135deg, #dc3545 0%, #c41e3a 100%); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 20px 20px 0 0; position: relative; }
+        body.dark-mode .chat-header { background: linear-gradient(135deg, #ff4757 0%, #dc3545 100%); }
+        .chat-header h4 { display: flex; align-items: center; gap: 8px; margin: 0; }
+        .chat-header-online-dot {
+            width: 10px;
+            height: 10px;
+            background: #6b7280; /* Start grey */
+            border-radius: 50%;
+            border: 2px solid white;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .chat-header-online-dot.active {
+            background: #10b981; /* Green when active */
+        }
+        body.dark-mode .chat-header-online-dot {
+            border-color: var(--bg-card);
+        }
+        .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f8f9fa; display: flex; flex-direction: column; }
+        body.dark-mode .chat-body { background: var(--bg-section-alt); }
+        .bot-message-bubble { background: white; color: var(--text-main); }
+        body.dark-mode .bot-message-bubble { background: var(--bg-card); color: var(--text-main); }
+        .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px; background: white; }
+        body.dark-mode .chat-footer { background: var(--bg-card); border-top-color: var(--input-border); }
+        .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; background: var(--bg-body); color: var(--text-main); }
+        body.dark-mode .chat-footer input { background: var(--bg-section-alt); border-color: var(--input-border); color: var(--text-main); }
+
+        /* Responsive */
+        @media (max-width: 992px) { 
+            section { padding: 60px 5%; height: auto; min-height: auto; }
+            .hero { grid-template-columns: 1fr; } /* Stack on mobile */
+            .mission-container { flex-direction: column; }
+            .mission-visual { width: 100%; height: 300px; }
+            .nav-links { display: none; } /* Simplified nav for mobile */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <a href="#home" class="logo" id="home-logo-link">
+            <img src="assets/knight-shield.png" alt="BloodKnight Logo"> BloodKnight
+        </a>
+        
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#facts">Facts</a></li>
+            <li><a href="#types">Type</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+        </ul>
+        <div class="nav-buttons">
+            <!-- Toggle Dark Mode Button (Moved Here) -->
+            <button id="theme-toggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
+            <button id="hospital-modal-btn" class="btn-text"><i class="fas fa-hospital"></i> FOR HOSPITAL</button>
+            <button id="donor-modal-btn" class="btn btn-primary">Login</button>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+        <!-- Floating Icons - Scattered sparsely to avoid overlaps -->
+        <i class="fas fa-band-aid floater bandage-b"></i>
+        <i class="fas fa-band-aid floater bandage-1"></i>
+        <i class="fas fa-heart floater bandage-2"></i>
+        <i class="fas fa-plus floater bandage-3"></i>
+        <i class="fas fa-heart floater bandage-4"></i>
+        <i class="fas fa-band-aid floater bandage-5"></i>
+
+        <!-- LEFT COLUMN: Content -->
+        <div class="hero-content">
+            <h1 class="hero-heading">Defend the Pulse</h1>
+            <p class="hero-description">
+                Join thousands of compassionate heroes across Sabah, Malaysia who are making a real difference. 
+                Every donation is a gift of hope, connecting caring donors directly with those in need.
+            </p>
+            <!-- Call to Action -->
+            <div class="hero-cta">
+                <div class="hero-text-capsule">
+                    Designed for Heroes. <span>Every drop counts.</span>
+        </div>
+                <button id="donor-signup-btn" class="btn btn-primary" style="padding: 1.25rem 3.66rem; font-size: 1.15rem; box-shadow: 0 10px 25px rgba(207, 27, 59, 0.3);">
+                    Donate Now
+                </button>
+        </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 3D Element -->
+        <div class="hero-interactive-container" id="heroTilt">
+            <div class="blood-bag-3d">
+                <div class="bag-label">
+                    <span>WHOLE BLOOD</span>
+                    <h2>O+</h2>
+                    <span>SABAH</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about-section" id="about">
+        <!-- Counters -->
+        <div class="counters-banner" id="counter-section">
+            <div class="counter-item">
+                <h3 class="counter" data-target="45000">0</h3>
+                <p>Donors</p>
+        </div>
+            <div class="counter-item">
+                <h3 class="counter" data-target="120000">0</h3>
+                <p>Lives Saved</p>
+            </div>
+            <div class="counter-item">
+                <h3 class="counter" data-target="80">0</h3>
+                <p>Clinics</p>
+            </div>
+            <div class="counter-item">
+                <!-- Clean H3 tag to ensure it inherits the bold weight (700) defined in CSS -->
+                <h3 style="font-weight: 400;"><span class="counter" data-target="15">0</span>min</h3>
+                <p>Time to Give</p>
+            </div>
+        </div>
+
+        <div class="mission-container">
+            <div class="mission-visual" id="mission-deck-container">
+                <div class="mission-deck" id="mission-deck">
+                    <div class="mission-card active">
+                        <img src="assets/mission-images/mission-1.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-2.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-3.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-4.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-5.png" alt="Blood Donation">
+                    </div>
+                    <div class="mission-card">
+                        <img src="assets/mission-images/mission-6.png" alt="Blood Donation">
+                    </div>
+                </div>
+            </div>
+            <div class="mission-content">
+                <span class="section-tag fade-slide-up">Our Mission</span>
+                <h2 class="fade-slide-up delay-1">Bridging the Gap</h2>
+                <p class="lead fade-slide-up delay-2">Founded in 2024, BloodKnight connects generous donors directly with local hospitals. No waiting, no wastage.</p>
+                <div class="fade-slide-up delay-3" style="display: flex; flex-direction: column; gap: 8.1px; color: var(--text-main); font-weight: 600; font-size: 0.81rem;">
+                    <div><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8.1px;"></i> 100% Safe Process</div>
+                    <div><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 8.1px;"></i> Real-time Tracking</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FACTS SECTION -->
+    <section class="facts-section" id="facts">
+        <div class="section-header">
+            <span class="section-tag fade-slide-up">Did You Know?</span>
+            <h2 class="fade-slide-up delay-1">Knowledge is Power</h2>
+            <p class="fade-slide-up delay-2">Click cards to reveal.</p>
+        </div>
+        <div class="facts-grid">
+            <div class="fact-card-container fade-slide-up delay-1" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
+                <div class="fact-number">01</div>
+                        <h3>Multiplier</h3>
+                        <span class="tap-link">Tap to learn</span>
+            </div>
+                    <div class="fact-card-back"><p>One pint saves <strong>3 lives</strong> (Red cells, Plasma, Platelets).</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-2" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
+                <div class="fact-number">02</div>
+                <h3>Shelf Life</h3>
+                        <span class="tap-link">Tap to learn</span>
+            </div>
+                    <div class="fact-card-back"><p>Red cells last only <strong>42 days</strong>. We need constant supply.</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-3" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
+                <div class="fact-number">03</div>
+                        <h3>Recovery</h3>
+                        <span class="tap-link">Tap to learn</span>
+            </div>
+                    <div class="fact-card-back"><p>Your fluid volume restores in <strong>24 hours</strong>.</p></div>
+                </div>
+            </div>
+            <div class="fact-card-container fade-slide-up delay-4" onclick="this.classList.toggle('flipped')">
+                <div class="fact-card-inner">
+                    <div class="fact-card-front">
+                <div class="fact-number">04</div>
+                        <h3>O-Negative</h3>
+                        <span class="tap-link">Tap to learn</span>
+                    </div>
+                    <div class="fact-card-back"><p>The <strong>Universal Donor</strong>. Vital for emergencies.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TYPE SECTION -->
+    <section class="types-section" id="types">
+        <div class="section-header">
+            <span class="section-tag fade-slide-up">Compatibility</span>
+            <h2 class="fade-slide-up delay-1">Know Your Type</h2>
+            <p class="fade-slide-up delay-2">Click cards to reveal.</p>
+        </div>
+        <div class="types-grid">
+            <!-- All Cards now use the uniform "Illustration" design -->
+            
+            <!-- TYPE A -->
+            <div class="type-card-container fade-slide-up delay-1" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">A</div>
+                        <h3>Type A</h3>
+                        <p>Common & Vital</p>
+            </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">A+</span> <span class="blood-badge">A-</span> <span class="blood-badge">AB+</span> <span class="blood-badge">AB-</span></div>
+            </div>
+                            <div class="compat-col">
+                                <h4>Receives</h4>
+                                <div><span class="blood-badge">A+</span> <span class="blood-badge">A-</span> <span class="blood-badge">O+</span> <span class="blood-badge">O-</span></div>
+            </div>
+            </div>
+        </div>
+                </div>
+            </div>
+
+            <!-- TYPE B -->
+            <div class="type-card-container fade-slide-up delay-2" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">B</div>
+                        <h3>Type B</h3>
+                        <p>Rare Strength</p>
+        </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">B+</span> <span class="blood-badge">B-</span> <span class="blood-badge">AB+</span> <span class="blood-badge">AB-</span></div>
+            </div>
+                            <div class="compat-col">
+                                <h4>Receives</h4>
+                                <div><span class="blood-badge">B+</span> <span class="blood-badge">B-</span> <span class="blood-badge">O+</span> <span class="blood-badge">O-</span></div>
+            </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TYPE AB -->
+            <div class="type-card-container fade-slide-up delay-3" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">AB</div>
+                        <h3>Type AB</h3>
+                        <p>Universal Recipient</p>
+                    </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col" style="grid-column: span 2; text-align:center;">
+                                <h4>Plasma Gives To</h4>
+                                <div><span class="blood-badge">EVERYONE</span></div>
+                                <h4 style="margin-top: 15px;">Receives From</h4>
+                                <div><span class="blood-badge">ALL TYPES</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TYPE O -->
+            <div class="type-card-container fade-slide-up delay-4" onclick="this.classList.toggle('flipped')">
+                <div class="type-card-inner">
+                    <div class="type-front">
+                        <div class="illustration-circle">O</div>
+                        <h3>Type O</h3>
+                        <p>Universal Donor</p>
+                    </div>
+                    <div class="type-back">
+                        <div class="compat-grid">
+                            <div class="compat-col" style="grid-column: span 2; text-align:center;">
+                                <h4>Gives To</h4>
+                                <div><span class="blood-badge">ALL TYPES (O-)</span></div>
+                                <h4 style="margin-top: 15px;">Receives From</h4>
+                                <div><span class="blood-badge">O ONLY</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact">
+        <div class="footer-content">
+            <a href="#home" class="logo" id="footer-logo-link" style="cursor: pointer; text-decoration: none;">
+                <img src="assets/knight-shield.png" alt="BloodKnight Logo"> BloodKnight
+            </a>
+            <div style="text-align: center;">
+                <p style="color: var(--text-muted); margin-bottom: 0.5rem;">&copy; 2025 BloodKnight Initiative.</p>
+                <p style="color: var(--text-main); margin-bottom: 0.5rem;">
+                    Contact Us: 
+                    <a href="mailto:bloodknight.about@gmail.com" style="color: var(--primary); text-decoration: none;">bloodknight.about@gmail.com</a>
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        </div>
+        </div>
+    </footer>
+
+    <!-- DONOR LOGIN MODAL (Standard) -->
+    <div id="donor-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-login"><i class="fas fa-times"></i></button>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">WELCOME BACK</h2>
+                <!-- Secret trigger: Click logo 5 times to access admin login -->
+                <div id="secret-admin-trigger" style="position: absolute; top: 10px; left: 10px; width: 50px; height: 50px; cursor: pointer; opacity: 0.01;" title="Secret Access"></div>
+            </div>
+            <form id="donor-login-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required class="input-field-design" autocomplete="off">
+                        <button type="button" class="password-toggle" aria-label="Show password">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:center; margin:1rem 0;">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="recaptchaCallback"></div>
+                </div>
+                <button type="submit" class="btn-design-red">Sign In</button>
+            </form>
+            <div class="modal-footer">
+                <a href="forgot_password.html?user_type=donor" style="color:var(--primary); font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.5rem;">Forgot Password?</a>
+                <span>Not registered?</span> <a class="footer-link-red" id="show-donor-signup">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DONOR SIGNUP MODAL (New Design: Join The List) -->
+    <div id="donor-signup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-donor-signup"><i class="fas fa-times"></i></button>
+            
+            <!-- Registration Form Step -->
+            <div id="signup-form-step">
+                <div class="modal-header-center">
+                    <h2 class="modal-title-design">JOIN AS DONOR</h2>
+                </div>
+                <form id="donor-signup-form" autocomplete="off">
+                    <div class="form-group">
+                        <label class="input-label-design">Full Name</label>
+                        <input type="text" name="full_name" required class="input-field-design" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">Email</label>
+                        <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">IC No. <span style="color: red;">*</span></label>
+                        <input type="text" name="ic_number" id="ic-number-input" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="YYMMDD-XX-XXXX" maxlength="14" pattern="[0-9]{6}-[0-9]{2}-[0-9]{4}" title="Malaysian IC format: YYMMDD-XX-XXXX (Must be 18 years or older)">
+                        <small class="ic-format-hint" style="color: #666; font-size: 0.85rem; display: block; margin-top: 4px;">Format: YYMMDD-XX-XXXX (e.g., 050315-12-1234)</small>
+                    </div>
+                    <div class="split-inputs">
+                        <div class="form-group">
+                            <label class="input-label-design">Gender <span style="color: red;">*</span></label>
+                            <select name="gender" class="input-field-design" autocomplete="off" required>
+                                <option value="">Select</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label-design">Phone</label>
+                            <input type="text" name="phone" class="input-field-design" autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">Blood Type</label>
+                        <select name="blood_type" class="input-field-design" autocomplete="off">
+                            <option>A+</option>
+                            <option>A-</option>
+                            <option>B+</option>
+                            <option>B-</option>
+                            <option>AB+</option>
+                            <option>AB-</option>
+                            <option>O+</option>
+                            <option>O-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" required class="input-field-design" placeholder="Min 8 chars, 1 Upper, 1 Number" autocomplete="new-password">
+                            <button type="button" class="password-toggle" aria-label="Show password">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="display:flex; justify-content:center; margin:1rem 0;">
+                        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="recaptchaCallback"></div>
+                    </div>
+                    <button type="submit" class="btn-design-red">Send Verification Code</button>
+                </form>
+                <div id="signup-msg" style="text-align:center; margin-top:1rem; font-size:0.9rem; font-weight:600;"></div>
+                <div class="modal-footer">
+                    <span>Have account?</span> <a class="footer-link-red" id="show-donor-login">Sign In</a>
+                </div>
+            </div>
+
+            <!-- OTP Verification Step -->
+            <div id="otp-verification-step" style="display:none;">
+                <div class="modal-header-center">
+                    <h2 class="modal-title-design">VERIFY EMAIL</h2>
+                </div>
+                <div style="text-align:center; margin-bottom:1.5rem;">
+                    <div style="width:60px; height:60px; background:var(--bg-banner); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                        <i class="fas fa-envelope" style="color:var(--primary); font-size:24px;"></i>
+                    </div>
+                    <p style="color:var(--text-muted); margin-bottom:0.5rem;">We've sent a verification code to</p>
+                    <p style="font-weight:700; color:var(--text-main);" id="otp-email-display"></p>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.5rem;">Please check your email and enter the code below</p>
+                </div>
+                <form id="otp-verification-form">
+                    <div class="form-group">
+                        <label class="input-label-design">Verification Code</label>
+                        <input type="text" name="otp" id="otp-input" required maxlength="6" pattern="[0-9]{6}" class="input-field-design" style="text-align:center; font-size:24px; letter-spacing:8px; font-family:monospace; font-weight:bold;" placeholder="000000">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; text-align:center;">Enter the 6-digit code</p>
+                    </div>
+                    <button type="submit" class="btn-design-red">Verify & Create Account</button>
+                    <div style="text-align:center; margin-top:1rem;">
+                        <button type="button" id="resend-otp-btn" style="color:var(--primary); font-weight:600; font-size:0.9rem; background:none; border:none; cursor:pointer;">
+                            <i class="fas fa-redo"></i> Resend Code
+                        </button>
+                    </div>
+                </form>
+                <div id="otp-msg" style="text-align:center; margin-top:1rem; font-size:0.9rem; font-weight:600;"></div>
+                <div style="text-align:center; margin-top:1rem;">
+                    <button id="back-to-signup" style="color:var(--primary); font-weight:700; background:none; border:none; cursor:pointer; font-size:0.9rem;">← Back to Form</button>
+                </div>
+            </div>
+
+            <!-- QnA Questions Step -->
+            <div id="qna-step" style="display:none;">
+                <div class="modal-header-center">
+                    <h2 class="modal-title-design">ELIGIBILITY QUESTIONS</h2>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.5rem;">Please answer these questions to complete your registration</p>
+                </div>
+                <form id="qna-form">
+                    <div class="form-group">
+                        <label class="input-label-design">1. Are you at least 18 years old?</label>
+                        <select name="q1" required class="input-field-design">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">2. Do you weigh at least 50kg?</label>
+                        <select name="q2" required class="input-field-design">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">3. Have you donated blood in the last 90 days?</label>
+                        <select name="q3" required class="input-field-design">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">4. Are you currently feeling healthy and well?</label>
+                        <select name="q4" required class="input-field-design">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label-design">5. Have you had any tattoos or piercings in the last 12 months?</label>
+                        <select name="q5" required class="input-field-design">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div id="qna-msg" style="text-align:center; margin-top:1rem; font-size:0.9rem; font-weight:600;"></div>
+                    <button type="submit" class="btn-design-red">Submit & Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL LOGIN MODAL (Standard) -->
+    <div id="hospital-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-hospital-login"><i class="fas fa-times"></i></button>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">Hospital Login</h2>
+            </div>
+            <form id="hospital-login-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required class="input-field-design" autocomplete="off">
+                        <button type="button" class="password-toggle" aria-label="Show password">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-design-red">Sign In</button>
+            </form>
+            <div class="modal-footer">
+                <a href="forgot_password.html?user_type=hospital" style="color:var(--primary); font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.5rem;">Forgot Password?</a>
+                <span>Not registered?</span> <a class="footer-link-red" id="show-hospital-signup">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL SIGNUP MODAL (New Design: Hospital Registration Request) -->
+    <div id="hospital-signup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-hospital-signup"><i class="fas fa-times"></i></button>
+            <div class="modal-header-center">
+                <h2 class="modal-title-design">HOSPITAL REGISTRATION REQUEST</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Submit your request for approval</p>
+            </div>
+            <form id="hospital-signup-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL NAME</label>
+                    <input type="text" name="hospital_name" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="Enter hospital name">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL LOCATION</label>
+                    <input type="text" name="hospital_location" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="Enter hospital address/location">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL EMAIL</label>
+                    <input type="email" name="hospital_email" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="hospital@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">PHONE NUMBER</label>
+                    <input type="tel" name="hospital_phone" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="+60 12-345 6789">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL TYPE</label>
+                    <select name="hospital_type" required class="input-field-design" autocomplete="off">
+                        <option value="">Select hospital type</option>
+                        <option value="Government">Government</option>
+                        <option value="Private">Private</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">HOSPITAL ADMIN NAME (OPTIONAL)</label>
+                    <input type="text" name="admin_name" class="input-field-design" autocomplete="off" spellcheck="false" placeholder="Hospital administrator name">
+                </div>
+                <div class="form-group" style="display:flex; justify-content:center; margin:1rem 0;">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="recaptchaCallback"></div>
+                </div>
+                <button type="submit" class="btn-design-red">SEND REQUEST</button>
+            </form>
+            <div class="modal-footer">
+                <span>Have account?</span> <a class="footer-link-red" id="show-hospital-login">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLOODKNIGHT ADMIN LOGIN MODAL (Secret Access) -->
+    <div id="bk-admin-login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="close-bk-admin-login"><i class="fas fa-times"></i></button>
+            <div class="modal-header-center">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <i class="fas fa-shield-alt text-4xl" style="color: var(--primary);"></i>
+                </div>
+                <h2 class="modal-title-design">BLOODKNIGHT ADMIN</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Command Center Access</p>
+            </div>
+            <form id="bk-admin-login-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="input-label-design">Email</label>
+                    <input type="email" name="email" required class="input-field-design" autocomplete="off" spellcheck="false" placeholder="admin@bloodknight.com">
+                </div>
+                <div class="form-group">
+                    <label class="input-label-design">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required class="input-field-design" autocomplete="off" placeholder="Enter password">
+                        <button type="button" class="password-toggle" aria-label="Show password">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-design-red">Sign in</button>
+            </form>
+            <div id="bk-admin-error-msg" style="text-align:center; margin-top:1rem; font-size:0.9rem; font-weight:600; color:var(--primary); display:none;"></div>
+        </div>
+    </div>
+
+    <!-- CHAT WIDGET -->
+    <div class="chat-widget">
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h4>KnightBot <span class="chat-header-online-dot"></span></h4>
+                <button id="close-chat" style="background:none; color:white; border:none; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+            <div class="chat-body">
+                <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
+                    <img src="assets/knight-icon.png" alt="KnightBot" style="width: 35px; height: 35px; border-radius: 50%; object-fit: contain; flex-shrink: 0;" onerror="this.style.display='none';">
+                    <div class="bot-message-bubble" style="padding: 10px 15px; border-radius: 10px; display: inline-block; width: fit-content; max-width: 80%; white-space: pre-line;">Hello! How can I help?</div>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <select id="chat-input" style="flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; background: var(--bg-body); color: var(--text-main); cursor: pointer;">
+                    <option value="">Select a question...</option>
+                    <option value="Can I donate if I took aspirin?">Can I donate if I took aspirin?</option>
+                    <option value="What should I eat before donating?">What should I eat before donating?</option>
+                    <option value="How long does recovery take?">How long does recovery take?</option>
+                    <option value="Am I eligible to donate?">Am I eligible to donate?</option>
+                    <option value="What are iron-rich foods?">What are iron-rich foods?</option>
+                    <option value="How often can I donate?">How often can I donate?</option>
+                    <option value="What happens during donation?">What happens during donation?</option>
+                    <option value="What should I do after donating?">What should I do after donating?</option>
+                    <option value="Can I exercise after donating?">Can I exercise after donating?</option>
+                    <option value="What are the side effects?">What are the side effects?</option>
+                </select>
+                <button id="chat-send-btn" onclick="handleChatSend()" style="background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <button id="open-chat" class="chat-toggle-btn" title="KnightBot">
+            <span class="chat-notification-dot" id="chat-notification"></span>
+            <img src="assets/chatbot-icon.png" alt="KnightBot" onerror="this.src='https://ui-avatars.com/api/?name=BK&background=ff4757&color=fff'">
+        </button>
+    </div>
+
+    <script>
+        // Always scroll to home section on page load/refresh
+        window.addEventListener('load', function() {
+            const homeSection = document.getElementById('home');
+            if (homeSection) {
+                // Clear any hash from URL
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+                setTimeout(() => {
+                    homeSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle functionality
+            document.querySelectorAll('.password-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const passwordInput = this.parentElement.querySelector('input[type="password"], input[type="text"]');
+                    const icon = this.querySelector('i');
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+            
+            // Clear all forms on page load to prevent browser from remembering data
+            const allForms = document.querySelectorAll('form');
+            allForms.forEach(form => {
+                form.reset();
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.value = '';
+                    if (input.type === 'password' || (input.type === 'text' && input.closest('.password-wrapper'))) {
+                        input.type = 'password';
+                        const passwordWrapper = input.closest('.password-wrapper');
+                        if (passwordWrapper) {
+                            const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                            if (toggleBtn) {
+                                const icon = toggleBtn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('fa-eye');
+                                    icon.classList.add('fa-eye-slash');
+                                }
+                            }
+                        }
+                    }
+                    if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    }
+                });
+            });
+            
+            // --- 0. LOGO CLICK HANDLERS ---
+            const homeLogoLink = document.getElementById('home-logo-link');
+            const footerLogoLink = document.getElementById('footer-logo-link');
+            
+            const scrollToHome = (e) => {
+                e.preventDefault();
+                document.getElementById('home').scrollIntoView({ behavior: 'smooth' });
+            };
+            
+            if (homeLogoLink) {
+                homeLogoLink.addEventListener('click', scrollToHome);
+            }
+            if (footerLogoLink) {
+                footerLogoLink.addEventListener('click', scrollToHome);
+            }
+            
+            // --- 0. HERO SECTION TEXT ANIMATION ---
+            const heroHeading = document.querySelector('.hero-heading');
+            const heroDescription = document.querySelector('.hero-description');
+            const heroTextCapsule = document.querySelector('.hero-text-capsule');
+            
+            const animateHeroContent = () => {
+                // Remove animate class first to reset
+                if (heroHeading) heroHeading.classList.remove('animate');
+                if (heroDescription) heroDescription.classList.remove('animate');
+                if (heroTextCapsule) heroTextCapsule.classList.remove('animate');
+                
+                // Force reflow
+                if (heroHeading) void heroHeading.offsetWidth;
+                
+                // Add animate class to trigger animation
+                setTimeout(() => {
+                    if (heroHeading) heroHeading.classList.add('animate');
+                    if (heroDescription) heroDescription.classList.add('animate');
+                    if (heroTextCapsule) heroTextCapsule.classList.add('animate');
+                }, 100);
+            };
+            
+            // Observer for when home section comes into view
+            const homeSection = document.getElementById('home');
+            const heroTextObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateHeroContent();
+                    } else {
+                        // Reset when leaving section
+                        if (heroHeading) heroHeading.classList.remove('animate');
+                        if (heroDescription) heroDescription.classList.remove('animate');
+                        if (heroTextCapsule) heroTextCapsule.classList.remove('animate');
+                    }
+                });
+            }, { threshold: 0.3 });
+            
+            if (homeSection) {
+                heroTextObserver.observe(homeSection);
+            }
+            
+            // Also trigger on hash change (when clicking home link)
+            window.addEventListener('hashchange', function() {
+                if (window.location.hash === '#home' || window.location.hash === '') {
+                    setTimeout(() => {
+                        animateHeroContent();
+                    }, 300);
+                }
+            });
+            
+            // Trigger on initial load if already at home section
+            if (window.location.hash === '#home' || window.location.hash === '') {
+                setTimeout(() => {
+                    animateHeroContent();
+                }, 500);
+            }
+            
+            // --- 1. DARK MODE TOGGLE WITH LOCALSTORAGE PERSISTENCE ---
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+            const icon = themeToggle.querySelector('i');
+            
+            // Load saved theme preference on page load
+            const savedTheme = localStorage.getItem('bloodknight-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                    document.body.classList.add('dark'); // For Tailwind compatibility
+                    if (icon) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                    }
+            } else {
+                document.body.classList.remove('dark-mode');
+                    document.body.classList.remove('dark'); // For Tailwind compatibility
+                    if (icon) {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                    }
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                    document.body.classList.toggle('dark'); // For Tailwind compatibility
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                
+                // Save preference to localStorage
+                localStorage.setItem('bloodknight-theme', isDarkMode ? 'dark' : 'light');
+                
+                    if (icon) {
+                if(isDarkMode) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                        }
+                }
+            });
+            }
+
+            // --- 2. 3D TILT EFFECT (HERO) ---
+            const tiltContainer = document.getElementById('heroTilt');
+            
+            if (homeSection && tiltContainer) {
+                homeSection.addEventListener('mousemove', (e) => {
+                    const { offsetWidth: width, offsetHeight: height } = homeSection;
+                    let { offsetX: x, offsetY: y } = e;
+                    if (e.target !== homeSection) { x += e.target.offsetLeft; y += e.target.offsetTop; }
+                    const xRotation = ((y / height) - 0.5) * -20; 
+                    const yRotation = ((x / width) - 0.5) * 20; 
+                    tiltContainer.style.transform = `rotateX(${xRotation}deg) rotateY(${yRotation}deg)`;
+                });
+                homeSection.addEventListener('mouseleave', () => {
+                    tiltContainer.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                });
+            }
+
+            // --- 3. REPEATABLE COUNTERS ---
+            // Fetch counter stats from database
+            async function loadCounterStats() {
+                try {
+                    const response = await fetch('bloodknight.php?action=get_counter_stats');
+                    const result = await response.json();
+                    
+                    if (result.status === 'success' && result.data) {
+                        // Find counters by their parent's text content
+                        const counterItems = document.querySelectorAll('.counter-item');
+                        counterItems.forEach(item => {
+                            const label = item.querySelector('p')?.textContent?.trim();
+                            const counter = item.querySelector('.counter');
+                            
+                            if (counter) {
+                                if (label === 'Donors') {
+                                    counter.setAttribute('data-target', result.data.donors);
+                                } else if (label === 'Lives Saved') {
+                                    counter.setAttribute('data-target', result.data.lives_saved);
+                                } else if (label === 'Clinics') {
+                                    counter.setAttribute('data-target', result.data.clinics || 0);
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading counter stats:', error);
+                    // Keep default values if fetch fails
+                }
+            }
+            
+            // Load stats on page load
+            loadCounterStats();
+
+            const counters = document.querySelectorAll('.counter');
+            const speed = 200;
+
+            const animateCounter = (counter) => {
+                const target = +counter.getAttribute('data-target');
+                // Parse current value - handle both "k" format and plain numbers
+                let currentText = counter.innerText.replace('k', '').replace('min', '').trim();
+                let count = parseFloat(currentText) || 0;
+                
+                // If current text contains "k", multiply by 1000
+                if (counter.innerText.includes('k') && !counter.innerText.includes('min')) {
+                    count = count * 1000;
+                }
+                
+                let inc = target / speed;
+                if(target > 10000) inc = target / 30; 
+                
+                // Determine timeout speed based on target magnitude
+                let timeout = 10;
+                // Only slow down specifically for the "15" counter, letting 80 run fast
+                if (target === 15) timeout = 100; 
+
+                if (count < target) {
+                    const newCount = Math.ceil(count + inc);
+                    // Only add "k" if number is >= 10,000, otherwise show exact number
+                    if (newCount >= 10000) {
+                        counter.innerText = (newCount / 1000).toFixed(0) + 'k';
+                    } else {
+                        counter.innerText = newCount.toString();
+                    }
+                    setTimeout(() => animateCounter(counter), timeout);
+                } else {
+                    // Final value - only add "k" if >= 10,000
+                    if (target >= 10000) {
+                        counter.innerText = (target / 1000).toFixed(0) + 'k';
+                    } else {
+                        counter.innerText = target.toString();
+                    }
+                }
+            };
+
+            const sectionObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Reload stats when section becomes visible to ensure fresh data
+                        loadCounterStats().then(() => {
+                            // Reset all counters to 0 first
+                            counters.forEach(counter => {
+                                const currentText = counter.innerText.replace('k', '').replace('min', '').trim();
+                                if (!isNaN(currentText)) {
+                                    counter.innerText = '0';
+                                }
+                            });
+                            // Start animation after stats are loaded and counters reset
+                            setTimeout(() => {
+                                counters.forEach(counter => animateCounter(counter));
+                            }, 150);
+                        });
+                    } else {
+                        // RESET counters when leaving section so they animate again next time
+                        counters.forEach(counter => {
+                            const currentText = counter.innerText.replace('k', '').replace('min', '').trim();
+                            if (!isNaN(currentText)) {
+                                counter.innerText = '0';
+                            }
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sectionObserver.observe(document.getElementById('counter-section'));
+
+            // --- 3.6. FADE IN SLIDE UP ANIMATIONS FOR SECTIONS ---
+            const animateOnScroll = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    } else {
+                        // Remove animate class when leaving viewport so it can animate again
+                        entry.target.classList.remove('animate');
+                    }
+                });
+            };
+
+            const scrollAnimationObserver = new IntersectionObserver(animateOnScroll, {
+                threshold: 0.2,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observe all fade-slide-up elements in about, facts, and types sections
+            const aboutSection = document.getElementById('about');
+            const factsSection = document.getElementById('facts');
+            const typesSection = document.getElementById('types');
+
+            if (aboutSection) {
+                aboutSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            if (factsSection) {
+                factsSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            if (typesSection) {
+                typesSection.querySelectorAll('.fade-slide-up').forEach(el => {
+                    scrollAnimationObserver.observe(el);
+                });
+            }
+
+            // --- 3.5. MISSION DECK SHUFFLE ANIMATION ---
+            const missionDeck = document.getElementById('mission-deck');
+            const missionCards = document.querySelectorAll('.mission-card');
+            let cardOrder = [0, 1, 2, 3, 4, 5]; // Track the order of cards in the deck
+            let isShuffling = false;
+            
+            if (missionDeck && missionCards.length > 0) {
+                // Initialize: position all cards based on current order
+                const updateCardPositions = () => {
+                    missionCards.forEach((card, index) => {
+                        const stackPosition = cardOrder.indexOf(index);
+                        const offset = stackPosition * 12;
+                        const rotation = stackPosition % 2 === 0 ? (stackPosition * 1.5) : -(stackPosition * 0.5);
+                        
+                        if (stackPosition === 0) {
+                            // Top card
+                            card.classList.add('active');
+                            card.style.zIndex = '10';
+                            card.style.transform = 'translate(0, 0) rotate(0deg) scale(1.02)';
+                        } else {
+                            // Cards behind
+                            card.classList.remove('active');
+                            card.style.zIndex = (missionCards.length - stackPosition).toString();
+                            card.style.transform = `translate(${offset}px, ${offset}px) rotate(${rotation}deg)`;
+                        }
+                        card.style.opacity = '1';
+                    });
+                };
+                
+                // Initialize positions
+                updateCardPositions();
+                
+                const shuffleDeck = () => {
+                    if (isShuffling) return;
+                    isShuffling = true;
+                    
+                    // Move the first card (top) to the end (back) of the array
+                    const topCard = cardOrder.shift(); // Remove first card
+                    cardOrder.push(topCard); // Add it to the end
+                    
+                    // Update all card positions - they all move
+                    updateCardPositions();
+                    
+                    // Reset flag after animation
+                    setTimeout(() => {
+                        isShuffling = false;
+                    }, 500);
+                };
+                
+                // Add click handler
+                const deckContainer = document.getElementById('mission-deck-container');
+                if (deckContainer) {
+                    deckContainer.addEventListener('click', shuffleDeck);
+                }
+            }
+
+            // --- 4. MODAL LOGIC (Switching & Toggling) ---
+            const clearFormFields = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    const form = modal.querySelector('form');
+                    if (form) {
+                        // Reset the form (clears all fields)
+                        form.reset();
+                        
+                        // Clear all input values explicitly
+                        const inputs = form.querySelectorAll('input, textarea, select');
+                        inputs.forEach(input => {
+                            // Clear the value
+                            input.value = '';
+                            
+                            // Reset password fields to hidden state
+                            if (input.type === 'password' || (input.type === 'text' && input.closest('.password-wrapper'))) {
+                                input.type = 'password';
+                                // Reset the eye icon to closed (fa-eye-slash)
+                                const passwordWrapper = input.closest('.password-wrapper');
+                                if (passwordWrapper) {
+                                    const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                                    if (toggleBtn) {
+                                        const icon = toggleBtn.querySelector('i');
+                                        if (icon) {
+                                            icon.classList.remove('fa-eye');
+                                            icon.classList.add('fa-eye-slash');
+                                            toggleBtn.setAttribute('aria-label', 'Show password');
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Reset select fields to first option
+                            if (input.tagName === 'SELECT') {
+                                input.selectedIndex = 0;
+                            }
+                        });
+                    }
+                    // Reset all password fields in the modal (including those outside forms)
+                    const allPasswordInputs = modal.querySelectorAll('input[type="password"], input[type="text"]');
+                    allPasswordInputs.forEach(input => {
+                        // Check if it's a password field by looking for password-wrapper
+                        const passwordWrapper = input.closest('.password-wrapper');
+                        if (passwordWrapper) {
+                            input.type = 'password';
+                            input.value = '';
+                            const toggleBtn = passwordWrapper.querySelector('.password-toggle');
+                            if (toggleBtn) {
+                                const icon = toggleBtn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('fa-eye');
+                                    icon.classList.add('fa-eye-slash');
+                                    toggleBtn.setAttribute('aria-label', 'Show password');
+                                }
+                            }
+                        }
+                    });
+                    // Reset OTP step for donor signup modal
+                    if (modalId === 'donor-signup-modal') {
+                        const signupStep = document.getElementById('signup-form-step');
+                        const otpStep = document.getElementById('otp-verification-step');
+                        if (signupStep && otpStep) {
+                            signupStep.style.display = 'block';
+                            otpStep.style.display = 'none';
+                            document.getElementById('signup-msg').textContent = '';
+                            document.getElementById('otp-msg').textContent = '';
+                            if (typeof registrationData !== 'undefined') {
+                                registrationData = {};
+                                verificationToken = '';
+                            }
+                            if (typeof grecaptcha !== 'undefined') {
+                                grecaptcha.reset();
+                            }
+                        }
+                    }
+                }
+            };
+            
+            function toggleModal(id, show) { 
+                if(show) {
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); // Close all others
+                    document.getElementById(id).classList.add('active');
+                    // Clear all form fields when opening modal
+                    clearFormFields(id);
+                    // Re-initialize password toggles when modal opens
+                    setTimeout(initPasswordToggles, 50);
+                } else {
+                    document.getElementById(id).classList.remove('active');
+                    // Clear form fields when closing modal
+                    clearFormFields(id);
+                }
+            }
+            
+            const donorModalBtn = document.getElementById('donor-modal-btn');
+            const donorSignupBtn = document.getElementById('donor-signup-btn');
+            const hospitalModalBtn = document.getElementById('hospital-modal-btn');
+            
+            if (donorModalBtn) {
+                donorModalBtn.onclick = () => toggleModal('donor-login-modal', true);
+            }
+            if (donorSignupBtn) {
+                donorSignupBtn.onclick = () => toggleModal('donor-signup-modal', true);
+            }
+            if (hospitalModalBtn) {
+                hospitalModalBtn.onclick = () => toggleModal('hospital-login-modal', true);
+            }
+            
+            // Secret admin access: Click logo 5 times in donor login modal
+            let adminClickCount = 0;
+            let adminClickTimeout;
+            const secretTrigger = document.getElementById('secret-admin-trigger');
+            if (secretTrigger) {
+                secretTrigger.addEventListener('click', () => {
+                    adminClickCount++;
+                    clearTimeout(adminClickTimeout);
+                    adminClickTimeout = setTimeout(() => {
+                        adminClickCount = 0;
+                    }, 2000);
+                    
+                    if (adminClickCount >= 5) {
+                        adminClickCount = 0;
+                        toggleModal('donor-login-modal', false);
+                        toggleModal('bk-admin-login-modal', true);
+                    }
+                });
+            }
+            
+            document.querySelectorAll('.modal-close').forEach(btn => btn.onclick = function() { 
+                const modalId = this.closest('.modal-overlay').id;
+                toggleModal(modalId, false);
+                // Reset signup modal to first step
+                if (modalId === 'donor-signup-modal') {
+                    document.getElementById('signup-form-step').style.display = 'block';
+                    document.getElementById('otp-verification-step').style.display = 'none';
+                    const qnaStep = document.getElementById('qna-step');
+                    if (qnaStep) qnaStep.style.display = 'none';
+                    document.getElementById('donor-signup-form').reset();
+                    document.getElementById('signup-msg').textContent = '';
+                    document.getElementById('otp-msg').textContent = '';
+                    if (document.getElementById('qna-msg')) document.getElementById('qna-msg').textContent = '';
+                    if (typeof registrationData !== 'undefined') {
+                        registrationData = {};
+                        verificationToken = '';
+                    }
+                    if (typeof grecaptcha !== 'undefined') {
+                        grecaptcha.reset();
+                    }
+                }
+                // Reset admin login error message
+                if (modalId === 'bk-admin-login-modal') {
+                    const errorMsg = document.getElementById('bk-admin-error-msg');
+                    if (errorMsg) {
+                        errorMsg.style.display = 'none';
+                        errorMsg.textContent = '';
+                    }
+                }
+            });
+
+            const showDonorSignup = document.getElementById('show-donor-signup');
+            const showDonorLogin = document.getElementById('show-donor-login');
+            const showHospitalSignup = document.getElementById('show-hospital-signup');
+            const showHospitalLogin = document.getElementById('show-hospital-login');
+            
+            if (showDonorSignup) {
+                showDonorSignup.onclick = () => { 
+                toggleModal('donor-login-modal', false); 
+                toggleModal('donor-signup-modal', true);
+                // Reset to first step
+                document.getElementById('signup-form-step').style.display = 'block';
+                document.getElementById('otp-verification-step').style.display = 'none';
+                    const qnaStep = document.getElementById('qna-step');
+                    if (qnaStep) qnaStep.style.display = 'none';
+            };
+            }
+            if (showDonorLogin) {
+                showDonorLogin.onclick = () => { 
+                toggleModal('donor-signup-modal', false); 
+                toggleModal('donor-login-modal', true);
+                // Reset to first step
+                document.getElementById('signup-form-step').style.display = 'block';
+                document.getElementById('otp-verification-step').style.display = 'none';
+                    const qnaStep = document.getElementById('qna-step');
+                    if (qnaStep) qnaStep.style.display = 'none';
+                };
+            }
+            if (showHospitalSignup) {
+                showHospitalSignup.onclick = () => { toggleModal('hospital-login-modal', false); toggleModal('hospital-signup-modal', true); };
+            }
+            if (showHospitalLogin) {
+                showHospitalLogin.onclick = () => { toggleModal('hospital-signup-modal', false); toggleModal('hospital-login-modal', true); };
+            }
+
+            // Password toggle functionality - single implementation using event delegation
+            function initPasswordToggles() {
+                // Use event delegation on document to handle all password toggles
+                document.removeEventListener('click', handlePasswordToggle);
+                document.addEventListener('click', handlePasswordToggle);
+            }
+            
+            function handlePasswordToggle(e) {
+                const toggleBtn = e.target.closest('.password-toggle');
+                if (!toggleBtn) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const passwordInput = toggleBtn.previousElementSibling;
+                const icon = toggleBtn.querySelector('i');
+                
+                if (passwordInput && icon) {
+                    // Toggle password visibility and update icon
+                    if (passwordInput.type === 'password') {
+                        // Show password - change to open eye
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                        toggleBtn.setAttribute('aria-label', 'Hide password');
+                    } else {
+                        // Hide password - change to closed eye
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                        toggleBtn.setAttribute('aria-label', 'Show password');
+                    }
+                }
+            }
+            
+            // Initialize password toggles on page load
+            initPasswordToggles();
+
+            // FIX: FORCE RESET BUTTONS ON BACK BUTTON NAVIGATION
+            window.addEventListener('pageshow', function(event) {
+                const buttons = document.querySelectorAll('button[type="submit"]');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    if(btn.innerText === 'Processing...' || btn.innerText === 'Sending Code...' || btn.innerText === 'Verifying...' || btn.innerText === 'Creating Account...') {
+                        if(btn.closest('#donor-login-form')) btn.innerText = 'Sign In';
+                        else if(btn.closest('#donor-signup-form')) btn.innerText = 'Send Verification Code';
+                        else if(btn.closest('#otp-verification-form')) btn.innerText = 'Verify & Create Account';
+                        else if(btn.closest('#hospital-login-form')) btn.innerText = 'Sign In';
+                        else if(btn.closest('#hospital-signup-form')) btn.innerText = 'REGISTER ACCOUNT';
+                    }
+                });
+            });
+
+            // Form Handling
+            async function handleForm(e, action, redirect, backend) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                formData.append('action', action);
+                const btn = e.target.querySelector('button[type="submit"]');
+                const ogText = btn.innerText;
+                
+                // --- NEW: PASSWORD REQUIREMENTS CHECK ---
+                // Only run this check if we are REGISTERING (signup), not logging in
+                if (action === 'register_donor' || action === 'register_hospital') {
+                    const password = formData.get('password');
+                    // Regex: At least 8 chars, 1 uppercase, 1 number
+                    const requirementRegex = /^(?=.*\d)(?=.*[A-Z]).{8,}$/;
+                    
+                    if (!requirementRegex.test(password)) {
+                        alert("Password is too weak!\n\nRequirements:\n- At least 8 characters\n- At least one number\n- At least one UPPERCASE letter");
+                        return; // Stop the function here. Do not proceed to processing.
+                    }
+                }
+                // ----------------------------------------
+
+                btn.innerText = 'Processing...'; btn.disabled = true;
+
+                // SAVE TO LOCAL STORAGE FOR SIMULATION
+                if (action === 'register_donor') {
+                    const userProfile = {
+                        full_name: formData.get('full_name'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        gender: formData.get('gender'),
+                        blood_type: formData.get('blood_type'),
+                        profile_pic: ""
+                    };
+                    localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
+                }
+
+                try {
+                    const res = await fetch(backend, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        window.location.href = redirect;
+                    } else { 
+                        alert(data.message); 
+                        btn.innerText = ogText; 
+                        btn.disabled = false;
+                        if (typeof grecaptcha !== 'undefined') {
+                            grecaptcha.reset();
+                        }
+                    }
+                } catch(err) { 
+                    console.warn("Offline Mode: Redirecting...");
+                    window.location.href = redirect; // Fallback for preview
+                }
+            }
+
+            // Donor Login with reCAPTCHA
+            if(document.getElementById('donor-login-form')) {
+                document.getElementById('donor-login-form').onsubmit = (e) => {
+                    e.preventDefault();
+                    if (typeof grecaptcha !== 'undefined') {
+                        // Get reCAPTCHA response - try multiple methods
+                        let recaptchaResponse = grecaptcha.getResponse();
+                        
+                        // Also check stored responses from callback
+                        if ((!recaptchaResponse || recaptchaResponse === '') && window.recaptchaResponses) {
+                            recaptchaResponse = window.recaptchaResponses['donor-login-form'] || 
+                                               window.recaptchaResponses['default'] || 
+                                               Object.values(window.recaptchaResponses)[0];
+                        }
+                        
+                        if (!recaptchaResponse || recaptchaResponse === '') {
+                            alert('Please complete the reCAPTCHA verification');
+                            return;
+                        }
+                        
+                        const formData = new FormData(e.target);
+                        formData.append('g-recaptcha-response', recaptchaResponse);
+                        formData.append('action', 'login');
+                        const btn = e.target.querySelector('button[type="submit"]');
+                        const ogText = btn.innerText;
+                        btn.innerText = 'Processing...';
+                        btn.disabled = true;
+                        
+                        fetch('bloodknight.php', { 
+                            method: 'POST', 
+                            body: formData,
+                            credentials: 'same-origin' // Include cookies in the request
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if(data.status === 'success') {
+                                    console.log("✅ LOGIN SUCCESS - Response data:", data.data);
+                                    
+                                    // Save user profile to localStorage before redirect
+                                    try {
+                                        const userProfile = {
+                                            full_name: data.data.full_name,
+                                            email: data.data.email,
+                                            phone: data.data.phone,
+                                            blood_type: data.data.blood_type,
+                                            profile_pic: data.data.profile_pic || ""
+                                        };
+                                        
+                                        console.log("💾 Attempting to save to localStorage:", userProfile);
+                                        localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
+                                        console.log("✅ localStorage.setItem called");
+                                        
+                                        if (data.data.last_donation) {
+                                            localStorage.setItem('bk_last_donation', data.data.last_donation);
+                                            console.log("✅ Saved last_donation:", data.data.last_donation);
+                                        }
+                                        
+                                        // Verify it was saved immediately
+                                        const verify = localStorage.getItem('bk_user_profile');
+                                        if (!verify) {
+                                            console.error("❌ CRITICAL: localStorage save failed - browser may be blocking storage");
+                                            alert("CRITICAL ERROR: Browser storage is blocked. Please:\n1. Click the lock icon in address bar\n2. Allow storage/cookies for this site\n3. Try logging in again");
+                                            btn.disabled = false;
+                                            btn.textContent = ogText;
+                                            return; // Don't redirect if save failed
+                                        } else {
+                                            console.log("✅ VERIFIED: localStorage save successful");
+                                            const verified = JSON.parse(verify);
+                                            console.log("✅ Verified content - Email:", verified.email);
+                                        }
+                                        
+                                        // Verify session is established before redirecting
+                                        console.log("🔐 Verifying session is established...");
+                                        setTimeout(async () => {
+                                            // Final verification before redirect
+                                            const finalCheck = localStorage.getItem('bk_user_profile');
+                                            if (!finalCheck) {
+                                                console.error("❌ CRITICAL: localStorage lost after save!");
+                                                alert("ERROR: Data was not saved. Please check browser settings.");
+                                                btn.disabled = false;
+                                                btn.textContent = ogText;
+                                                return;
+                                            }
+                                            
+                                            // Verify session is established on server - with multiple retries
+                                            let sessionVerified = false;
+                                            let retryCount = 0;
+                                            const maxRetries = 3;
+                                            
+                                            while (!sessionVerified && retryCount < maxRetries) {
+                                                try {
+                                                    await new Promise(resolve => setTimeout(resolve, 300)); // Wait 300ms between retries
+                                                    
+                                                    const sessionCheck = await fetch('bloodknight.php?action=check_session', {
+                                                        credentials: 'same-origin',
+                                                        cache: 'no-cache'
+                                                    });
+                                                    const sessionResult = await sessionCheck.json();
+                                                    
+                                                    if (sessionResult.status === 'success') {
+                                                        console.log("✅✅✅ Session verified - user_id:", sessionResult.data?.user_id);
+                                                        sessionVerified = true;
+                                                        console.log("🚀 All checks passed, redirecting to dashboard...");
+                                                        window.location.href = 'dashboard.html';
+                                                        return; // Exit function
+                                                    } else {
+                                                        retryCount++;
+                                                        console.warn(`⚠️ Session not yet established (attempt ${retryCount}/${maxRetries}), retrying...`);
+                                                    }
+                                                } catch (sessionError) {
+                                                    retryCount++;
+                                                    console.error(`❌ Session check failed (attempt ${retryCount}/${maxRetries}):`, sessionError);
+                                                }
+                                            }
+                                            
+                                            // If we get here, session verification failed after retries
+                                            // Still redirect - session might establish on dashboard load
+                                            console.log("🚀 Redirecting to dashboard (session will be verified on dashboard load)...");
+                                            window.location.href = 'dashboard.html';
+                                        }, 500); // Increased delay to allow session to establish
+                                        
+                                    } catch (e) {
+                                        console.error("❌ CRITICAL localStorage error:", e);
+                                        alert("CRITICAL ERROR: " + e.message + "\n\nPlease check browser settings to allow storage access.");
+                                        btn.disabled = false;
+                                        btn.textContent = ogText;
+                                        return; // Don't redirect if there's an error
+                                    }
+                                } else {
+                                    alert(data.message);
+                                    btn.innerText = ogText;
+                                    btn.disabled = false;
+                                    grecaptcha.reset();
+                                    if (window.recaptchaResponses) {
+                                        delete window.recaptchaResponses['donor-login-form'];
+                                        delete window.recaptchaResponses['default'];
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                console.warn("Offline Mode: Redirecting...");
+                                window.location.href = 'dashboard.html';
+                            });
+                    } else {
+                        handleForm(e, 'login', 'dashboard.html', 'bloodknight.php');
+                    }
+                };
+            }
+            
+            // IC Number Auto-formatting
+            const icNumberInput = document.getElementById('ic-number-input');
+            if (icNumberInput) {
+                icNumberInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+                    
+                    // Limit to 12 digits
+                    if (value.length > 12) {
+                        value = value.slice(0, 12);
+                    }
+                    
+                    // Format: YYMMDD-XX-XXXX (Malaysian IC format)
+                    let formatted = '';
+                    if (value.length > 0) {
+                        formatted = value.slice(0, 6); // YYMMDD
+                        if (value.length > 6) {
+                            formatted += '-' + value.slice(6, 8); // XX (location code)
+                            if (value.length > 8) {
+                                formatted += '-' + value.slice(8, 12); // XXXX (serial number)
+                            }
+                        }
+                    }
+                    
+                    e.target.value = formatted;
+                });
+                
+                // Prevent non-numeric input
+                icNumberInput.addEventListener('keypress', function(e) {
+                    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+            
+            // OTP Registration Flow
+            let registrationData = {};
+            let verificationToken = '';
+
+            if(document.getElementById('donor-signup-form')) {
+                document.getElementById('donor-signup-form').onsubmit = async function(e) {
+                    e.preventDefault();
+                    
+                    // Verify reCAPTCHA
+                    if (typeof grecaptcha === 'undefined') {
+                        const msg = document.getElementById('signup-msg');
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'reCAPTCHA not loaded. Please refresh the page.';
+                        return;
+                    }
+                    
+                    // Get reCAPTCHA response - try multiple methods
+                    let recaptchaResponse = grecaptcha.getResponse();
+                    
+                    // Also check stored responses from callback
+                    if ((!recaptchaResponse || recaptchaResponse === '') && window.recaptchaResponses) {
+                        recaptchaResponse = window.recaptchaResponses['donor-signup-form'] || 
+                                          window.recaptchaResponses['default'] || 
+                                          Object.values(window.recaptchaResponses)[0];
+                    }
+                    
+                    if (!recaptchaResponse || recaptchaResponse === '') {
+                        const msg = document.getElementById('signup-msg');
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Please complete the reCAPTCHA verification';
+                        return;
+                    }
+                    
+                    const formData = new FormData(e.target);
+                    const btn = e.target.querySelector('button');
+                    const msg = document.getElementById('signup-msg');
+                    const password = formData.get('password');
+                    
+                    // Password validation
+                    const requirementRegex = /^(?=.*\d)(?=.*[A-Z]).{8,}$/;
+                    if (!requirementRegex.test(password)) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Password needs: 8+ chars, 1 Uppercase, 1 Number';
+                        grecaptcha.reset();
+                        return;
+                    }
+
+                    // Validate and format IC number (YYMMDD-XX-XXXX)
+                    const icNumber = formData.get('ic_number') || '';
+                    if (!icNumber || icNumber.trim() === '') {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'IC number is required';
+                        grecaptcha.reset();
+                        return;
+                    }
+                    const icFormatted = icNumber.replace(/\D/g, ''); // Remove all non-digits
+                    if (icFormatted.length !== 12) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'IC number must be 12 digits (format: YYMMDD-XX-XXXX)';
+                        grecaptcha.reset();
+                        return;
+                    }
+                    const icFormattedFinal = icFormatted.slice(0, 6) + '-' + icFormatted.slice(6, 8) + '-' + icFormatted.slice(8, 12);
+
+                    // Store registration data
+                    registrationData = {
+                        full_name: formData.get('full_name'),
+                        email: formData.get('email'),
+                        ic_number: icFormattedFinal,
+                        phone: formData.get('phone'),
+                        gender: formData.get('gender'),
+                        blood_type: formData.get('blood_type'),
+                        password: password
+                    };
+
+                    // Store original button content
+                    const originalBtnText = btn.innerHTML;
+                    
+                    // Set loading state immediately to prevent multiple clicks
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading...';
+                    btn.style.opacity = '0.8';
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.pointerEvents = 'none'; // Additional protection against clicks
+                    btn.style.transform = 'none'; // Remove hover transform during loading
+                    btn.style.transition = 'all 0.3s ease'; // Smooth transitions
+                    // Add visual feedback that button is loading
+                    btn.classList.add('loading');
+                    msg.textContent = '';
+
+                    // Send OTP
+                    const otpFormData = new FormData();
+                    otpFormData.append('action', 'send_otp');
+                    otpFormData.append('email', registrationData.email);
+                    otpFormData.append('full_name', registrationData.full_name);
+                    otpFormData.append('ic_number', registrationData.ic_number);
+                    otpFormData.append('g-recaptcha-response', recaptchaResponse);
+
+                    try {
+                        const response = await fetch('bloodknight.php', { method: 'POST', body: otpFormData });
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            // Show OTP step
+                            document.getElementById('signup-form-step').style.display = 'none';
+                            document.getElementById('otp-verification-step').style.display = 'block';
+                            document.getElementById('otp-email-display').textContent = registrationData.email;
+                            document.getElementById('otp-input').focus();
+                            // Reset button state (though it won't be visible since form is hidden)
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnText;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                            btn.style.pointerEvents = 'auto';
+                            btn.style.background = ''; // Reset background
+                            btn.style.boxShadow = ''; // Reset box shadow
+                            btn.style.transform = ''; // Reset transform
+                            btn.style.transition = ''; // Reset transition
+                            btn.classList.remove('loading'); // Remove loading class
+                        } else {
+                            msg.style.color = 'var(--primary)';
+                            msg.textContent = result.message;
+                            // Reset button state on error
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnText;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                            btn.style.pointerEvents = 'auto';
+                            btn.style.background = ''; // Reset background
+                            btn.style.boxShadow = ''; // Reset box shadow
+                            btn.style.transform = ''; // Reset transform
+                            btn.style.transition = ''; // Reset transition
+                            btn.classList.remove('loading'); // Remove loading class
+                            grecaptcha.reset();
+                            if (window.recaptchaResponses) {
+                                delete window.recaptchaResponses['donor-signup-form'];
+                                delete window.recaptchaResponses['default'];
+                            }
+                        }
+                    } catch (error) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Failed to send code. Please try again.';
+                        // Reset button state on error
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnText;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.background = ''; // Reset background
+                        btn.style.boxShadow = ''; // Reset box shadow
+                            btn.style.transform = ''; // Reset transform
+                            btn.style.transition = ''; // Reset transition
+                            btn.classList.remove('loading'); // Remove loading class
+                            grecaptcha.reset();
+                            if (window.recaptchaResponses) {
+                            delete window.recaptchaResponses['donor-signup-form'];
+                            delete window.recaptchaResponses['default'];
+                        }
+                    }
+                };
+            }
+
+            // OTP Verification
+            if(document.getElementById('otp-verification-form')) {
+                document.getElementById('otp-verification-form').onsubmit = async function(e) {
+                    e.preventDefault();
+                    const otp = document.getElementById('otp-input').value.trim();
+                    const btn = e.target.querySelector('button[type="submit"]');
+                    const msg = document.getElementById('otp-msg');
+
+                    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Please enter a valid 6-digit code';
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.textContent = 'Verifying...';
+                    msg.textContent = '';
+
+                    // Verify OTP
+                    const verifyFormData = new FormData();
+                    verifyFormData.append('action', 'verify_otp');
+                    verifyFormData.append('email', registrationData.email);
+                    verifyFormData.append('otp', otp);
+
+                    try {
+                        const response = await fetch('bloodknight.php', { method: 'POST', body: verifyFormData });
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            verificationToken = result.data.verification_token;
+                            // Show QnA step instead of creating account immediately
+                            document.getElementById('otp-verification-step').style.display = 'none';
+                            const qnaStep = document.getElementById('qna-step');
+                            if (qnaStep) {
+                                qnaStep.style.display = 'block';
+                            }
+                            btn.disabled = false;
+                            btn.textContent = 'Verify & Continue';
+                            msg.textContent = '';
+                        } else {
+                            msg.style.color = 'var(--primary)';
+                            msg.textContent = result.message;
+                            btn.disabled = false;
+                            btn.textContent = 'Verify & Create Account';
+                        }
+                    } catch (error) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Verification failed. Please try again.';
+                        btn.disabled = false;
+                        btn.textContent = 'Verify & Create Account';
+                    }
+                };
+            }
+
+            // QnA Form Submission
+            if(document.getElementById('qna-form')) {
+                document.getElementById('qna-form').onsubmit = async function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const btn = e.target.querySelector('button[type="submit"]');
+                    const msg = document.getElementById('qna-msg');
+                    
+                    // Check all questions are answered
+                    const q1 = formData.get('q1');
+                    const q2 = formData.get('q2');
+                    const q3 = formData.get('q3');
+                    const q4 = formData.get('q4');
+                    const q5 = formData.get('q5');
+                    
+                    if (!q1 || !q2 || !q3 || !q4 || !q5) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Please answer all questions';
+                        return;
+                    }
+                    
+                    // Check eligibility (must pass all critical questions)
+                    if (q1 === 'no' || q2 === 'no' || q4 === 'no') {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'You do not meet the basic eligibility requirements. Please contact us for more information.';
+                        return;
+                    }
+                    
+                    // Check if user has donated within 90 days - not eligible to sign up
+                    if (q3 === 'yes') {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'You are not eligible to sign up as a donor. You must wait at least 90 days after your last donation before registering.';
+                        return;
+                    }
+                    
+                    btn.disabled = true;
+                            btn.textContent = 'Creating Account...';
+                    msg.textContent = '';
+
+                    // Complete registration with QnA answers
+                            const registerFormData = new FormData();
+                            registerFormData.append('action', 'register_donor');
+                            registerFormData.append('full_name', registrationData.full_name);
+                            registerFormData.append('email', registrationData.email);
+                    registerFormData.append('ic_number', registrationData.ic_number);
+                            registerFormData.append('password', registrationData.password);
+                            registerFormData.append('blood_type', registrationData.blood_type);
+                            registerFormData.append('phone', registrationData.phone);
+                            registerFormData.append('gender', registrationData.gender);
+                            registerFormData.append('verification_token', verificationToken);
+                    registerFormData.append('q1', q1);
+                    registerFormData.append('q2', q2);
+                    registerFormData.append('q3', q3);
+                    registerFormData.append('q4', q4);
+                    registerFormData.append('q5', q5);
+
+                    try {
+                            const registerResponse = await fetch('bloodknight.php', { method: 'POST', body: registerFormData });
+                            const registerResult = await registerResponse.json();
+
+                            if (registerResult.status === 'success') {
+                                // Save to localStorage
+                                const userProfile = {
+                                    full_name: registrationData.full_name,
+                                    email: registrationData.email,
+                                    phone: registrationData.phone,
+                                    gender: registrationData.gender,
+                                    blood_type: registrationData.blood_type,
+                                ic_number: registrationData.ic_number || '',
+                                    profile_pic: ""
+                                };
+                                localStorage.setItem('bk_user_profile', JSON.stringify(userProfile));
+                            localStorage.setItem('bk_last_donation', registerResult.data?.last_donation || '');
+
+                            msg.style.color = 'var(--accent-green)';
+                            msg.textContent = 'Account created successfully! Redirecting...';
+                            
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 1500);
+                            } else {
+                                msg.style.color = 'var(--primary)';
+                            msg.textContent = registerResult.message || 'Registration failed';
+                                btn.disabled = false;
+                            btn.textContent = 'Submit & Create Account';
+                        }
+                    } catch (error) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Registration failed. Please try again.';
+                        btn.disabled = false;
+                        btn.textContent = 'Submit & Create Account';
+                    }
+                };
+            }
+
+            // Back to signup form
+            if(document.getElementById('back-to-signup')) {
+                document.getElementById('back-to-signup').onclick = function() {
+                    document.getElementById('otp-verification-step').style.display = 'none';
+                    const qnaStep = document.getElementById('qna-step');
+                    if (qnaStep) qnaStep.style.display = 'none';
+                    document.getElementById('signup-form-step').style.display = 'block';
+                    if (typeof registrationData !== 'undefined') {
+                        registrationData = {};
+                        verificationToken = '';
+                    }
+                };
+            }
+
+            // Resend OTP
+            if(document.getElementById('resend-otp-btn')) {
+                document.getElementById('resend-otp-btn').onclick = async function() {
+                    const btn = this;
+                    const msg = document.getElementById('otp-msg');
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                    msg.textContent = '';
+
+                    const otpFormData = new FormData();
+                    otpFormData.append('action', 'send_otp');
+                    otpFormData.append('email', registrationData.email);
+                    otpFormData.append('full_name', registrationData.full_name);
+
+                    try {
+                        const response = await fetch('bloodknight.php', { method: 'POST', body: otpFormData });
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            msg.style.color = 'var(--accent-green)';
+                            msg.textContent = 'New code sent!';
+                            document.getElementById('otp-input').value = '';
+                            document.getElementById('otp-input').focus();
+                        } else {
+                            msg.style.color = 'var(--primary)';
+                            msg.textContent = result.message;
+                        }
+                    } catch (error) {
+                        msg.style.color = 'var(--primary)';
+                        msg.textContent = 'Failed to resend. Please try again.';
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+                    }
+                };
+            }
+
+            // Back to signup form
+            if(document.getElementById('back-to-signup')) {
+                document.getElementById('back-to-signup').onclick = function() {
+                    document.getElementById('otp-verification-step').style.display = 'none';
+                    const qnaStep = document.getElementById('qna-step');
+                    if (qnaStep) qnaStep.style.display = 'none';
+                    document.getElementById('signup-form-step').style.display = 'block';
+                    document.getElementById('otp-input').value = '';
+                    document.getElementById('otp-msg').textContent = '';
+                    if (document.getElementById('qna-msg')) document.getElementById('qna-msg').textContent = '';
+                    if (typeof grecaptcha !== 'undefined') {
+                        grecaptcha.reset();
+                    }
+                };
+            }
+
+            // Auto-format OTP input
+            if(document.getElementById('otp-input')) {
+                document.getElementById('otp-input').addEventListener('input', function(e) {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                });
+            }
+            if(document.getElementById('hospital-login-form')) document.getElementById('hospital-login-form').onsubmit = (e) => handleForm(e, 'login', 'admin_dashboard.html', 'admin.php');
+            
+            // BloodKnight Admin Login Handler
+            if(document.getElementById('bk-admin-login-form')) {
+                document.getElementById('bk-admin-login-form').onsubmit = async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    formData.append('action', 'login');
+                    const btn = form.querySelector('button[type="submit"]');
+                    const ogText = btn.innerHTML;
+                    const errorMsg = document.getElementById('bk-admin-error-msg');
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+                    if (errorMsg) {
+                        errorMsg.style.display = 'none';
+                        errorMsg.textContent = '';
+                    }
+                    
+                    try {
+                        const response = await fetch('bk_admin_controller.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const responseText = await response.text();
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (parseError) {
+                            throw new Error('Server error: ' + responseText.substring(0, 100));
+                        }
+                        
+                        if (data.status === 'success') {
+                            // Show success notification briefly before redirect
+                            const successMsg = document.createElement('div');
+                            successMsg.id = 'login-success-toast';
+                            successMsg.className = 'fixed top-5 right-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-6 py-4 rounded-xl shadow-2xl transform translate-x-full transition-transform duration-300 z-50 font-bold flex items-center gap-3';
+                            successMsg.innerHTML = '<i class="fas fa-check-circle text-green-600 text-xl"></i> <span>Login successful! Redirecting...</span>';
+                            document.body.appendChild(successMsg);
+                            
+                            // Slide in
+                            setTimeout(() => {
+                                successMsg.classList.remove('translate-x-full');
+                            }, 10);
+                            
+                            // Redirect after showing notification
+                            setTimeout(() => {
+                                window.location.href = 'bk_admin_dashboard.html';
+                            }, 1500);
+                        } else {
+                            if (errorMsg) {
+                                errorMsg.textContent = data.message || 'Login failed';
+                                errorMsg.style.display = 'block';
+                            } else {
+                                alert(data.message || 'Login failed');
+                            }
+                            btn.disabled = false;
+                            btn.innerHTML = ogText;
+                        }
+                    } catch (error) {
+                        console.error('Admin login error:', error);
+                        if (errorMsg) {
+                            errorMsg.textContent = 'Connection error: ' + error.message + '. Please check if the server is running.';
+                            errorMsg.style.display = 'block';
+                        } else {
+                            alert('Connection error: ' + error.message);
+                        }
+                        btn.disabled = false;
+                        btn.innerHTML = ogText;
+                    }
+                };
+            }
+            if(document.getElementById('hospital-signup-form')) {
+                document.getElementById('hospital-signup-form').onsubmit = async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const btn = form.querySelector('button[type="submit"]');
+                    const ogText = btn.innerHTML;
+                    
+                    // Check reCAPTCHA
+                    const recaptchaResponse = window.recaptchaResponses && window.recaptchaResponses['hospital-signup-form'];
+                    if (!recaptchaResponse) {
+                        alert('Please complete the reCAPTCHA verification.');
+                        return;
+                    }
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Request...';
+                    
+                    const formData = new FormData(form);
+                    formData.append('action', 'request_hospital_registration');
+                    formData.append('recaptcha_response', recaptchaResponse);
+                    
+                    try {
+                        const response = await fetch('bk_admin_controller.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            alert('Registration request submitted successfully! You will receive an email once your request is reviewed by our admin team.');
+                            form.reset();
+                            if (typeof grecaptcha !== 'undefined') {
+                                grecaptcha.reset();
+                            }
+                            if (window.recaptchaResponses) {
+                                delete window.recaptchaResponses['hospital-signup-form'];
+                            }
+                            toggleModal('hospital-signup-modal', false);
+                        } else {
+                            alert('Error: ' + (data.message || 'Failed to submit request'));
+                            if (typeof grecaptcha !== 'undefined') {
+                                grecaptcha.reset();
+                            }
+                            if (window.recaptchaResponses) {
+                                delete window.recaptchaResponses['hospital-signup-form'];
+                            }
+                        }
+                    } catch (error) {
+                        alert('Connection error. Please try again.');
+                        if (typeof grecaptcha !== 'undefined') {
+                            grecaptcha.reset();
+                        }
+                        if (window.recaptchaResponses) {
+                            delete window.recaptchaResponses['hospital-signup-form'];
+                        }
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = ogText;
+                    }
+                };
+            }
+
+            // Chat Toggle Functionality
+            const chatWindow = document.getElementById('chatWindow');
+            const chatToggleBtn = document.getElementById('open-chat');
+            const chatNotification = document.getElementById('chat-notification');
+            const headerOnlineDot = document.querySelector('.chat-header-online-dot');
+            
+            const toggleChat = () => {
+                if (chatWindow.style.display === 'flex') {
+                    chatWindow.style.display = 'none';
+                    // Don't remove notification dot - keep it visible if there's a new message
+                } else {
+                    chatWindow.style.display = 'flex';
+                    // Reset inactivity timer when opening chat
+                    resetInactivityTimer();
+                }
+            };
+            
+            chatToggleBtn.onclick = toggleChat;
+            document.getElementById('close-chat').onclick = () => {
+                chatWindow.style.display = 'none';
+            };
+            
+            // Chatbot functionality
+            const chatBody = document.querySelector('.chat-body');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            
+            // Inactivity timer for online status
+            let inactivityTimer = null;
+            const INACTIVITY_TIMEOUT = 60000; // 1 minute
+            
+            const resetInactivityTimer = () => {
+                // Turn dots green when interacted with
+                const headerDot = document.querySelector('.chat-header-online-dot');
+                if (headerDot) {
+                    headerDot.classList.add('active');
+                }
+                // Only update notification dot if it's already active (visible)
+                if (chatNotification && chatNotification.classList.contains('active')) {
+                    chatNotification.classList.remove('idle');
+                }
+                
+                // Clear existing timer
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                
+                // Set new timer
+                inactivityTimer = setTimeout(() => {
+                    // Turn dots grey after inactivity
+                    if (headerDot) {
+                        headerDot.classList.remove('active');
+                    }
+                    // Only turn notification dot grey if it's active
+                    if (chatNotification && chatNotification.classList.contains('active')) {
+                        chatNotification.classList.add('idle');
+                    }
+                }, INACTIVITY_TIMEOUT);
+            };
+            
+            const addMessage = (text, isUser = false) => {
+                // Reset inactivity timer on any message
+                resetInactivityTimer();
+                const messageContainer = document.createElement('div');
+                messageContainer.style.cssText = `display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${isUser ? 'justify-content: flex-end;' : ''}`;
+                
+                if (isUser) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.style.cssText = `background: var(--primary); color: white; padding: 10px 15px; border-radius: 10px; text-align: left; display: inline-block; width: fit-content; max-width: 80%; word-wrap: break-word; white-space: pre-line; margin-left: auto;`;
+                    messageDiv.textContent = text;
+                    messageContainer.appendChild(messageDiv);
+                } else {
+                    // Bot message with icon (no online dot on individual messages)
+                    const iconImg = document.createElement('img');
+                    iconImg.src = 'assets/knight-icon.png';
+                    iconImg.alt = 'KnightBot';
+                    iconImg.style.cssText = `width: 35px; height: 35px; border-radius: 50%; object-fit: contain; flex-shrink: 0;`;
+                    iconImg.onerror = function() { this.style.display = 'none'; };
+                    
+                    const messageDiv = document.createElement('div');
+                    // Use CSS class instead of inline styles for theme responsiveness
+                    messageDiv.className = 'bot-message-bubble';
+                    messageDiv.style.cssText = `padding: 10px 15px; border-radius: 10px; display: inline-block; width: fit-content; max-width: 80%; word-wrap: break-word; white-space: pre-line;`;
+                    messageDiv.textContent = text;
+                    
+                    messageContainer.appendChild(iconImg);
+                    messageContainer.appendChild(messageDiv);
+                }
+                
+                chatBody.appendChild(messageContainer);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            };
+            
+            const getBotResponse = (userMessage) => {
+                const message = userMessage.toLowerCase().trim();
+                
+                // Handle specific dropdown questions first
+                if (message.includes('aspirin') || message.includes('medication') || message.includes('medicine') || message.includes('took aspirin')) {
+                    return "**Medication Guidelines:**\n\n• Aspirin: Wait 48 hours after taking before donating.\n• Antibiotics: Complete course, wait 7 days after last dose.\n• Blood thinners: Consult your doctor first.\n• Most medications are fine, but always disclose them during screening.\n\nWhen in doubt, ask the medical staff at the donation center.";
+                } else if (message.includes('eat') || message.includes('food') || message.includes('diet') || message.includes('before donating') || message.includes('what should i eat')) {
+                    return "**Pre-Donation Nutrition:**\n\n• Eat a healthy meal 2-3 hours before donating.\n• Stay hydrated - drink plenty of water.\n• Avoid fatty foods right before donation.\n• Iron-rich foods: Red meat, spinach, beans, fortified cereals.\n• Vitamin C helps iron absorption (oranges, tomatoes).\n\nA good meal ensures stable blood sugar and reduces dizziness.";
+                } else if (message.includes('recovery') || message.includes('how long') || message.includes('recovery take')) {
+                    return "**Recovery Timeline:**\n\n• **Immediate:** Rest 10-15 minutes, have a snack and drink.\n• **24 hours:** Your plasma volume is restored.\n• **48 hours:** Red blood cells start regenerating.\n• **8 weeks:** Full red blood cell recovery.\n• **Next donation:** Wait minimum 90 days (12 weeks).\n\nStay hydrated and avoid heavy exercise for 24 hours.";
+                } else if (message.includes('eligible') || message.includes('qualify') || message.includes('can i donate') || message.includes('am i eligible')) {
+                    return "**Eligibility Requirements:**\n\n✓ Age: 18+ (or 17 with parental consent)\n✓ Weight: Minimum 50kg (110 lbs)\n✓ Health: Feeling well, no cold/flu symptoms\n✓ Hemoglobin: Adequate iron levels (tested on-site)\n✓ No recent tattoos/piercings (12 months)\n✓ No high-risk behaviors\n✓ Not pregnant or breastfeeding\n\nYou'll be screened before each donation to ensure safety.";
+                } else if (message.includes('iron') || message.includes('iron-rich') || message.includes('iron rich foods')) {
+                    return "**Iron-Rich Foods for Donors:**\n\n**High Iron Sources:**\n• Red meat (beef, lamb)\n• Dark leafy greens (spinach, kale)\n• Legumes (beans, lentils, chickpeas)\n• Fortified cereals and breads\n• Tofu and soy products\n• Nuts and seeds\n\n**Enhance Absorption:**\n• Pair with Vitamin C (citrus, bell peppers)\n• Avoid coffee/tea with iron-rich meals\n• Cook in cast-iron cookware when possible\n\nAim for 18mg daily (men) or 15mg (women).";
+                } else if (message.includes('often') || message.includes('frequency') || message.includes('how many times') || message.includes('how often can i donate')) {
+                    return "**Donation Frequency:**\n\n• **Whole Blood:** Every 90 days (12 weeks) minimum\n• **Platelets:** Every 7 days, up to 24 times/year\n• **Plasma:** Every 28 days\n\nYour body needs time to regenerate blood cells. The 90-day rule ensures your hemoglobin levels recover fully. Track your donations in your dashboard!";
+                } else if (message.includes('happens during') || message.includes('process') || message.includes('procedure') || message.includes('what happens during donation')) {
+                    return "**Donation Process:**\n\n1. **Registration:** Check-in and provide ID\n2. **Health Screening:** Quick questionnaire and mini-physical\n3. **Hemoglobin Test:** Small finger prick to check iron levels\n4. **Donation:** 10-15 minutes (1 pint of blood)\n5. **Recovery:** Rest area with snacks and drinks\n\nTotal time: ~45-60 minutes. The actual donation is quick and mostly painless!";
+                } else if (message.includes('after donating') || message.includes('what should i do') || message.includes('what should i do after donating')) {
+                    return "**Post-Donation Care:**\n\n**Immediate (First Hour):**\n• Rest for 10-15 minutes\n• Have a snack and drink provided\n• Keep the bandage on for 4-6 hours\n\n**First 24 Hours:**\n• Drink extra fluids\n• Avoid alcohol\n• No heavy lifting or strenuous exercise\n• Eat iron-rich meals\n\n**Watch For:**\n• Dizziness, nausea, or fainting - sit/lie down immediately\n• Bleeding at site - apply pressure and raise arm\n• If symptoms persist, contact the donation center.";
+                } else if (message.includes('exercise') || message.includes('workout') || message.includes('gym') || message.includes('can i exercise after donating')) {
+                    return "**Exercise After Donation:**\n\n**First 24 Hours:**\n• Avoid heavy lifting and intense workouts\n• Light walking is fine\n• No competitive sports\n• Listen to your body\n\n**After 24 Hours:**\n• You can resume normal activities\n• Start gradually if doing intense training\n• Stay well-hydrated\n\nYour body needs time to restore fluid volume. Overexertion can cause dizziness or fainting.";
+                } else if (message.includes('side effects') || message.includes('risks') || message.includes('safe') || message.includes('what are the side effects')) {
+                    return "**Safety & Side Effects:**\n\n**Common (Mild):**\n• Bruising at needle site (normal, fades in days)\n• Dizziness or lightheadedness\n• Minor fatigue\n\n**Rare:**\n• Fainting (usually if you skip the rest period)\n• Nausea\n• Nerve irritation (temporary)\n\n**Safety Measures:**\n• Sterile, single-use equipment\n• Trained medical staff\n• Health screening before each donation\n• Your safety is the top priority!\n\nBlood donation is very safe when done at licensed centers.";
+                } else if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+                    return "Hello! I'm KnightBot, your blood donation assistant. How can I help you today?";
+                } else if (message.includes('donate') || message.includes('donation') || message.includes('want to donate') || message.includes('how to donate')) {
+                    return "Great! To donate blood, follow these steps:\n\n1. Click the 'Login' button in the top right corner\n\n2. If you're new, click 'Sign up' to create an account\n\n3. Fill in your details (name, email, blood type, etc.)\n\n4. Once registered, you can schedule your donation\n\nIf you already have an account, just click 'Login' and enter your email and password. Need help with anything else?";
+                } else if (message.includes('login') || message.includes('sign in') || message.includes('signin') || message.includes('how to login') || message.includes('how do i login') || message.includes('how do i sign in')) {
+                    return "To login:\n\n1. Click the 'Login' button in the top right corner of the page\n\n2. Enter your email address\n\n3. Enter your password\n\n4. Click 'Sign In'\n\nIf you don't have an account yet, click 'Sign up' on the login modal to create one. Need more help?";
+                } else if (message.includes('signup') || message.includes('sign up') || message.includes('register') || message.includes('registration') || message.includes('create account') || message.includes('new account')) {
+                    return "To create an account:\n\n1. Click the 'Login' button in the top right corner\n\n2. Click 'Sign up' at the bottom of the login modal\n\n3. Fill in your details:\n   - Full Name\n   - Email\n   - Gender and Phone\n   - Blood Type\n   - Password (min 8 chars, 1 uppercase, 1 number)\n\n4. Click 'Create Account'\n\nAfter registration, you can login and start donating!";
+                } else if (message.includes('blood type') || message.includes('type')) {
+                    return "All blood types are needed! O-negative is the universal donor and is especially valuable. You can check your blood type compatibility on our website. What's your blood type?";
+                } else if (message.includes('location') || message.includes('where') || message.includes('clinic')) {
+                    return "We have partner medical institutions within Sabah, Malaysia. You can find the nearest donation center by checking our website or contacting us. Would you like help finding a location near you?";
+                } else if (message.includes('thank') || message.includes('thanks')) {
+                    return "You're welcome! Is there anything else I can help you with?";
+                } else if (message.includes('help') || message.includes('support') || message.includes('dont understand') || message.includes("don't understand") || message.includes('confused') || message.includes('how')) {
+                    return "I'm here to help! Here's how to get started:\n\n• To DONATE:\n  Click 'Login' → 'Sign up' (if new) or 'Sign In' (if you have an account)\n\n• To LOGIN:\n  Click 'Login' button → Enter email & password → 'Sign In'\n\n• To SIGN UP:\n  Click 'Login' → 'Sign up' → Fill your details → 'Create Account'\n\nWhat would you like help with?";
+                } else {
+                    return "Thank you for your message! I'm here to help with blood donation questions. You can select a question from the dropdown above, or ask me about:\n\n• Eligibility requirements\n• Pre-donation preparation\n• Post-donation care\n• Donation frequency\n• And more!\n\nWhat would you like to know?";
+                }
+            };
+            
+            window.handleChatSend = () => {
+                // Handle both select dropdown and text input
+                const message = chatInput.tagName === 'SELECT' ? chatInput.value : chatInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    if (chatInput.tagName === 'SELECT') {
+                        chatInput.value = ''; // Reset select to first option
+                    } else {
+                    chatInput.value = '';
+                    }
+                    
+                    // Reset inactivity timer and turn dots green
+                    resetInactivityTimer();
+                    
+                    // Show notification dot (green when active) - keep it visible
+                    chatNotification.classList.add('active');
+                    chatNotification.classList.remove('idle');
+                    
+                    // Simulate bot thinking, then respond
+                    setTimeout(() => {
+                        const response = getBotResponse(message);
+                        addMessage(response, false);
+                        // Show notification dot and make it green
+                        chatNotification.classList.add('active');
+                        chatNotification.classList.remove('idle');
+                        // Reset inactivity timer after bot response
+                        resetInactivityTimer();
+                    }, 1000);
+                }
+            };
+            
+            // Auto-submit when select dropdown changes
+            if (chatInput && chatInput.tagName === 'SELECT') {
+                chatInput.addEventListener('change', (e) => {
+                    if (e.target.value) {
+                        resetInactivityTimer();
+                        handleChatSend();
+                    }
+                });
+                chatInput.addEventListener('focus', resetInactivityTimer);
+            } else if (chatInput) {
+                chatInput.addEventListener('focus', resetInactivityTimer);
+                chatInput.addEventListener('input', resetInactivityTimer);
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        resetInactivityTimer();
+                    }
+                });
+            }
+            
+            // Reset timer when chat window is opened
+            if (chatWindow) {
+                const observer = new MutationObserver(() => {
+                    if (chatWindow.style.display === 'flex') {
+                        resetInactivityTimer();
+                    }
+                });
+                observer.observe(chatWindow, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+    </script>
+</body>
+</html>
